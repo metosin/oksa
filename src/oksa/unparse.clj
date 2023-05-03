@@ -94,13 +94,14 @@
      :query (partial operation "query")
      :mutation (partial operation "mutation")
      :subscription (partial operation "subscription")
-     :field (fn [opts & _xs]
+     :field (fn [opts & xs]
               (str (when (:alias opts) (str (name (:alias opts)) ":"))
                    (name (:name opts))
                    (when (and (some? (:arguments opts))
                               (not-empty (:arguments opts)))
                      (format-arguments (:arguments opts)))
-                   (when (:directives opts) (format-directives (:directives opts)))))
+                   (when (:directives opts) (format-directives (:directives opts)))
+                   (apply str xs)))
      :selection (fn [_opts & xs]
                   (apply str xs))
      :selectionset (fn [_opts & xs]
