@@ -171,8 +171,10 @@
                           [:qux {:alias :baz}]]))))
   (testing "directives"
     (is (= "query @foo{foo}"
+           (core/unparse [:query {:directives [:foo]} [:foo]])
            (core/unparse [:query {:directives [[:foo]]} [:foo]])))
     (is (= "query @foo @bar{foo}"
+           (core/unparse [:query {:directives [:foo :bar]} [:foo]])
            (core/unparse [:query {:directives [[:foo] [:bar]]} [:foo]])))
     (is (= "query @foo(bar:123){foo}"
            (core/unparse [:query {:directives [[:foo {:arguments {:bar 123}}]]} [:foo]])))

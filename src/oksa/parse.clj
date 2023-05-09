@@ -4,7 +4,10 @@
 
 (def transform-map
   (letfn [(operation [operation-type opts xs]
-            (into [operation-type opts] xs))
+            (into [operation-type (update opts
+                                          :directives
+                                          (partial util/transform-malli-ast transform-map))]
+                  xs))
           (document [opts xs]
             (into [:document opts] xs))
           (fragment [opts xs]
@@ -48,7 +51,10 @@
      ::SelectionSet selection-set
      ::Field (fn [[name opts & xs]]
                (into [:selection {} [:field (merge opts {:name name})]]
-                     (filterv some? xs)))}))
+                     (filterv some? xs)))
+     ::Directives (partial into [])
+     ::Directive (fn [[name opts]] [name opts])
+     ::DirectiveName (fn [directive-name] [directive-name {}])}))
 
 (def graphql-dsl-lang
   [:schema {:registry {::Document [:or
@@ -129,12 +135,15 @@
                                 coll?
                                 :map]
                        ::Arguments [:map-of [:ref ::Name] [:ref ::Value]]
-                       ::Directives [:+ [:schema [:ref ::Directive]]]
+                       ::Directives [:orn [::Directives [:+ [:orn
+                                                             [::DirectiveName [:schema [:ref ::DirectiveName]]]
+                                                             [::Directive [:schema [:ref ::Directive]]]]]]]
                        ::Directive [:cat
-                                    :keyword
+                                    [:schema [:ref ::DirectiveName]]
                                     [:? [:map
                                          [:arguments {:optional true}
-                                          [:ref ::Arguments]]]]]}}
+                                          [:ref ::Arguments]]]]]
+                       ::DirectiveName :keyword}}
    ::Document])
 
 (def graphql-dsl-parser (m/parser graphql-dsl-lang))
