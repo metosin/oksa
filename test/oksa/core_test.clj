@@ -37,7 +37,20 @@
     (testing "support strings as field names"
       (is (= "{foo}"
              (core/unparse ["foo"])
-             (core/unparse [:foo])))))
+             (core/unparse [:foo]))))
+    (testing "arguments"
+      (is (= "{foo}"
+             (core/unparse [[:foo {:arguments {}}]])))
+      (is (= "{foo(a:1, b:\"hello world\", c:true, d:null, e:foo, f:[1 2 3], g:{frob:{foo:1, bar:2}}, h:$fooVar)}"
+             (core/unparse [[:foo {:arguments {:a 1
+                                               :b "hello world"
+                                               :c true
+                                               :d nil
+                                               :e :foo
+                                               :f [1 2 3]
+                                               :g {:frob {:foo 1
+                                                          :bar 2}}
+                                               :h :$fooVar}}]])))))
   (testing "document"
     (is (= "{foo}"
            (core/unparse [:<> [:foo]])
@@ -156,19 +169,6 @@
            (core/unparse [[:foo {:alias :bar}]
                           :frob
                           [:qux {:alias :baz}]]))))
-  (testing "arguments"
-    (is (= "{foo}"
-           (core/unparse [[:foo {:arguments {}}]])))
-    (is (= "{foo(a:1, b:\"hello world\", c:true, d:null, e:foo, f:[1 2 3], g:{frob:{foo:1, bar:2}}, h:$fooVar)}"
-           (core/unparse [[:foo {:arguments {:a 1
-                                             :b "hello world"
-                                             :c true
-                                             :d nil
-                                             :e :foo
-                                             :f [1 2 3]
-                                             :g {:frob {:foo 1
-                                                        :bar 2}}
-                                             :h :$fooVar}}]]))))
   (testing "directives"
     (is (= "query @foo{foo}"
            (core/unparse [:query {:directives [[:foo]]} [:foo]])))
