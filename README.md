@@ -78,8 +78,8 @@ Arguments:
 Directives:
 
 ```clojure
-(core/unparse [[:foo {:directives [[:bar]]}]])
-;; => "{foo@bar}"
+(core/unparse [[:foo {:directives [:bar]}]])
+=> "{foo@bar}"
 
 ;; with arguments
 (core/unparse [[:foo {:directives [[:bar {:arguments {:qux 123}}]]}]])
