@@ -178,6 +178,11 @@
            (core/unparse [:query {:directives [[:foo] [:bar]]} [:foo]])))
     (is (= "query @foo(bar:123){foo}"
            (core/unparse [:query {:directives [[:foo {:arguments {:bar 123}}]]} [:foo]])))
+    (is (= "{foo@bar}"
+           (core/unparse [[:foo {:directives [:bar]}]])))
+    (is (= "{foo@bar qux@baz}"
+           (core/unparse [[:foo {:directives [:bar]}]
+                          [:qux {:directives [:baz]}]])))
     (is (= "{foo@foo(bar:123)}"
            (core/unparse [[:foo {:directives [[:foo {:arguments {:bar 123}}]]}]])))
     (is (= "{...foo@foo(bar:123)}"

@@ -50,7 +50,10 @@
      :inline-fragment inline-fragment
      ::SelectionSet selection-set
      ::Field (fn [[name opts & xs]]
-               (into [:selection {} [:field (merge opts {:name name})]]
+               (into [:selection {} [:field (merge (update opts
+                                                           :directives
+                                                           (partial util/transform-malli-ast transform-map))
+                                                   {:name name})]]
                      (filterv some? xs)))
      ::Directives (partial into [])
      ::Directive (fn [[name opts]] [name opts])
@@ -112,7 +115,9 @@
                                                [:map
                                                 [:alias {:optional true} [:ref ::Name]]
                                                 [:arguments {:optional true}
-                                                 [:ref ::Arguments]]]
+                                                 [:ref ::Arguments]]
+                                                [:directives {:optional true}
+                                                 [:ref ::Directives]]]
                                                [:? [:schema [:ref ::SelectionSet]]]]]]
                        ::NakedField [:schema [:ref ::FieldName]]
                        ::FieldName [:and
