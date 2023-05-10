@@ -102,14 +102,14 @@
                                [:schema [:ref ::NamedTypeOrNonNullNamedType]]
                                [:schema [:ref ::ListTypeOrNonNullListType]]]
                        ::TypeName [:and [:not [:enum :oksa/list]] :keyword]
-                       ::VariableDefinitionOpts [:map
-                                                 [:oksa/non-null? :boolean]]
+                       ::TypeOpts [:map
+                                   [:oksa/non-null? :boolean]]
                        ::NamedTypeOrNonNullNamedType [:cat
                                                       [:schema [:ref ::TypeName]]
-                                                      [:? [:schema [:ref ::VariableDefinitionOpts]]]]
+                                                      [:? [:schema [:ref ::TypeOpts]]]]
                        ::ListTypeOrNonNullListType [:cat
                                                     [:= :oksa/list]
-                                                    [:? [:schema [:ref ::VariableDefinitionOpts]]]
+                                                    [:? [:schema [:ref ::TypeOpts]]]
                                                     [:schema [:ref ::Type]]]
                        ::SelectionSet [:orn
                                        [::SelectionSet [:+ [:catn
