@@ -98,7 +98,7 @@
   (testing "variable definitions"
     (testing "named type"
       (is (= "query ($fooVar:FooType){fooField}"
-             (core/unparse [:query {:variables [:fooVar [:FooType]]}
+             (core/unparse [:query {:variables [:fooVar :FooType]}
                             [:fooField]]))))
     (testing "non-null named type")
     (is (= "query ($fooVar:FooType!){fooField}"
@@ -106,7 +106,7 @@
                           [:fooField]])))
     (testing "named type within list"
       (is (= "query ($fooVar:[FooType]){fooField}"
-             (core/unparse [:query {:variables [:fooVar [:oksa/list [:FooType]]]}
+             (core/unparse [:query {:variables [:fooVar [:oksa/list :FooType]]}
                             [:fooField]]))))
     (testing "non-null named type within list"
       (is (= "query ($fooVar:[FooType!]){fooField}"
@@ -116,7 +116,7 @@
     (testing "named type within list"
       (is (= "query ($fooVar:[BarType]!){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list {:oksa/non-null? true}
-                                                         [:BarType]]]}
+                                                         :BarType]]}
                             [:fooField]]))))
     (testing "non-null type within non-null list"
       (is (= "query ($fooVar:[BarType!]!){fooField}"
@@ -127,18 +127,18 @@
       (is (= "query ($fooVar:[[BarType]]){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list
                                                          [:oksa/list
-                                                          [:BarType]]]]}
+                                                          :BarType]]]}
                             [:fooField]]))))
     (testing "non-null list within non-null list"
       (is (= "query ($fooVar:[[BarType]!]!){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list {:oksa/non-null? true}
                                                          [:oksa/list {:oksa/non-null? true}
-                                                          [:BarType]]]]}
+                                                          :BarType]]]}
                             [:fooField]]))))
     (testing "multiple variable definitions"
       (is (= "query ($fooVar:FooType,$barVar:BarType){fooField}"
-             (core/unparse [:query {:variables [:fooVar [:FooType]
-                                                :barVar [:BarType]]}
+             (core/unparse [:query {:variables [:fooVar :FooType
+                                                :barVar :BarType]}
                             [:fooField]]))))
     (testing "default values"
       (is (= "query ($fooVar:Foo=123){fooField(foo:$fooVar)}"
@@ -193,11 +193,11 @@
                                      :directives [[:foo {:arguments {:bar 123}}]]}
                           [:bar]])))
     (is (= "query ($foo:Bar @fooDirective){fooField}"
-           (core/unparse [:query {:variables [:foo {:directives [:fooDirective]} [:Bar]]}
+           (core/unparse [:query {:variables [:foo {:directives [:fooDirective]} :Bar]}
                           [:fooField]])))
     (is (= "query ($foo:Bar @fooDirective @barDirective){fooField}"
-           (core/unparse [:query {:variables [:foo {:directives [:fooDirective :barDirective]} [:Bar]]}
+           (core/unparse [:query {:variables [:foo {:directives [:fooDirective :barDirective]} :Bar]}
                           [:fooField]])))
     (is (= "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
-           (core/unparse [:query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} [:Bar]]}
+           (core/unparse [:query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
                           [:fooField]])))))

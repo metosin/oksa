@@ -63,7 +63,10 @@
                                     [variable-name
                                      (update opts :directives (partial util/transform-malli-ast transform-map))
                                      type])
-                                  xs))}))
+                                  xs))
+     ::NakedTypeName (fn [type-name] [type-name {}])
+     ::NamedTypeOrNonNullNamedType identity
+     ::ListTypeOrNonNullListType identity}))
 
 (def graphql-dsl-lang
   [:schema {:registry {::Document [:or
@@ -100,9 +103,10 @@
                                                               [:default {:optional true}
                                                                [:schema [:ref ::Value]]]]]
                                                          [:schema [:ref ::Type]]]]]]
-                       ::Type [:or
-                               [:schema [:ref ::NamedTypeOrNonNullNamedType]]
-                               [:schema [:ref ::ListTypeOrNonNullListType]]]
+                       ::Type [:orn
+                               [::NakedTypeName [:schema [:schema [:ref ::TypeName]]]]
+                               [::NamedTypeOrNonNullNamedType [:schema [:ref ::NamedTypeOrNonNullNamedType]]]
+                               [::ListTypeOrNonNullListType [:schema [:ref ::ListTypeOrNonNullListType]]]]
                        ::TypeName [:and [:not [:enum :oksa/list]] :keyword]
                        ::TypeOpts [:map
                                    [:oksa/non-null? :boolean]]
