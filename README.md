@@ -127,13 +127,13 @@ Subscriptions can be created:
 Named types are supported:
 
 ```clojure
-(core/unparse [:query {:variable-definitions {:fooVar [:FooType]}}
+(core/unparse [:query {:variables [:fooVar [:FooType]]}
                [:fooField]])
 ;; => "query ($fooVar:FooType){fooField}"
 
-(core/unparse [:query {:variable-definitions
-                       {:fooVar [:FooType]
-                        :barVar [:BarType]}}
+(core/unparse [:query {:variables
+                       [:fooVar [:FooType]
+                        :barVar [:BarType]]}
                [:fooField]])
 => "query ($fooVar:FooType,$barVar:BarType){fooField}"
 ```
@@ -141,15 +141,15 @@ Named types are supported:
 Lists can be created:
 
 ```clojure
-(core/unparse [:query {:variable-definitions
-                       {:fooVar [:oksa/list [:FooType]]}}
+(core/unparse [:query {:variables
+                       [:fooVar [:oksa/list [:FooType]]]}
                [:fooField]])
 ;; => "query ($fooVar:[FooType]){fooField}"
 
-(core/unparse [:query {:variable-definitions
-                       {:fooVar [:oksa/list
+(core/unparse [:query {:variables
+                       [:fooVar [:oksa/list
                                  [:oksa/list
-                                  [:BarType]]]}}
+                                  [:BarType]]]]}
                [:fooField]])
 ;; => "query ($fooVar:[[BarType]]){fooField}"
 ```
@@ -157,14 +157,14 @@ Lists can be created:
 Non-null types can be created:
 
 ```clojure
-(core/unparse [:query {:variable-definitions
-                       {:fooVar [:FooType {:oksa/non-null? true}]}}
+(core/unparse [:query {:variables
+                       [:fooVar [:FooType {:oksa/non-null? true}]]}
                [:fooField]])
 ;; => "query ($fooVar:FooType!){fooField}"
 
-(core/unparse [:query {:variable-definitions
-                       {:fooVar [:oksa/list {:oksa/non-null? true}
-                                 [:BarType]]}}
+(core/unparse [:query {:variables
+                       [:fooVar [:oksa/list {:oksa/non-null? true}
+                                 [:BarType]]]}
                [:fooField]])
 ;; => "query ($fooVar:[BarType]!){fooField}"
 ```
@@ -172,10 +172,10 @@ Non-null types can be created:
 Getting crazy with it:
 
 ```clojure
-(core/unparse [:query {:variable-definitions
-                       {:fooVar [:oksa/list {:oksa/non-null? true}
+(core/unparse [:query {:variables
+                       [:fooVar [:oksa/list {:oksa/non-null? true}
                                  [:oksa/list {:oksa/non-null? true}
-                                  [:BarType {:oksa/non-null? true}]]]}}
+                                  [:BarType {:oksa/non-null? true}]]]]}
                [:fooField]])
 ;; => "query ($fooVar:[[BarType!]!]!){fooField}"
 ```
