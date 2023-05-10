@@ -12,16 +12,22 @@
   [variable]
   (str "$" (str/replace (name variable) #"^\$" "")))
 
+(declare format-directives)
+
 (defn format-variable-definition
-  [variable type]
-  (str (variable-name variable) ":" (format-type type)))
+  [variable opts type]
+  (str (variable-name variable)
+       ":"
+       (format-type type)
+       (when (:directives opts)
+         (str " " (format-directives (:directives opts))))))
 
 (defn format-variable-definitions
   [variable-definitions]
   (str "("
        (str/join ","
-                 (map (fn [[variable type]]
-                        (format-variable-definition variable type))
+                 (map (fn [[variable opts type]]
+                        (format-variable-definition variable opts type))
                       variable-definitions))
        ")"))
 
@@ -85,7 +91,7 @@
             (str operation-type
                  " "
                  (when (:name opts) (str (name (:name opts)) " "))
-                 (when (:variable-definitions opts) (format-variable-definitions (:variable-definitions opts)))
+                 (when (:variables opts) (format-variable-definitions (:variables opts)))
                  (when (:directives opts) (format-directives (:directives opts)))
                  (apply str xs)))]
     {:document document

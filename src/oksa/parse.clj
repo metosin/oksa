@@ -4,9 +4,9 @@
 
 (def transform-map
   (letfn [(operation [operation-type opts xs]
-            (into [operation-type (update opts
-                                          :directives
-                                          (partial util/transform-malli-ast transform-map))]
+            (into [operation-type (-> opts
+                                      (update :directives (partial util/transform-malli-ast transform-map))
+                                      (update :variables (partial util/transform-malli-ast transform-map)))]
                   xs))
           (document [opts xs]
             (into [:document opts] xs))
@@ -57,7 +57,13 @@
                      (filterv some? xs)))
      ::Directives (partial into [])
      ::Directive (fn [[name opts]] [name opts])
-     ::DirectiveName (fn [directive-name] [directive-name {}])}))
+     ::DirectiveName (fn [directive-name] [directive-name {}])
+     ::VariableDefinitions (fn [xs]
+                             (map (fn [[variable-name opts type :as _variable-definition]]
+                                    [variable-name
+                                     (update opts :directives (partial util/transform-malli-ast transform-map))
+                                     type])
+                                  xs))}))
 
 (def graphql-dsl-lang
   [:schema {:registry {::Document [:or
@@ -79,13 +85,19 @@
                                                [:enum :query :mutation :subscription]
                                                [:? [:map
                                                     [:name {:optional true} [:ref ::Name]]
-                                                    [:variable-definitions {:optional true}
+                                                    [:variables {:optional true}
                                                      [:schema [:ref ::VariableDefinitions]]]
                                                     [:directives {:optional true}
-                                                     [:ref ::Directives]]]]
+                                                     [:schema [:ref ::Directives]]]]]
                                                [:+ [:schema [:ref ::SelectionSet]]]]
                                               [:schema [:ref ::SelectionSet]]]
-                       ::VariableDefinitions [:map-of [:ref ::Name] [:schema [:ref ::Type]]]
+                       ::VariableDefinitions [:orn [::VariableDefinitions
+                                                    [:+ [:cat
+                                                         [:schema [:ref ::Name]]
+                                                         [:? [:map
+                                                              [:directives {:optional true}
+                                                               [:schema [:ref ::Directives]]]]]
+                                                         [:schema [:ref ::Type]]]]]]
                        ::Type [:or
                                [:schema [:ref ::NamedTypeOrNonNullNamedType]]
                                [:schema [:ref ::ListTypeOrNonNullListType]]]
@@ -98,9 +110,7 @@
                        ::ListTypeOrNonNullListType [:cat
                                                     [:= :oksa/list]
                                                     [:? [:schema [:ref ::VariableDefinitionOpts]]]
-                                                    [:or
-                                                     [:schema [:ref ::NamedTypeOrNonNullNamedType]]
-                                                     [:schema [:ref ::ListTypeOrNonNullListType]]]]
+                                                    [:schema [:ref ::Type]]]
                        ::SelectionSet [:orn
                                        [::SelectionSet [:+ [:catn
                                                             [::node [:schema [:ref ::Selection]]]
