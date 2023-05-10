@@ -139,7 +139,11 @@
       (is (= "query ($fooVar:FooType,$barVar:BarType){fooField}"
              (core/unparse [:query {:variables [:fooVar [:FooType]
                                                 :barVar [:BarType]]}
-                            [:fooField]])))))
+                            [:fooField]]))))
+    (testing "default values"
+      (is (= "query ($fooVar:Foo=123){fooField(foo:$fooVar)}"
+             (core/unparse [:query {:variables [:$fooVar {:default 123} [:Foo]]}
+                            [[:fooField {:arguments {:foo :$fooVar}}]]])))))
   (testing "variable names"
     (doseq [variable-name [:fooVar :$fooVar "fooVar" "$fooVar"]]
       (is (= "query ($fooVar:FooType){fooField}"

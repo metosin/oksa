@@ -96,7 +96,9 @@
                                                          [:schema [:ref ::Name]]
                                                          [:? [:map
                                                               [:directives {:optional true}
-                                                               [:schema [:ref ::Directives]]]]]
+                                                               [:schema [:ref ::Directives]]]
+                                                              [:default {:optional true}
+                                                               [:schema [:ref ::Value]]]]]
                                                          [:schema [:ref ::Type]]]]]]
                        ::Type [:or
                                [:schema [:ref ::NamedTypeOrNonNullNamedType]]

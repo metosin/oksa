@@ -19,6 +19,8 @@
   (str (variable-name variable)
        ":"
        (format-type type)
+       (when (:default opts)
+         (str "=" (:default opts)))
        (when (:directives opts)
          (str " " (format-directives (:directives opts))))))
 
