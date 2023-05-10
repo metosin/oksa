@@ -180,6 +180,18 @@ Getting crazy with it:
 ;; => "query ($fooVar:[[BarType!]!]!){fooField}"
 ```
 
+Variable definitions can have directives:
+
+```clojure
+(core/unparse [:query {:variables [:foo {:directives [:fooDirective]} [:Bar]]}
+                          [:fooField]])
+;; => "query ($foo:Bar @fooDirective){fooField}"
+
+(core/unparse [:query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} [:Bar]]}
+               [:fooField]])
+;; => "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
+```
+
 #### Directives
 
 Queries can have directives:
