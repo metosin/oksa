@@ -210,6 +210,11 @@
                                      :on :Foo
                                      :directives [[:foo {:arguments {:bar 123}}]]}
                           [:bar]])))
+    (is (= "fragment foo on Foo@fooDirective @barDirective{bar}"
+           (core/unparse [:fragment {:name :foo
+                                     :on :Foo
+                                     :directives [:fooDirective :barDirective]}
+                          [:bar]])))
     (is (= "query ($foo:Bar @fooDirective){fooField}"
            (core/unparse [:query {:variables [:foo {:directives [:fooDirective]} :Bar]}
                           [:fooField]])))

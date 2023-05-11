@@ -12,7 +12,10 @@
             (into [:document opts] xs))
           (fragment [opts xs]
             (assert (some? (:name opts)) "missing name")
-            (into [:fragment opts] xs))
+            (into [:fragment (update opts
+                                     :directives
+                                     (partial util/transform-malli-ast transform-map))]
+                  xs))
           (fragment-spread [opts & xs]
             (assert (some? (:name opts)) "missing name")
             (into [:fragment-spread
@@ -90,7 +93,10 @@
                                                [:schema [:ref ::FragmentDefinition]]]
                        ::FragmentDefinition [:cat
                                              [:enum :fragment :#]
-                                             [:? [:map [:on [:ref ::Name]]]]
+                                             [:? [:map
+                                                  [:on [:ref ::Name]]
+                                                  [:directives {:optional true}
+                                                   [:schema [:ref ::Directives]]]]]
                                              [:+ [:schema [:ref ::SelectionSet]]]]
                        ::OperationDefinition [:or
                                               [:cat
