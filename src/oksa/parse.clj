@@ -64,9 +64,11 @@
                                      (update opts :directives (partial util/transform-malli-ast transform-map))
                                      type])
                                   xs))
-     ::NakedTypeName (fn [type-name] [type-name {}])
+     ::TypeName (fn [type-name] [type-name {}])
      ::NamedTypeOrNonNullNamedType identity
-     ::ListTypeOrNonNullListType identity}))
+     ::ListTypeOrNonNullListType identity
+     ::AbbreviatedListType (fn [x] (into [:oksa/list {}] x))
+     ::AbbreviatedNonNullListType (fn [[_ name-or-list]] (into [:oksa/list {:oksa/non-null? true}] [name-or-list]))}))
 
 (def graphql-dsl-lang
   [:schema {:registry {::Document [:or
@@ -104,15 +106,19 @@
                                                                [:schema [:ref ::Value]]]]]
                                                          [:schema [:ref ::Type]]]]]]
                        ::Type [:orn
-                               [::NakedTypeName [:schema [:schema [:ref ::TypeName]]]]
+                               [::TypeName [:schema [:schema [:ref ::TypeName]]]]
                                [::NamedTypeOrNonNullNamedType [:schema [:ref ::NamedTypeOrNonNullNamedType]]]
-                               [::ListTypeOrNonNullListType [:schema [:ref ::ListTypeOrNonNullListType]]]]
+                               [::ListTypeOrNonNullListType [:schema [:ref ::ListTypeOrNonNullListType]]]
+                               [::AbbreviatedListType [:schema [:ref ::ListType]]]
+                               [::AbbreviatedNonNullListType [:schema [:ref ::NonNullListType]]]]
                        ::TypeName [:and [:not [:enum :oksa/list]] :keyword]
                        ::TypeOpts [:map
                                    [:oksa/non-null? :boolean]]
                        ::NamedTypeOrNonNullNamedType [:cat
                                                       [:schema [:ref ::TypeName]]
-                                                      [:? [:schema [:ref ::TypeOpts]]]]
+                                                      [:schema [:ref ::TypeOpts]]]
+                       ::ListType [:cat [:schema [:ref ::Type]]]
+                       ::NonNullListType [:cat [:= :!] [:schema [:ref ::Type]]]
                        ::ListTypeOrNonNullListType [:cat
                                                     [:= :oksa/list]
                                                     [:? [:schema [:ref ::TypeOpts]]]

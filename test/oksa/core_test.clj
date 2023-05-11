@@ -107,33 +107,45 @@
     (testing "named type within list"
       (is (= "query ($fooVar:[FooType]){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list :FooType]]}
+                            [:fooField]])
+             (core/unparse [:query {:variables [:fooVar [:FooType]]}
                             [:fooField]]))))
     (testing "non-null named type within list"
       (is (= "query ($fooVar:[FooType!]){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list
                                                          [:FooType {:oksa/non-null? true}]]]}
+                            [:fooField]])
+             (core/unparse [:query {:variables [:fooVar [:FooType!]]}
                             [:fooField]]))))
     (testing "named type within list"
       (is (= "query ($fooVar:[BarType]!){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list {:oksa/non-null? true}
                                                          :BarType]]}
+                            [:fooField]])
+             (core/unparse [:query {:variables [:fooVar [:! :BarType]]}
                             [:fooField]]))))
     (testing "non-null type within non-null list"
       (is (= "query ($fooVar:[BarType!]!){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list {:oksa/non-null? true}
                                                          [:BarType {:oksa/non-null? true}]]]}
+                            [:fooField]])
+             (core/unparse [:query {:variables [:fooVar [:! :BarType!]]}
                             [:fooField]]))))
     (testing "named type within list within list"
       (is (= "query ($fooVar:[[BarType]]){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list
                                                          [:oksa/list
                                                           :BarType]]]}
+                            [:fooField]])
+             (core/unparse [:query {:variables [:fooVar [[:BarType]]]}
                             [:fooField]]))))
     (testing "non-null list within non-null list"
       (is (= "query ($fooVar:[[BarType]!]!){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list {:oksa/non-null? true}
                                                          [:oksa/list {:oksa/non-null? true}
                                                           :BarType]]]}
+                            [:fooField]])
+             (core/unparse [:query {:variables [:fooVar [:! [:! :BarType]]]}
                             [:fooField]]))))
     (testing "multiple variable definitions"
       (is (= "query ($fooVar:FooType,$barVar:BarType){fooField}"
@@ -142,12 +154,12 @@
                             [:fooField]]))))
     (testing "default values"
       (is (= "query ($fooVar:Foo=123){fooField(foo:$fooVar)}"
-             (core/unparse [:query {:variables [:$fooVar {:default 123} [:Foo]]}
+             (core/unparse [:query {:variables [:$fooVar {:default 123} :Foo]}
                             [[:fooField {:arguments {:foo :$fooVar}}]]])))))
   (testing "variable names"
     (doseq [variable-name [:fooVar :$fooVar "fooVar" "$fooVar"]]
       (is (= "query ($fooVar:FooType){fooField}"
-             (core/unparse [:query {:variables [variable-name [:FooType]]}
+             (core/unparse [:query {:variables [variable-name :FooType]}
                             [:fooField]])))))
   (testing "aliases"
     (is (= "{bar:foo}"
