@@ -15,10 +15,17 @@
             (into [:fragment opts] xs))
           (fragment-spread [opts & xs]
             (assert (some? (:name opts)) "missing name")
-            (into [:fragment-spread opts] xs))
+            (into [:fragment-spread
+                   (update opts
+                           :directives
+                           (partial util/transform-malli-ast transform-map))]
+                  xs))
           (inline-fragment [opts xs]
             (assert (not (some? (:name opts))) "inline fragments can't have name")
-            (into [:inline-fragment opts] xs))
+            (into [:inline-fragment (update opts
+                                            :directives
+                                            (partial util/transform-malli-ast transform-map))]
+                  xs))
           (selection-set [xs]
            (into [:selectionset {}]
                  (map (fn [{:oksa.parse/keys [node children] :as x}]
@@ -147,10 +154,16 @@
                                     [:not (into [:enum] (keys transform-map))]]
                        ::FragmentSpread [:cat
                                          [:enum :fragment-spread :...]
-                                         [:? :map]]
+                                         [:? [:map
+                                              [:directives {:optional true}
+                                               [:ref ::Directives]]]]]
                        ::InlineFragment [:cat
                                          [:enum :inline-fragment :...]
-                                         [:? :map]
+                                         [:? [:map
+                                              [:directives {:optional true}
+                                               [:ref ::Directives]]
+                                              [:on {:optional true}
+                                               [:ref ::Name]]]]
                                          [:+ [:schema [:ref ::SelectionSet]]]]
                        ::Name [:or :keyword :string]
                        ::Value [:or

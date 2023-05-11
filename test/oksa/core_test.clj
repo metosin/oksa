@@ -193,9 +193,15 @@
                           [:qux {:directives [:baz]}]])))
     (is (= "{foo@foo(bar:123)}"
            (core/unparse [[:foo {:directives [[:foo {:arguments {:bar 123}}]]}]])))
+    (is (= "{...foo@fooDirective @barDirective}"
+           (core/unparse [[:fragment-spread {:name :foo
+                                             :directives [:fooDirective :barDirective]}]])))
     (is (= "{...foo@foo(bar:123)}"
            (core/unparse [[:fragment-spread {:name :foo
                                              :directives [[:foo {:arguments {:bar 123}}]]}]])))
+    (is (= "{...@fooDirective @barDirective{bar}}"
+           (core/unparse [[:inline-fragment {:directives [:fooDirective :barDirective]}
+                           [:bar]]])))
     (is (= "{...@foo(bar:123){bar}}"
            (core/unparse [[:inline-fragment {:directives [[:foo {:arguments {:bar 123}}]]}
                            [:bar]]])))
