@@ -50,14 +50,14 @@ Strings are supported for field names:
 
 ```clojure
 (core/unparse ["query" "foo"])
-=> "{query foo}"
+;; => "{query foo}"
 ```
 
 Aliases:
 
 ```clojure
 (core/unparse [[:foo {:alias :bar}]])
-=> "{bar:foo}"
+;; => "{bar:foo}"
 ```
 
 Arguments:
@@ -72,14 +72,14 @@ Arguments:
                                   :g {:frob {:foo 1
                                              :bar 2}}
                                   :h :$fooVar}}]])
-=> "{foo(a:1, b:\"hello world\", c:true, d:null, e:foo, f:[1 2 3], g:{frob:{foo:1, bar:2}}, h:$fooVar)}"
+;; => "{foo(a:1, b:\"hello world\", c:true, d:null, e:foo, f:[1 2 3], g:{frob:{foo:1, bar:2}}, h:$fooVar)}"
 ```
 
 Directives:
 
 ```clojure
 (core/unparse [[:foo {:directives [:bar]}]])
-=> "{foo@bar}"
+;; => "{foo@bar}"
 
 ;; with arguments
 (core/unparse [[:foo {:directives [[:bar {:arguments {:qux 123}}]]}]])
@@ -96,6 +96,21 @@ Queries can be created:
 
 (core/unparse [:query {:name :Foo} [:foo]])
 ;; => "query Foo {foo}"
+```
+
+Queries can have directives:
+
+```clojure
+(core/unparse [:query {:directives [:foo]} [:foo]])
+;; => "query @foo{foo}"
+
+(core/unparse [:query {:directives [:foo :bar]} [:foo]])
+;; => "query @foo @bar{foo}"
+
+;; with arguments
+
+(core/unparse [:query {:directives [[:foo {:arguments {:bar 123}}]]} [:foo]])
+;; => "query @foo(bar:123){foo}"
 ```
 
 #### Mutations
@@ -127,29 +142,40 @@ Subscriptions can be created:
 Named types are supported:
 
 ```clojure
-(core/unparse [:query {:variables [:fooVar [:FooType]]}
+(core/unparse [:query {:variables [:fooVar :FooType]}
                [:fooField]])
 ;; => "query ($fooVar:FooType){fooField}"
 
 (core/unparse [:query {:variables
-                       [:fooVar [:FooType]
-                        :barVar [:BarType]]}
+                       [:fooVar :FooType
+                        :barVar :BarType]}
                [:fooField]])
-=> "query ($fooVar:FooType,$barVar:BarType){fooField}"
+;; => "query ($fooVar:FooType,$barVar:BarType){fooField}"
 ```
 
 Lists can be created:
 
 ```clojure
 (core/unparse [:query {:variables
-                       [:fooVar [:oksa/list [:FooType]]]}
+                       [:fooVar [:oksa/list :FooType]]}
+               [:fooField]])
+
+;; or
+
+(core/unparse [:query {:variables
+                       [:fooVar [:FooType]]}
                [:fooField]])
 ;; => "query ($fooVar:[FooType]){fooField}"
 
 (core/unparse [:query {:variables
                        [:fooVar [:oksa/list
                                  [:oksa/list
-                                  [:BarType]]]]}
+                                  :BarType]]]}
+               [:fooField]])
+
+;; or
+
+(core/unparse [:query {:variables [:fooVar [[:BarType]]]}
                [:fooField]])
 ;; => "query ($fooVar:[[BarType]]){fooField}"
 ```
@@ -160,11 +186,21 @@ Non-null types can be created:
 (core/unparse [:query {:variables
                        [:fooVar [:FooType {:oksa/non-null? true}]]}
                [:fooField]])
+
+;; or
+
+(core/unparse [:query {:variables [:fooVar :FooType!]}
+               [:fooField]])
 ;; => "query ($fooVar:FooType!){fooField}"
 
 (core/unparse [:query {:variables
                        [:fooVar [:oksa/list {:oksa/non-null? true}
-                                 [:BarType]]]}
+                                 :BarType]]}
+               [:fooField]])
+
+;; or
+
+(core/unparse [:query {:variables [:fooVar [:! :BarType]]}
                [:fooField]])
 ;; => "query ($fooVar:[BarType]!){fooField}"
 ```
@@ -172,10 +208,7 @@ Non-null types can be created:
 Getting crazy with it:
 
 ```clojure
-(core/unparse [:query {:variables
-                       [:fooVar [:oksa/list {:oksa/non-null? true}
-                                 [:oksa/list {:oksa/non-null? true}
-                                  [:BarType {:oksa/non-null? true}]]]]}
+(core/unparse [:query {:variables [:fooVar [:! [:! :BarType!]]]}
                [:fooField]])
 ;; => "query ($fooVar:[[BarType!]!]!){fooField}"
 ```
@@ -183,32 +216,13 @@ Getting crazy with it:
 Variable definitions can have directives:
 
 ```clojure
-(core/unparse [:query {:variables [:foo {:directives [:fooDirective]} [:Bar]]}
-                          [:fooField]])
+(core/unparse [:query {:variables [:foo {:directives [:fooDirective]} :Bar]}
+               [:fooField]])
 ;; => "query ($foo:Bar @fooDirective){fooField}"
 
-(core/unparse [:query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} [:Bar]]}
+(core/unparse [:query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
                [:fooField]])
 ;; => "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
-```
-
-#### Directives
-
-Queries can have directives:
-
-```clojure
-(core/unparse [:query {:directives [[:foo]]} [:foo]])
-;; => "query @foo{foo}"
-
-(core/unparse [:query {:directives [[:foo] [:bar]]} [:foo]])
-;; => "query @foo @bar{foo}"
-```
-
-With arguments:
-
-```clojure
-(core/unparse [:query {:directives [[:foo {:arguments {:bar 123}}]]} [:foo]])
-;; => "query @foo(bar:123){foo}"
 ```
 
 ### Fragments
@@ -222,11 +236,10 @@ Fragment definitions can be created:
 (core/unparse [:# {:name :Foo :on :Bar} [:foo]]) ; shortcut
 ;; => "fragment Foo on Bar{foo}"
 
-;; directives support
-
+;; with directives
 (core/unparse [:fragment {:name :foo
                           :on :Foo
-                          :directives [[:fooDirective]]}
+                          :directives [:fooDirective]}
                [:bar]])
 ;; => "fragment foo on Foo@fooDirective{bar}"
 
@@ -242,19 +255,19 @@ Fragment spreads:
 
 ```clojure
 (core/unparse [:foo [:fragment-spread {:name :bar}]])
+
+;; or
+
+(core/unparse [:foo [:... {:name :bar}]])
 ;; => "{foo ...bar}"
 
-(core/unparse [:foo [:... {:name :bar}]]) ; shortcut
-;; => "{foo ...bar}"
-
-;; directives support
-
-(core/unparse [[:fragment-spread {:name :foo :directives [[:bar]]}]])
+;; with directives
+(core/unparse [[:... {:name :foo :directives [:bar]}]])
 ;; => "{...foo@bar}"
 
 ;; with arguments
-(core/unparse [[:fragment-spread {:name :foo
-                                  :directives [[:bar {:arguments {:qux 123}}]]}]])
+(core/unparse [[:... {:name :foo
+                      :directives [[:bar {:arguments {:qux 123}}]]}]])
 ;; => "{...foo@bar(qux:123)}"
 ```
 
@@ -262,22 +275,21 @@ Inline fragments:
 
 ```clojure
 (core/unparse [:foo [:inline-fragment [:bar]]])
+
+;; or
+
+(core/unparse [:foo [:... [:bar]]])
 ;; => "{foo ...{bar}}"
 
-(core/unparse [:foo [:... [:bar]]]) ; shortcut
-;; => "{foo ...{bar}}"
-
-(core/unparse [:foo [:inline-fragment {:on :Bar} [:bar]]])
+(core/unparse [:foo [:... {:on :Bar} [:bar]]])
 ;; => "{foo ...on Bar{bar}}"
 
-;; directives support
-
-(core/unparse [[:inline-fragment {:directives [[:foo]]}
-                [:bar]]])
-=> "{...@foo{bar}}"
+;; with directives
+(core/unparse [[:... {:directives [:foo]} [:bar]]])
+;; => "{...@foo{bar}}"
 
 ;; with arguments
-(core/unparse [[:inline-fragment {:directives [[:foo {:arguments {:bar 123}}]]}
+(core/unparse [[:... {:directives [[:foo {:arguments {:bar 123}}]]}
                 [:foobar]]])
 ;; => "{...@foo(bar:123){foobar}}"
 ```
