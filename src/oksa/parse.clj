@@ -80,6 +80,12 @@
      ::AbbreviatedListType (fn [x] (into [:oksa/list {}] x))
      ::AbbreviatedNonNullListType (fn [[_ name-or-list]] (into [:oksa/list {:oksa/non-null? true}] [name-or-list]))}))
 
+(def ^:private name-pattern "[_A-Za-z][_0-9A-Za-z]*")
+(def ^:private re-name (re-pattern name-pattern))
+(def ^:private re-variable-name (re-pattern (str "[$]?" name-pattern)))
+(def ^:private re-type-name (re-pattern (str name-pattern "[!]?")))
+(def ^:private re-fragment-name (re-pattern (str "(?!on)" name-pattern)))
+
 (def graphql-dsl-lang
   [:schema {:registry {::Document [:or
                                    [:schema [:ref ::Definition]]
@@ -94,6 +100,8 @@
                        ::FragmentDefinition [:cat
                                              [:enum :fragment :#]
                                              [:? [:map
+                                                  [:name {:optional false}
+                                                   [:ref ::FragmentName]]
                                                   [:on [:ref ::Name]]
                                                   [:directives {:optional true}
                                                    [:schema [:ref ::Directives]]]]]
@@ -111,7 +119,7 @@
                                               [:schema [:ref ::SelectionSet]]]
                        ::VariableDefinitions [:orn [::VariableDefinitions
                                                     [:+ [:cat
-                                                         [:schema [:ref ::Name]]
+                                                         [:schema [:ref ::VariableName]]
                                                          [:? [:map
                                                               [:directives {:optional true}
                                                                [:schema [:ref ::Directives]]]
@@ -124,7 +132,11 @@
                                [::ListTypeOrNonNullListType [:schema [:ref ::ListTypeOrNonNullListType]]]
                                [::AbbreviatedListType [:schema [:ref ::ListType]]]
                                [::AbbreviatedNonNullListType [:schema [:ref ::NonNullListType]]]]
-                       ::TypeName [:and [:not [:enum :oksa/list]] :keyword]
+                       ::TypeName [:and
+                                   [:not [:enum :oksa/list]]
+                                   :keyword
+                                   [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-type-name)}
+                                    (fn [x] (re-matches re-type-name (name x)))]]
                        ::TypeOpts [:map
                                    [:oksa/non-null? :boolean]]
                        ::NamedTypeOrNonNullNamedType [:cat
@@ -161,6 +173,8 @@
                        ::FragmentSpread [:cat
                                          [:enum :fragment-spread :...]
                                          [:? [:map
+                                              [:name {:optional false}
+                                               [:ref ::FragmentName]]
                                               [:directives {:optional true}
                                                [:ref ::Directives]]]]]
                        ::InlineFragment [:cat
@@ -171,7 +185,15 @@
                                               [:on {:optional true}
                                                [:ref ::Name]]]]
                                          [:+ [:schema [:ref ::SelectionSet]]]]
-                       ::Name [:or :keyword :string]
+                       ::Name [:and [:or :keyword :string]
+                               [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-name)}
+                                (fn [x] (re-matches re-name (name x)))]]
+                       ::VariableName [:and [:or :keyword :string]
+                                       [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-variable-name)}
+                                        (fn [x] (re-matches re-variable-name (name x)))]]
+                       ::FragmentName [:and [:or :keyword :string]
+                                       [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-fragment-name)}
+                                        (fn [x] (re-matches re-fragment-name (name x)))]]
                        ::Value [:or
                                 number?
                                 :string
@@ -189,7 +211,7 @@
                                     [:? [:map
                                          [:arguments {:optional true}
                                           [:ref ::Arguments]]]]]
-                       ::DirectiveName :keyword}}
+                       ::DirectiveName [:ref ::Name]}}
    ::Document])
 
 (def graphql-dsl-parser (m/parser graphql-dsl-lang))
