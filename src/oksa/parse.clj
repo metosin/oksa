@@ -192,10 +192,10 @@
                                [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-name)}
                                 (fn [x] (re-matches re-name (name x)))]]
                        ::VariableName [:and [:or :keyword :string]
-                                       [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-variable-name)}
+                                       [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " re-variable-name)}
                                         (fn [x] (re-matches re-variable-name (name x)))]]
                        ::FragmentName [:and [:or :keyword :string]
-                                       [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-fragment-name)}
+                                       [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " re-fragment-name)}
                                         (fn [x] (re-matches re-fragment-name (name x)))]]
                        ::Value [:or
                                 number?
