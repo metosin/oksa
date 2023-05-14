@@ -86,6 +86,9 @@
 (def ^:private re-type-name (re-pattern (str name-pattern "[!]?")))
 (def ^:private re-fragment-name (re-pattern (str "(?!on)" name-pattern)))
 
+(def ^:private re-variable-reference (re-pattern (str "[$]" name-pattern)))
+(def ^:private re-enum-value (re-pattern (str "(?!(true|false|null))" name-pattern)))
+
 (def graphql-dsl-lang
   [:schema {:registry {::Document [:or
                                    [:schema [:ref ::Definition]]
@@ -199,7 +202,13 @@
                                 :string
                                 :boolean
                                 :nil
-                                :keyword
+                                [:and :keyword
+                                 [:fn
+                                  {:error/message (str "invalid character range for value, should follow either: " re-enum-value ", or: " re-variable-reference)}
+                                  (fn [x]
+                                    (let [s (name x)]
+                                      (or (re-matches re-variable-reference s)
+                                          (re-matches re-enum-value s))))]]
                                 coll?
                                 :map]
                        ::Arguments [:map-of [:ref ::Name] [:ref ::Value]]
