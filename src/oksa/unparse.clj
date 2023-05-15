@@ -45,10 +45,21 @@
   [directives]
   (str/join " " (map format-directive directives)))
 
+(defn escape-string
+  [s]
+  (str/escape s {\" "\\\""
+                 \\ "\\\\"
+                 \u0008 "\\b"
+                 \u0009 "\\t"
+                 \u000A "\\n"
+                 \u000B "\\u000B"
+                 \u000C "\\f"
+                 \u000D "\\r"}))
+
 (defmulti format-value class)
 (defmethod format-value Number [x] (str x))
 (defmethod format-value clojure.lang.Ratio [x] (str (double x)))
-(defmethod format-value String [x] (str "\"" x "\"")) ; todo: think block strings through
+(defmethod format-value String [s] (str "\"" (escape-string s) "\""))
 (defmethod format-value Boolean [x] (str x))
 (defmethod format-value nil [_] "null")
 (defmethod format-value clojure.lang.Keyword [x]

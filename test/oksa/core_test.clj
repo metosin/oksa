@@ -50,7 +50,14 @@
                                                :f [1 2 3]
                                                :g {:frob {:foo 1
                                                           :bar 2}}
-                                               :h :$fooVar}}]])))))
+                                               :h :$fooVar}}]])))
+      (testing "escaping special characters"
+        (is (= "{fooField(foo:\"\\\"\")}"
+               (core/unparse [[:fooField {:arguments {:foo "\""}}]])))
+        (is (= "{fooField(foo:\"\\\\\")}"
+               (core/unparse [[:fooField {:arguments {:foo "\\"}}]])))
+        (is (= "{fooField(foo:\"foo\\b\\f\\r\\n\\tbar\")}"
+               (core/unparse [[:fooField {:arguments {:foo (str "foo\b\f\r\n\tbar")}}]]))))))
   (testing "document"
     (is (= "{foo}"
            (core/unparse [:<> [:foo]])
