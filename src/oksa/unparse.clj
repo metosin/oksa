@@ -2,19 +2,19 @@
   (:require [clojure.string :as str]
             [oksa.util :as util]))
 
-(defn format-type
+(defn- format-type
   [[type opts child]]
   (if (= :oksa/list type)
     (str "[" (format-type child) "]" (when (:oksa/non-null? opts) "!"))
     (str (name type) (when (:oksa/non-null? opts) "!"))))
 
-(defn variable-name
+(defn- variable-name
   [variable]
   (str "$" (str/replace (name variable) #"^\$" "")))
 
 (declare format-directives)
 
-(defn format-variable-definition
+(defn- format-variable-definition
   [variable opts type]
   (str (variable-name variable)
        ":"
@@ -24,7 +24,7 @@
        (when (:directives opts)
          (str " " (format-directives (:directives opts))))))
 
-(defn format-variable-definitions
+(defn- format-variable-definitions
   [variable-definitions]
   (str "("
        (str/join ","
@@ -35,17 +35,17 @@
 
 (declare format-arguments)
 
-(defn format-directive
+(defn- format-directive
   [[directive-name opts :as _directive]]
   (str "@"
        (name directive-name)
        (when (:arguments opts) (format-arguments (:arguments opts)))))
 
-(defn format-directives
+(defn- format-directives
   [directives]
   (str/join " " (map format-directive directives)))
 
-(defn escape-string
+(defn- escape-string
   [s]
   (str/escape s {\" "\\\""
                  \\ "\\\\"
@@ -77,15 +77,15 @@
                              (str (name object-field-name) ":" (format-value object-field-value))) x))
        "}"))
 
-(defn format-argument
+(defn- format-argument
   [[argument-name value]]
   (str (name argument-name) ":" (format-value value)))
 
-(defn format-arguments
+(defn- format-arguments
   [arguments]
   (str "(" (str/join ", " (map format-argument arguments)) ")"))
 
-(def unparse-xf
+(def ^:private unparse-xf
   (letfn [(document
             [_opts & xs]
             (str/join (System/lineSeparator) xs))

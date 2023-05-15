@@ -2,7 +2,7 @@
   (:require [malli.core :as m]
             [oksa.util :as util]))
 
-(def transform-map
+(def ^:private transform-map
   (letfn [(operation [operation-type opts xs]
             (into [operation-type (-> opts
                                       (update :directives (partial util/transform-malli-ast transform-map))
@@ -225,14 +225,14 @@
 
 (def graphql-dsl-parser (m/parser graphql-dsl-lang))
 
-(defn parse
+(defn- parse
   [x]
   (let [parsed (graphql-dsl-parser x)]
     (if (not= :malli.core/invalid parsed)
       parsed
       (throw (ex-info "invalid form" {})))))
 
-(defn xf
+(defn- xf
   [ast]
   (util/transform-malli-ast transform-map ast))
 
