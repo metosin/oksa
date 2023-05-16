@@ -1,6 +1,7 @@
 (ns oksa.unparse
   (:require [clojure.string :as str]
-            [oksa.util :as util]))
+            [oksa.util :as util])
+  #?(:clj (:import (clojure.lang Keyword PersistentVector PersistentArrayMap))))
 
 (defn- format-type
   [[type opts child]]
@@ -56,21 +57,27 @@
                  \u000C "\\f"
                  \u000D "\\r"}))
 
-(defmulti format-value class)
-(defmethod format-value Number [x] (str x))
-(defmethod format-value clojure.lang.Ratio [x] (str (double x)))
-(defmethod format-value String [s] (str "\"" (escape-string s) "\""))
-(defmethod format-value Boolean [x] (str x))
+(defmulti format-value type)
+(defmethod format-value #?(:clj Number
+                           :cljs js/Number) [x] (str x))
+#?(:clj (defmethod format-value clojure.lang.Ratio [x] (str (double x))))
+(defmethod format-value #?(:clj String
+                           :cljs js/String) [s] (str "\"" (escape-string s) "\""))
+(defmethod format-value #?(:clj Boolean
+                           :cljs js/Boolean) [x] (str x))
 (defmethod format-value nil [_] "null")
-(defmethod format-value clojure.lang.Keyword [x]
+(defmethod format-value #?(:clj  Keyword
+                           :cljs cljs.core/Keyword) [x]
   (let [enum-or-variable (name x)]
     (when-let [enum (re-matches #"^[^$].*$" enum-or-variable)]
       (assert (not (#{"true" "false" "null"} enum)) "invalid name"))
     enum-or-variable))
-(defmethod format-value clojure.lang.PersistentVector
+(defmethod format-value #?(:clj PersistentVector
+                           :cljs cljs.core/PersistentVector)
   [x]
   (str x))
-(defmethod format-value clojure.lang.PersistentArrayMap
+(defmethod format-value #?(:clj PersistentArrayMap
+                           :cljs cljs.core/PersistentArrayMap)
   [x]
   (str "{"
        (str/join ", " (map (fn [[object-field-name object-field-value]]
@@ -88,7 +95,9 @@
 (def ^:private unparse-xf
   (letfn [(document
             [_opts & xs]
-            (str/join (System/lineSeparator) xs))
+            (str/join #?(:clj (System/lineSeparator)
+                         :cljs (with-out-str (newline)))
+                      xs))
           (fragment
             [opts & xs]
             (str "fragment "

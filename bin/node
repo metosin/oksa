@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+echo 'Running CLJS test in Node with optimizations :none'
+clojure -A:"$CLOJURE" -M:test-cljs -c '{:optimizations :none}' "$@"
+
+echo 'Running CLJS test in Node with optimizations :advanced'
+clojure -A:"$CLOJURE" -M:test-cljs -c '{:optimizations :advanced}' "$@"
