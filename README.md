@@ -1,5 +1,16 @@
 # oksa
 
+- [Project status](#project-status)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Selection sets](#selection-sets)
+  - [Queries](#queries)
+  - [Mutations](#mutations)
+  - [Subscriptions](#subscriptions)
+  - [Variable definitions](#variable-definitions)
+  - [Fragments](#fragments)
+  - [Document](#document)
+
 Generate GraphQL queries using Clojure data structures.
 
 - Support latest stable GraphQL spec, [ExecutableDefinitions](https://spec.graphql.org/October2021/#ExecutableDefinition) only
