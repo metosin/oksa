@@ -6,6 +6,10 @@ Generate GraphQL queries using Clojure data structures.
 - [Malli](https://github.com/metosin/malli)-like syntax
 - clojure + clojurescript
 
+## Project status
+
+Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
+
 ## Installation
 
 TODO: clojars release
