@@ -43,15 +43,17 @@
       (t/is (= "{foo}"
              (core/unparse [[:foo {:arguments {}}]])))
       (t/is (= "{foo(a:1, b:\"hello world\", c:true, d:null, e:foo, f:[1 2 3], g:{frob:{foo:1, bar:2}}, h:$fooVar)}"
-             (core/unparse [[:foo {:arguments {:a 1
-                                               :b "hello world"
-                                               :c true
-                                               :d nil
-                                               :e :foo
-                                               :f [1 2 3]
-                                               :g {:frob {:foo 1
-                                                          :bar 2}}
-                                               :h :$fooVar}}]])))
+               (core/unparse [[:foo {:arguments {:a 1
+                                                 :b "hello world"
+                                                 :c true
+                                                 :d nil
+                                                 :e :foo
+                                                 :f [1 2 3]
+                                                 :g {:frob {:foo 1
+                                                            :bar 2}}
+                                                 :h :$fooVar}}]])))
+      #?(:clj (t/is (= "{foo(a:0.3333333333333333)}"
+                       (core/unparse [[:foo {:arguments {:a 1/3}}]]))))
       (t/testing "escaping special characters"
         (t/is (= "{fooField(foo:\"\\\"\")}"
                (core/unparse [[:fooField {:arguments {:foo "\""}}]])))
