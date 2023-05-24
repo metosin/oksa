@@ -10,10 +10,11 @@
   - [Variable definitions](#variable-definitions)
   - [Fragments](#fragments)
   - [Document](#document)
+- [Rationale](#rationale)
 
 Generate GraphQL queries using Clojure data structures.
 
-- Support latest stable GraphQL spec, [ExecutableDefinitions](https://spec.graphql.org/October2021/#ExecutableDefinition) only
+- Support latest stable [GraphQL spec](https://spec.graphql.org/October2021)
 - [Malli](https://github.com/metosin/malli)-like syntax
 - clojure + clojurescript
 
@@ -325,3 +326,21 @@ Putting it all together:
 (core/unparse [:<> [:foo] [:bar]]) ; :<> also supported
 ;; => "{foo}\n{bar}"
 ```
+
+## Rationale
+
+There are some awesome GraphQL query generation libraries out there, notably:
+
+* https://github.com/oliyh/re-graph
+  * Handles queries, subscriptions and mutations over HTTP and WebSocket.
+  * Combines many things; not a pure query generation libary.
+* https://github.com/retro/graphql-builder
+  * A HugSQL-like library for GraphQL query generation.
+* https://github.com/Vincit/venia
+  * Generates GraphQL queries with Clojure data structures.
+  * See also the more recently updated fork: https://github.com/district0x/graphql-query
+
+With oksa we want to provide:
+* A platform-agnostic library meant for purely building GraphQL queries.
+* Support for the entire syntax under [ExecutableDefinition](https://spec.graphql.org/October2021/#ExecutableDefinition) plus some parts from [Document](https://spec.graphql.org/October2021/#Document) for added composability of queries.
+* A data-driven library with a [malli](https://github.com/metosin/malli)-like syntax.
