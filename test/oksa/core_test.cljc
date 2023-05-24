@@ -9,19 +9,31 @@
     (t/is (= "query {foo bar}" (core/unparse [:oksa/query {} [:foo :bar]])))
     (t/is (= "query {bar{qux{baz}}}" (core/unparse [:oksa/query {} [:bar [:qux [:baz]]]])))
     (t/is (= "query {foo bar{qux{baz}}}" (core/unparse [:oksa/query {} [:foo :bar [:qux [:baz]]]])))
-    (t/is (= "query Foo {foo}" (core/unparse [:oksa/query {:name :Foo} [:foo]]))))
+    (t/is (= "query Foo {foo}" (core/unparse [:oksa/query {:name :Foo} [:foo]])))
+    (t/testing "non-ambiguity"
+      (t/is (thrown? Exception (core/unparse [:oksa/query [:oksa/query [:baz]]])))
+      (t/is (= "query {query{baz}}" (core/unparse [:oksa/query [:query [:baz]]])))
+      (t/is (= "{query{query{baz}}}" (core/unparse [:query [:query [:baz]]])))))
   (t/testing "mutation"
     (t/is (= "mutation {foo}" (core/unparse [:oksa/mutation {} [:foo]])))
     (t/is (= "mutation {foo bar}" (core/unparse [:oksa/mutation {} [:foo :bar]])))
     (t/is (= "mutation {bar{qux{baz}}}" (core/unparse [:oksa/mutation {} [:bar [:qux [:baz]]]])))
     (t/is (= "mutation {foo bar{qux{baz}}}" (core/unparse [:oksa/mutation {} [:foo :bar [:qux [:baz]]]])))
-    (t/is (= "mutation Foo {foo}" (core/unparse [:oksa/mutation {:name :Foo} [:foo]]))))
+    (t/is (= "mutation Foo {foo}" (core/unparse [:oksa/mutation {:name :Foo} [:foo]])))
+    (t/testing "non-ambiguity"
+      (t/is (thrown? Exception (core/unparse [:oksa/mutation [:oksa/mutation [:baz]]])))
+      (t/is (= "mutation {mutation{baz}}" (core/unparse [:oksa/mutation [:mutation [:baz]]])))
+      (t/is (= "{mutation{mutation{baz}}}" (core/unparse [:mutation [:mutation [:baz]]])))))
   (t/testing "subscription"
     (t/is (= "subscription {foo}" (core/unparse [:oksa/subscription {} [:foo]])))
     (t/is (= "subscription {foo bar}" (core/unparse [:oksa/subscription {} [:foo :bar]])))
     (t/is (= "subscription {bar{qux{baz}}}" (core/unparse [:oksa/subscription {} [:bar [:qux [:baz]]]])))
     (t/is (= "subscription {foo bar{qux{baz}}}" (core/unparse [:oksa/subscription {} [:foo :bar [:qux [:baz]]]])))
-    (t/is (= "subscription Foo {foo}" (core/unparse [:oksa/subscription {:name :Foo} [:foo]]))))
+    (t/is (= "subscription Foo {foo}" (core/unparse [:oksa/subscription {:name :Foo} [:foo]])))
+    (t/testing "non-ambiguity"
+      (t/is (thrown? Exception (core/unparse [:oksa/subscription [:oksa/subscription [:baz]]])))
+      (t/is (= "subscription {subscription{baz}}" (core/unparse [:oksa/subscription [:subscription [:baz]]])))
+      (t/is (= "{subscription{subscription{baz}}}" (core/unparse [:subscription [:subscription [:baz]]])))))
   (t/testing "selection set"
     (t/is (= "{foo}"
            (core/unparse [:foo])))
@@ -80,7 +92,11 @@
                             [:oksa/query [:bar]]
                             [:oksa/mutation [:qux]]
                             [:oksa/subscription [:baz]]
-                            [:oksa/fragment {:name :foo :on :Foo} [:bar]]]))))
+                            [:oksa/fragment {:name :foo :on :Foo} [:bar]]])))
+    (t/testing "non-ambiguity"
+      (t/is (thrown? Exception (core/unparse [:oksa/document [:oksa/document [:baz]]])))
+      (t/is (= "{document{baz}}" (core/unparse [:oksa/document [:document [:baz]]])))
+      (t/is (= "{document{document{baz}}}" (core/unparse [:document [:document [:baz]]])))))
   (t/testing "fragment"
     (t/is (= "fragment Foo on Bar{foo}"
              (core/unparse [:# {:name :Foo :on :Bar} [:foo]])
@@ -93,7 +109,11 @@
              (core/unparse [:oksa/fragment {:name :Foo :on :Bar} [:bar [:qux [:baz]]]])))
     (t/is (= "fragment Foo on Bar{foo bar{qux{baz}}}"
              (core/unparse [:# {:name :Foo :on :Bar} [:foo :bar [:qux [:baz]]]])
-             (core/unparse [:oksa/fragment {:name :Foo :on :Bar} [:foo :bar [:qux [:baz]]]]))))
+             (core/unparse [:oksa/fragment {:name :Foo :on :Bar} [:foo :bar [:qux [:baz]]]])))
+    (t/testing "non-ambiguity"
+      (t/is (thrown? Exception (core/unparse [:oksa/fragment {:name :Foo :on :Bar} [:oksa/fragment {:name :Foo :on :Bar} [:baz]]])))
+      (t/is (= "fragment Foo on Bar{fragment{baz}}" (core/unparse [:oksa/fragment {:name :Foo :on :Bar} [:fragment [:baz]]])))
+      (t/is (= "{fragment{fragment{baz}}}" (core/unparse [:fragment [:fragment [:baz]]])))))
   (t/testing "fragment spread"
     (t/is (= "{foo ...bar}"
              (core/unparse [:foo [:... {:name :bar}]])
