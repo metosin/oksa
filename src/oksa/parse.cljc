@@ -78,7 +78,7 @@
      ::NamedTypeOrNonNullNamedType identity
      ::ListTypeOrNonNullListType identity
      ::AbbreviatedListType (fn [x] (into [:oksa/list {}] x))
-     ::AbbreviatedNonNullListType (fn [[_ name-or-list]] (into [:oksa/list {:oksa/non-null? true}] [name-or-list]))}))
+     ::AbbreviatedNonNullListType (fn [[_ name-or-list]] (into [:oksa/list {:non-null true}] [name-or-list]))}))
 
 (def ^:private name-pattern "[_A-Za-z][_0-9A-Za-z]*")
 (def ^:private re-name (re-pattern name-pattern))
@@ -141,7 +141,7 @@
                                    [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-type-name)}
                                     (fn [x] (re-matches re-type-name (name x)))]]
                        ::TypeOpts [:map
-                                   [:oksa/non-null? :boolean]]
+                                   [:non-null :boolean]]
                        ::NamedTypeOrNonNullNamedType [:cat
                                                       [:schema [:ref ::TypeName]]
                                                       [:schema [:ref ::TypeOpts]]]

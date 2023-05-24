@@ -6,8 +6,8 @@
 (defn- format-type
   [[type opts child]]
   (if (= :oksa/list type)
-    (str "[" (format-type child) "]" (when (:oksa/non-null? opts) "!"))
-    (str (name type) (when (:oksa/non-null? opts) "!"))))
+    (str "[" (format-type child) "]" (when (:non-null opts) "!"))
+    (str (name type) (when (:non-null opts) "!"))))
 
 (defn- variable-name
   [variable]

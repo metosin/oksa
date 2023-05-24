@@ -112,7 +112,7 @@
                             [:fooField]]))))
     (t/testing "non-null named type")
     (t/is (= "query ($fooVar:FooType!){fooField}"
-           (core/unparse [:query {:variables [:fooVar [:FooType {:oksa/non-null? true}]]}
+           (core/unparse [:query {:variables [:fooVar [:FooType {:non-null true}]]}
                           [:fooField]])))
     (t/testing "named type within list"
       (t/is (= "query ($fooVar:[FooType]){fooField}"
@@ -123,21 +123,21 @@
     (t/testing "non-null named type within list"
       (t/is (= "query ($fooVar:[FooType!]){fooField}"
              (core/unparse [:query {:variables [:fooVar [:oksa/list
-                                                         [:FooType {:oksa/non-null? true}]]]}
+                                                         [:FooType {:non-null true}]]]}
                             [:fooField]])
              (core/unparse [:query {:variables [:fooVar [:FooType!]]}
                             [:fooField]]))))
     (t/testing "named type within list"
       (t/is (= "query ($fooVar:[BarType]!){fooField}"
-             (core/unparse [:query {:variables [:fooVar [:oksa/list {:oksa/non-null? true}
+             (core/unparse [:query {:variables [:fooVar [:oksa/list {:non-null true}
                                                          :BarType]]}
                             [:fooField]])
              (core/unparse [:query {:variables [:fooVar [:! :BarType]]}
                             [:fooField]]))))
     (t/testing "non-null type within non-null list"
       (t/is (= "query ($fooVar:[BarType!]!){fooField}"
-             (core/unparse [:query {:variables [:fooVar [:oksa/list {:oksa/non-null? true}
-                                                         [:BarType {:oksa/non-null? true}]]]}
+             (core/unparse [:query {:variables [:fooVar [:oksa/list {:non-null true}
+                                                         [:BarType {:non-null true}]]]}
                             [:fooField]])
              (core/unparse [:query {:variables [:fooVar [:! :BarType!]]}
                             [:fooField]]))))
@@ -151,8 +151,8 @@
                             [:fooField]]))))
     (t/testing "non-null list within non-null list"
       (t/is (= "query ($fooVar:[[BarType]!]!){fooField}"
-             (core/unparse [:query {:variables [:fooVar [:oksa/list {:oksa/non-null? true}
-                                                         [:oksa/list {:oksa/non-null? true}
+             (core/unparse [:query {:variables [:fooVar [:oksa/list {:non-null true}
+                                                         [:oksa/list {:non-null true}
                                                           :BarType]]]}
                             [:fooField]])
              (core/unparse [:query {:variables [:fooVar [:! [:! :BarType]]]}
