@@ -89,7 +89,7 @@
 (def ^:private re-variable-reference (re-pattern (str "[$]" name-pattern)))
 (def ^:private re-enum-value (re-pattern (str "(?!(true|false|null))" name-pattern)))
 
-(def graphql-dsl-lang
+(def ^:private graphql-dsl-lang
   [:schema {:registry {::Document [:or
                                    [:schema [:ref ::Definition]]
                                    [:cat
@@ -223,7 +223,7 @@
                        ::DirectiveName [:ref ::Name]}}
    ::Document])
 
-(def graphql-dsl-parser (m/parser graphql-dsl-lang))
+(def ^:private graphql-dsl-parser (m/parser graphql-dsl-lang))
 
 (defn- parse
   [x]
