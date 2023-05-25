@@ -48,7 +48,6 @@
      :oksa/query (partial operation :query)
      :oksa/mutation (partial operation :mutation)
      :oksa/subscription (partial operation :subscription)
-     :select (fn [opts xs] (into [:selectionset opts] xs))
      :... (fn fragment-dispatcher
             ([opts]
              (fragment-dispatcher opts []))

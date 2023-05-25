@@ -117,7 +117,6 @@
                  (when (:directives opts) (format-directives (:directives opts)))
                  (apply str xs)))]
     {:document document
-     :<> document
      :fragment fragment
      :query (partial operation "query")
      :mutation (partial operation "mutation")
