@@ -26,7 +26,12 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 
 ## Installation
 
-TODO: clojars release
+Using deps.edn:
+
+```clojure
+{:deps {metosin/oksa {:git/url "https://github.com/metosin/oksa"
+                      :sha "6ea4a246a14e1eb2f1988774f270624d1bd309fe"}}}
+```
 
 Oksa requires Clojure 1.10+.
 
