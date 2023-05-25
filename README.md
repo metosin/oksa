@@ -20,7 +20,7 @@ Generate GraphQL queries using Clojure data structures.
 
 ## Project status
 
-![Slack](https://img.shields.io/badge/slack-metosin-orange.svg?logo=slack)
+[![Slack](https://img.shields.io/badge/slack-metosin-orange.svg?logo=slack)](https://clojurians.slack.com/app_redirect?channel=metosin)
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
