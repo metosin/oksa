@@ -207,7 +207,7 @@ Non-null types can be created:
 
 ```clojure
 (oksa/unparse [:oksa/query {:variables
-                            [:fooVar [:FooType {:oksa/non-null? true}]]}
+                            [:fooVar [:FooType {:non-null true}]]}
                [:fooField]])
 
 ;; or
@@ -217,7 +217,7 @@ Non-null types can be created:
 ;; => "query ($fooVar:FooType!){fooField}"
 
 (oksa/unparse [:oksa/query {:variables
-                            [:fooVar [:oksa/list {:oksa/non-null? true}
+                            [:fooVar [:oksa/list {:non-null true}
                                       :BarType]]}
                [:fooField]])
 
