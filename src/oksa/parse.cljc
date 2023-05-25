@@ -89,6 +89,9 @@
 (def ^:private re-variable-reference (re-pattern (str "[$]" name-pattern)))
 (def ^:private re-enum-value (re-pattern (str "(?!(true|false|null))" name-pattern)))
 
+(def ^:private reserved-keywords
+  (set (filter #(some-> % namespace (= "oksa")) (keys transform-map))))
+
 (def ^:private graphql-dsl-lang
   [:schema {:registry {::Document [:or
                                    [:schema [:ref ::Definition]]
@@ -172,7 +175,7 @@
                        ::NakedField [:schema [:ref ::FieldName]]
                        ::FieldName [:and
                                     [:schema [:ref ::Name]]
-                                    [:not [:enum :oksa/document]]]
+                                    [:fn #(not (reserved-keywords %))]]
                        ::FragmentSpread [:cat
                                          [:enum :oksa/fragment-spread :...]
                                          [:? [:map
