@@ -50,43 +50,43 @@ Oksa requires Clojure 1.10+.
 Fields can be selected:
 
 ```clojure
-(core/unparse [:foo])
+(oksa/unparse [:foo])
 ;; => "{foo}"
 
-(core/unparse [:foo :bar])
+(oksa/unparse [:foo :bar])
 ;; => "{foo bar}"
 
-(core/unparse [:bar [:qux [:baz]]])
+(oksa/unparse [:bar [:qux [:baz]]])
 ;; => "{bar{qux{baz}}}"
 
-(core/unparse [:foo :bar [:qux [:baz]]])
+(oksa/unparse [:foo :bar [:qux [:baz]]])
 ;; => "{foo bar{qux{baz}}}"
 
-(core/unparse [:foo :bar [:qux :baz]])
+(oksa/unparse [:foo :bar [:qux :baz]])
 ;; => "{foo bar{qux baz}}"
 
-(core/unparse [:foo [:bar [:baz :qux] :frob]])
+(oksa/unparse [:foo [:bar [:baz :qux] :frob]])
 ;; => "{foo{bar{baz qux} frob}}"
 ```
 
 Strings are supported for field names:
 
 ```clojure
-(core/unparse ["query" "foo"])
+(oksa/unparse ["query" "foo"])
 ;; => "{query foo}"
 ```
 
 Aliases:
 
 ```clojure
-(core/unparse [[:foo {:alias :bar}]])
+(oksa/unparse [[:foo {:alias :bar}]])
 ;; => "{bar:foo}"
 ```
 
 Arguments:
 
 ```clojure
-(core/unparse [[:foo {:arguments {:a 1
+(oksa/unparse [[:foo {:arguments {:a 1
                                   :b "hello world"
                                   :c true
                                   :d nil
@@ -101,11 +101,11 @@ Arguments:
 Directives:
 
 ```clojure
-(core/unparse [[:foo {:directives [:bar]}]])
+(oksa/unparse [[:foo {:directives [:bar]}]])
 ;; => "{foo@bar}"
 
 ;; with arguments
-(core/unparse [[:foo {:directives [[:bar {:arguments {:qux 123}}]]}]])
+(oksa/unparse [[:foo {:directives [[:bar {:arguments {:qux 123}}]]}]])
 ;; => "{foo@bar(qux:123)}"
 ```
 
@@ -114,25 +114,25 @@ Directives:
 Queries can be created:
 
 ```clojure
-(core/unparse [:query [:foo :bar [:qux [:baz]]]])
+(oksa/unparse [:oksa/query [:foo :bar [:qux [:baz]]]])
 ;; => "query {foo bar{qux{baz}}}"
 
-(core/unparse [:query {:name :Foo} [:foo]])
+(oksa/unparse [:oksa/query {:name :Foo} [:foo]])
 ;; => "query Foo {foo}"
 ```
 
 Queries can have directives:
 
 ```clojure
-(core/unparse [:query {:directives [:foo]} [:foo]])
+(oksa/unparse [:oksa/query {:directives [:foo]} [:foo]])
 ;; => "query @foo{foo}"
 
-(core/unparse [:query {:directives [:foo :bar]} [:foo]])
+(oksa/unparse [:oksa/query {:directives [:foo :bar]} [:foo]])
 ;; => "query @foo @bar{foo}"
 
 ;; with arguments
 
-(core/unparse [:query {:directives [[:foo {:arguments {:bar 123}}]]} [:foo]])
+(oksa/unparse [:oksa/query {:directives [[:foo {:arguments {:bar 123}}]]} [:foo]])
 ;; => "query @foo(bar:123){foo}"
 ```
 
@@ -141,10 +141,10 @@ Queries can have directives:
 Mutations can be created:
 
 ```clojure
-(core/unparse [:mutation [:foo :bar [:qux [:baz]]]])
+(oksa/unparse [:oksa/mutation [:foo :bar [:qux [:baz]]]])
 ;; => "mutation {foo bar{qux{baz}}}"
 
-(core/unparse [:mutation {:name :Foo} [:foo]])
+(oksa/unparse [:oksa/mutation {:name :Foo} [:foo]])
 ;; => "mutation Foo {foo}"
 ```
 
@@ -153,10 +153,10 @@ Mutations can be created:
 Subscriptions can be created:
 
 ```clojure
-(core/unparse [:subscription [:foo :bar [:qux [:baz]]]])
+(oksa/unparse [:oksa/subscription [:foo :bar [:qux [:baz]]]])
 ;; => "subscription {foo bar{qux{baz}}}"
 
-(core/unparse [:subscription {:name :Foo} [:foo]])
+(oksa/unparse [:oksa/subscription {:name :Foo} [:foo]])
 ;; => "subscription Foo {foo}"
 ```
 
@@ -165,13 +165,13 @@ Subscriptions can be created:
 Named types are supported:
 
 ```clojure
-(core/unparse [:query {:variables [:fooVar :FooType]}
+(oksa/unparse [:oksa/query {:variables [:fooVar :FooType]}
                [:fooField]])
 ;; => "query ($fooVar:FooType){fooField}"
 
-(core/unparse [:query {:variables
-                       [:fooVar :FooType
-                        :barVar :BarType]}
+(oksa/unparse [:oksa/query {:variables
+                            [:fooVar :FooType
+                             :barVar :BarType]}
                [:fooField]])
 ;; => "query ($fooVar:FooType,$barVar:BarType){fooField}"
 ```
@@ -179,26 +179,26 @@ Named types are supported:
 Lists can be created:
 
 ```clojure
-(core/unparse [:query {:variables
-                       [:fooVar [:oksa/list :FooType]]}
+(oksa/unparse [:oksa/query {:variables
+                            [:fooVar [:oksa/list :FooType]]}
                [:fooField]])
 
 ;; or
 
-(core/unparse [:query {:variables
-                       [:fooVar [:FooType]]}
+(oksa/unparse [:oksa/query {:variables
+                            [:fooVar [:FooType]]}
                [:fooField]])
 ;; => "query ($fooVar:[FooType]){fooField}"
 
-(core/unparse [:query {:variables
-                       [:fooVar [:oksa/list
-                                 [:oksa/list
-                                  :BarType]]]}
+(oksa/unparse [:oksa/query {:variables
+                            [:fooVar [:oksa/list
+                                      [:oksa/list
+                                       :BarType]]]}
                [:fooField]])
 
 ;; or
 
-(core/unparse [:query {:variables [:fooVar [[:BarType]]]}
+(oksa/unparse [:oksa/query {:variables [:fooVar [[:BarType]]]}
                [:fooField]])
 ;; => "query ($fooVar:[[BarType]]){fooField}"
 ```
@@ -206,24 +206,24 @@ Lists can be created:
 Non-null types can be created:
 
 ```clojure
-(core/unparse [:query {:variables
-                       [:fooVar [:FooType {:oksa/non-null? true}]]}
+(oksa/unparse [:oksa/query {:variables
+                            [:fooVar [:FooType {:oksa/non-null? true}]]}
                [:fooField]])
 
 ;; or
 
-(core/unparse [:query {:variables [:fooVar :FooType!]}
+(oksa/unparse [:oksa/query {:variables [:fooVar :FooType!]}
                [:fooField]])
 ;; => "query ($fooVar:FooType!){fooField}"
 
-(core/unparse [:query {:variables
-                       [:fooVar [:oksa/list {:oksa/non-null? true}
-                                 :BarType]]}
+(oksa/unparse [:oksa/query {:variables
+                            [:fooVar [:oksa/list {:oksa/non-null? true}
+                                      :BarType]]}
                [:fooField]])
 
 ;; or
 
-(core/unparse [:query {:variables [:fooVar [:! :BarType]]}
+(oksa/unparse [:oksa/query {:variables [:fooVar [:! :BarType]]}
                [:fooField]])
 ;; => "query ($fooVar:[BarType]!){fooField}"
 ```
@@ -231,7 +231,7 @@ Non-null types can be created:
 Getting crazy with it:
 
 ```clojure
-(core/unparse [:query {:variables [:fooVar [:! [:! :BarType!]]]}
+(oksa/unparse [:oksa/query {:variables [:fooVar [:! [:! :BarType!]]]}
                [:fooField]])
 ;; => "query ($fooVar:[[BarType!]!]!){fooField}"
 ```
@@ -239,11 +239,11 @@ Getting crazy with it:
 Variable definitions can have directives:
 
 ```clojure
-(core/unparse [:query {:variables [:foo {:directives [:fooDirective]} :Bar]}
+(oksa/unparse [:oksa/query {:variables [:foo {:directives [:fooDirective]} :Bar]}
                [:fooField]])
 ;; => "query ($foo:Bar @fooDirective){fooField}"
 
-(core/unparse [:query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
+(oksa/unparse [:oksa/query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
                [:fooField]])
 ;; => "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
 ```
@@ -253,23 +253,23 @@ Variable definitions can have directives:
 Fragment definitions can be created:
 
 ```clojure
-(core/unparse [:fragment {:name :Foo :on :Bar} [:foo]])
+(oksa/unparse [:oksa/fragment {:name :Foo :on :Bar} [:foo]])
 ;; => "fragment Foo on Bar{foo}"
 
-(core/unparse [:# {:name :Foo :on :Bar} [:foo]]) ; shortcut
+(oksa/unparse [:# {:name :Foo :on :Bar} [:foo]]) ; shortcut
 ;; => "fragment Foo on Bar{foo}"
 
 ;; with directives
-(core/unparse [:fragment {:name :foo
-                          :on :Foo
-                          :directives [:fooDirective]}
+(oksa/unparse [:oksa/fragment {:name :foo
+                               :on :Foo
+                               :directives [:fooDirective]}
                [:bar]])
 ;; => "fragment foo on Foo@fooDirective{bar}"
 
 ;; with arguments
-(core/unparse [:fragment {:name :foo
-                          :on :Foo
-                          :directives [[:fooDirective {:arguments {:bar 123}}]]}
+(oksa/unparse [:oksa/fragment {:name :foo
+                               :on :Foo
+                               :directives [[:fooDirective {:arguments {:bar 123}}]]}
                [:bar]])
 ;; => "fragment foo on Foo@fooDirective(bar:123){bar}"
 ```
@@ -277,19 +277,19 @@ Fragment definitions can be created:
 Fragment spreads:
 
 ```clojure
-(core/unparse [:foo [:fragment-spread {:name :bar}]])
+(oksa/unparse [:foo [:oksa/fragment-spread {:name :bar}]])
 
 ;; or
 
-(core/unparse [:foo [:... {:name :bar}]])
+(oksa/unparse [:foo [:... {:name :bar}]])
 ;; => "{foo ...bar}"
 
 ;; with directives
-(core/unparse [[:... {:name :foo :directives [:bar]}]])
+(oksa/unparse [[:... {:name :foo :directives [:bar]}]])
 ;; => "{...foo@bar}"
 
 ;; with arguments
-(core/unparse [[:... {:name :foo
+(oksa/unparse [[:... {:name :foo
                       :directives [[:bar {:arguments {:qux 123}}]]}]])
 ;; => "{...foo@bar(qux:123)}"
 ```
@@ -297,22 +297,22 @@ Fragment spreads:
 Inline fragments:
 
 ```clojure
-(core/unparse [:foo [:inline-fragment [:bar]]])
+(oksa/unparse [:foo [:oksa/inline-fragment [:bar]]])
 
 ;; or
 
-(core/unparse [:foo [:... [:bar]]])
+(oksa/unparse [:foo [:... [:bar]]])
 ;; => "{foo ...{bar}}"
 
-(core/unparse [:foo [:... {:on :Bar} [:bar]]])
+(oksa/unparse [:foo [:... {:on :Bar} [:bar]]])
 ;; => "{foo ...on Bar{bar}}"
 
 ;; with directives
-(core/unparse [[:... {:directives [:foo]} [:bar]]])
+(oksa/unparse [[:... {:directives [:foo]} [:bar]]])
 ;; => "{...@foo{bar}}"
 
 ;; with arguments
-(core/unparse [[:... {:directives [[:foo {:arguments {:bar 123}}]]}
+(oksa/unparse [[:... {:directives [[:foo {:arguments {:bar 123}}]]}
                 [:foobar]]])
 ;; => "{...@foo(bar:123){foobar}}"
 ```
@@ -322,15 +322,15 @@ Inline fragments:
 Putting it all together:
 
 ```clojure
-(core/unparse [:document
+(oksa/unparse [:oksa/document
                [:foo]
-               [:query [:bar]]
-               [:mutation [:qux]]
-               [:subscription [:baz]]
-               [:fragment {:name :foo :on :Foo} [:bar]]])
+               [:oksa/query [:bar]]
+               [:oksa/mutation [:qux]]
+               [:oksa/subscription [:baz]]
+               [:oksa/fragment {:name :foo :on :Foo} [:bar]]])
 ;; => "{foo}\nquery {bar}\nmutation {qux}\nsubscription {baz}\nfragment foo on Foo{bar}"
 
-(core/unparse [:<> [:foo] [:bar]]) ; :<> also supported
+(oksa/unparse [:<> [:foo] [:bar]]) ; :<> also supported
 ;; => "{foo}\n{bar}"
 ```
 

@@ -41,13 +41,13 @@
                                            ::InlineFragment (util/transform-malli-ast transform-map value))])
                             (some? children) (into [(util/transform-malli-ast transform-map children)]))))
                       xs)))]
-    {:document document
+    {:oksa/document document
      :<> document
-     :fragment fragment
+     :oksa/fragment fragment
      :# fragment
-     :query (partial operation :query)
-     :mutation (partial operation :mutation)
-     :subscription (partial operation :subscription)
+     :oksa/query (partial operation :query)
+     :oksa/mutation (partial operation :mutation)
+     :oksa/subscription (partial operation :subscription)
      :select (fn [opts xs] (into [:selectionset opts] xs))
      :... (fn fragment-dispatcher
             ([opts]
@@ -56,8 +56,8 @@
              (if (some? (:name opts))
                (fragment-spread opts xs)
                (inline-fragment opts xs))))
-     :fragment-spread fragment-spread
-     :inline-fragment inline-fragment
+     :oksa/fragment-spread fragment-spread
+     :oksa/inline-fragment inline-fragment
      ::SelectionSet selection-set
      ::Field (fn [[name opts & xs]]
                (into [:selection {} [:field (merge (update opts
@@ -89,11 +89,14 @@
 (def ^:private re-variable-reference (re-pattern (str "[$]" name-pattern)))
 (def ^:private re-enum-value (re-pattern (str "(?!(true|false|null))" name-pattern)))
 
+(def ^:private reserved-keywords
+  (set (filter #(some-> % namespace (= "oksa")) (keys transform-map))))
+
 (def ^:private graphql-dsl-lang
   [:schema {:registry {::Document [:or
                                    [:schema [:ref ::Definition]]
                                    [:cat
-                                    [:enum :document :<>]
+                                    [:enum :oksa/document :<>]
                                     [:? :map]
                                     [:+ [:schema [:ref ::Definition]]]]]
                        ::Definition [:schema [:ref ::ExecutableDefinition]]
@@ -101,7 +104,7 @@
                                                [:schema [:ref ::OperationDefinition]]
                                                [:schema [:ref ::FragmentDefinition]]]
                        ::FragmentDefinition [:cat
-                                             [:enum :fragment :#]
+                                             [:enum :oksa/fragment :#]
                                              [:? [:map
                                                   [:name {:optional false}
                                                    [:ref ::FragmentName]]
@@ -111,7 +114,7 @@
                                              [:+ [:schema [:ref ::SelectionSet]]]]
                        ::OperationDefinition [:or
                                               [:cat
-                                               [:enum :query :mutation :subscription]
+                                               [:enum :oksa/query :oksa/mutation :oksa/subscription]
                                                [:? [:map
                                                     [:name {:optional true} [:ref ::Name]]
                                                     [:variables {:optional true}
@@ -172,16 +175,16 @@
                        ::NakedField [:schema [:ref ::FieldName]]
                        ::FieldName [:and
                                     [:schema [:ref ::Name]]
-                                    [:not (into [:enum] (keys transform-map))]]
+                                    [:fn #(not (reserved-keywords %))]]
                        ::FragmentSpread [:cat
-                                         [:enum :fragment-spread :...]
+                                         [:enum :oksa/fragment-spread :...]
                                          [:? [:map
                                               [:name {:optional false}
                                                [:ref ::FragmentName]]
                                               [:directives {:optional true}
                                                [:ref ::Directives]]]]]
                        ::InlineFragment [:cat
-                                         [:enum :inline-fragment :...]
+                                         [:enum :oksa/inline-fragment :...]
                                          [:? [:map
                                               [:directives {:optional true}
                                                [:ref ::Directives]]
