@@ -1,0 +1,8 @@
+{:deps true
+ :builds {:app {:target :browser
+                :output-dir "public/js"
+                :asset-path "/js"
+                :modules {:main {:entries [apollo-example.core]}}
+                :devtools {:http-root    "public/"
+                           :http-port    8700
+                           :preloads     [devtools.preload]}}}}
