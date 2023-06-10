@@ -1,4 +1,4 @@
-# apollo-example
+# ClojureScript example using Apollo
 
 This is a modified copy of https://github.com/lilactown/apollo-cljs-example
 demonstrating how oksa can be used in the frontend with Apollo.
