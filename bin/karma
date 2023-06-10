@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+echo 'Run Chrome tests'
+cd test-lib/ && npm run test

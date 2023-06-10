@@ -17,7 +17,7 @@ Contributions are welcome!
 * Create a topic branch from where you want to base your work (usually the main branch)
 * Check the formatting rules from existing code (no trailing whitespace, mostly default indentation)
 * Ensure any new code is well-tested, and if possible, any issue fixed is covered by one or more new tests
-* Verify that all tests pass using `./bin/kaocha` and `./bin/node`
+* Verify that all tests pass using `./bin/kaocha`, `./bin/node`, and `./bin/karma`
 * Push your code to your fork of the repository
 * Make a Pull Request
 
