@@ -14,11 +14,9 @@ Navigate to http://localhost:8700 to run the application.
 
 ## License
 
-Copyright 2019 Will Acton. Licensed MIT
-
 MIT License
 
-Copyright (c) [year] [fullname]
+Copyright (c) 2019 Will Acton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
