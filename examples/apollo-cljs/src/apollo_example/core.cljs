@@ -11,7 +11,7 @@
 (def client (ApolloClient. #js {:uri "https://countries.trevorblades.com"}))
 
 (defnc Countries [_]
-  (let [{:keys [errors data]} (-> [:oksa/query [[:countries {:arguments {:filter {:code {:eq "FI"}}}}
+  (let [{:keys [errors data]} (-> [:oksa/query [[:countries {:arguments {:filter {:continent {:eq "EU"}}}}
                                                  [:capital :currency]]]]
                                   (oksa/unparse)
                                   (gql)
