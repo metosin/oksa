@@ -5,8 +5,7 @@
             ["apollo-boost" :default ApolloClient :refer [gql]]
             ["@apollo/react-hooks" :as apollo :refer [useQuery]]
             [cljs-bean.core :as b]
-            [oksa.core :as oksa]
-            [oksa.parse]))
+            [oksa.core :as oksa]))
 
 (def client (ApolloClient. #js {:uri "https://countries.trevorblades.com"}))
 
