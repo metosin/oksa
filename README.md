@@ -30,7 +30,7 @@ Using deps.edn:
 
 ```clojure
 {:deps {metosin/oksa {:git/url "https://github.com/metosin/oksa"
-                      :sha "6ea4a246a14e1eb2f1988774f270624d1bd309fe"}}}
+                      :sha "49c862d1ceada264754d3895f184c0d6f14f8705"}}}
 ```
 
 Oksa requires Clojure 1.10+.
