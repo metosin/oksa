@@ -5,4 +5,4 @@
         cljs-bean/cljs-bean {:mvn/version "1.5.0"}
         appliedscience/js-interop {:mvn/version "0.1.19"}
         metosin/oksa {:git/url "https://github.com/metosin/oksa"
-                      :sha "f9c62043f920fb03e79352d42821f27c702f2c4c"}}}
+                      :sha "0140b9c38b744585b93edcfa935d302947030410"}}}
