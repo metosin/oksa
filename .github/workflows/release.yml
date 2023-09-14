@@ -19,7 +19,7 @@ jobs:
       with:
         cli: latest
     - name: Build jar
-      run: RELEASE=true clj -T:build jar
+      run: RELEASE=true clojure -T:build jar
 # TODO
 #    - name: Deploy to Clojars
 #      run: lein deploy clojars
