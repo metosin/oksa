@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - 'main'
-      - 'make-a-build' # removeme
 
 jobs:
   build-and-release:

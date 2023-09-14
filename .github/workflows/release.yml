@@ -20,9 +20,13 @@ jobs:
         cli: latest
     - name: Build jar
       run: RELEASE=true clojure -T:build jar
-# TODO
-#    - name: Deploy to Clojars
-#      run: lein deploy clojars
-#      env:
-#        CLOJARS_USER: opqdonut
-#        CLOJARS_DEPLOY_TOKEN: "${{ secrets.CLOJARS_DEPLOY_TOKEN }}"
+    - name: Archive jar
+      uses: actions/upload-artifact@v3
+      with:
+        name: oksa.jar
+        path: target/oksa.jar
+    - name: Deploy to Clojars
+      run: clojure -X:deploy
+      env:
+        CLOJARS_USERNAME: ilmoraunio
+        CLOJARS_PASSWORD: "${{ secrets.CLOJARS_DEPLOY_TOKEN }}"
