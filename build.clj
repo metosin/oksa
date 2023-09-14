@@ -5,9 +5,15 @@
 (def jar-content (str build-folder "/classes"))     ; folder where we collect files to pack in a jar
 
 (def lib-name 'fi.metosin/oksa)
-(def version "0.0.1-SNAPSHOT")
+(def version "0.0.1")
+(def is-release (Boolean/parseBoolean (System/getenv "RELEASE")))
 (def basis (b/create-basis {:project "deps.edn"}))
-(def jar-file-name (format "%s/%s-%s.jar" build-folder (name lib-name) version))
+(def jar-file-name (format "%s/%s-%s.jar"
+                           build-folder
+                           (name lib-name)
+                           (if is-release
+                             version
+                             (str version "-SNAPSHOT"))))
 
 (defn clean [_]
   (b/delete {:path build-folder})

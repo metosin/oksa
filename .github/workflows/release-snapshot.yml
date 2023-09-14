@@ -1,9 +1,10 @@
 name: Release
 
 on:
-  release:
-    types:
-      - published # reacts to releases and prereleases, but not their drafts
+  push:
+    branches:
+      - 'main'
+      - 'make-a-build' # removeme
 
 jobs:
   build-and-release:
@@ -19,7 +20,7 @@ jobs:
       with:
         lein: latest
     - name: Build jar
-      run: RELEASE=true clj -T:build jar
+      run: clj -T:build jar
 # TODO
 #    - name: Deploy to Clojars
 #      run: lein deploy clojars
