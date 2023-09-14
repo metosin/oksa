@@ -16,5 +16,6 @@
            :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
                     :exec-fn deps-deploy.deps-deploy/deploy
                     :exec-args {:installer :remote
+                                :pom-file "target/classes/META-INF/maven/fi.metosin/oksa/pom.xml"
                                 :sign-releases? false
                                 :artifact "target/oksa.jar"}}}}
