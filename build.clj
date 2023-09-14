@@ -27,7 +27,9 @@
                 :src-dirs  ["src"]
                 :scm {:url "https://github.com/metosin/oksa"
                       :connection "scm:git:git://github.com/metosin/oksa/oksa.git"
-                      :tag (when is-release version)}})
+                      :tag (if is-release
+                             version
+                             (b/git-process {:git-args "rev-parse HEAD"}))}})
   (b/jar {:class-dir jar-content
           :jar-file jar-file-name})
   (println (format "Jar file created: \"%s\"" jar-file-name)))
