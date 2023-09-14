@@ -20,20 +20,10 @@ Generate GraphQL queries using Clojure data structures.
 
 ## Project status
 
+[![Clojars Project](https://img.shields.io/clojars/v/fi.metosin/oksa.svg)](https://clojars.org/fi.metosin/oksa)
 [![Slack](https://img.shields.io/badge/slack-metosin-orange.svg?logo=slack)](https://clojurians.slack.com/app_redirect?channel=metosin)
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
-
-## Installation
-
-Using deps.edn:
-
-```clojure
-{:deps {metosin/oksa {:git/url "https://github.com/metosin/oksa"
-                      :sha "49c862d1ceada264754d3895f184c0d6f14f8705"}}}
-```
-
-Oksa requires Clojure 1.10+.
 
 ## Usage
 
