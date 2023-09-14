@@ -8,12 +8,7 @@
 (def version "0.0.1")
 (def is-release (Boolean/parseBoolean (System/getenv "RELEASE")))
 (def basis (b/create-basis {:project "deps.edn"}))
-(def jar-file-name (format "%s/%s-%s.jar"
-                           build-folder
-                           (name lib-name)
-                           (if is-release
-                             version
-                             (str version "-SNAPSHOT"))))
+(def jar-file-name (format "%s/%s.jar" build-folder (name lib-name)))
 
 (defn clean [_]
   (b/delete {:path build-folder})
@@ -25,7 +20,9 @@
                :target-dir jar-content})
   (b/write-pom {:class-dir jar-content
                 :lib       lib-name
-                :version   version
+                :version   (if is-release
+                             version
+                             (str version "-SNAPSHOT"))
                 :basis     basis
                 :src-dirs  ["src"]})
   (b/jar {:class-dir jar-content
