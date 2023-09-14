@@ -45,7 +45,6 @@ jobs:
         with:
           distribution: zulu
           java-version: 11
-          cache: maven
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@main
         with:
