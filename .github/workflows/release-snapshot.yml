@@ -22,7 +22,7 @@ jobs:
     - name: Build jar
       run: clojure -T:build jar
     - name: Deploy to Clojars
-      run: clj -X:deploy
+      run: clojure -X:deploy
       env:
         CLOJARS_USERNAME: ilmoraunio
         CLOJARS_PASSWORD: "${{ secrets.CLOJARS_DEPLOY_TOKEN }}"
