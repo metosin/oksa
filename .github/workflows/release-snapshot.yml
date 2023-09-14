@@ -21,6 +21,11 @@ jobs:
         cli: latest
     - name: Build jar
       run: clojure -T:build jar
+    - name: Archive jar
+      uses: actions/upload-artifact@v3
+      with:
+        name: oksa.jar
+        path: target/oksa.jar
     - name: Deploy to Clojars
       run: clojure -X:deploy
       env:
