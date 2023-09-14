@@ -24,7 +24,9 @@
                              version
                              (str version "-SNAPSHOT"))
                 :basis     basis
-                :src-dirs  ["src"]})
+                :src-dirs  ["src"]
+                :scm {:url "https://github.com/metosin/oksa"
+                      :connection "scm:git:git://github.com/metosin/oksa/oksa.git"}})
   (b/jar {:class-dir jar-content
-          :jar-file  jar-file-name})
+          :jar-file jar-file-name})
   (println (format "Jar file created: \"%s\"" jar-file-name)))
