@@ -10,4 +10,6 @@
                                     org.clojure/clojurescript {:mvn/version "1.11.57"}}
                        :main-opts ["-m" "cljs-test-runner.main"]}
            :clojure-10 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.3"}}}
-           :clojure-11 {}}}
+           :clojure-11 {}
+           :build {:deps {io.github.clojure/tools.build {:git/tag "v0.8.1" :git/sha "7d40500"}}
+                   :ns-default build}}}
