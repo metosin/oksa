@@ -1,7 +1,6 @@
 # oksa
 
 - [Project status](#project-status)
-- [Installation](#installation)
 - [Usage](#usage)
   - [Selection sets](#selection-sets)
   - [Queries](#queries)
