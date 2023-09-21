@@ -242,3 +242,7 @@
   [x]
   (-> (parse x)
       (xf)))
+
+(defn explain
+  [x]
+  (m/explain graphql-dsl-lang x))

@@ -6,3 +6,7 @@
   [x]
   (-> (parse/to-ast x)
       (unparse/unparse)))
+
+(defn explain
+  [x]
+  (parse/explain x))
