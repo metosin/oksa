@@ -2,7 +2,7 @@
   (:require [#?(:clj clojure.test
                 :cljs cljs.test) :as t]
             [oksa.core :as core])
-  (:import [graphql.parser Parser]))
+  #?(:clj (:import [graphql.parser Parser])))
 
 (defn unparse-and-validate
   [x]
