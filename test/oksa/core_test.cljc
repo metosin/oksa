@@ -1,15 +1,13 @@
 (ns oksa.core-test
   (:require [#?(:clj clojure.test
                 :cljs cljs.test) :as t]
-            [oksa.core :as core]
-            #?(:cljs [cljsjs.graphql :as graphql]))
-  #?(:clj (:import [graphql.parser Parser])))
+            [oksa.core :as core])
+  (:import [graphql.parser Parser]))
 
 (defn unparse-and-validate
   [x]
   (let [graphql-query (core/unparse x)]
     #?(:clj (Parser/parse graphql-query))
-    #?(:cljs (graphql/parse graphql-query))
     graphql-query))
 
 (t/deftest unparse-test
