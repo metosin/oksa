@@ -1,14 +1,9 @@
 (ns oksa.core-test
   (:require [#?(:clj clojure.test
                 :cljs cljs.test) :as t]
-            [oksa.core :as core])
+            [oksa.test-util :refer [unparse-and-validate]]
+            [oksa.alpha.api :as api])
   #?(:clj (:import [graphql.parser Parser])))
-
-(defn unparse-and-validate
-  [x]
-  (let [graphql-query (core/unparse x)]
-    #?(:clj (Parser/parse graphql-query))
-    graphql-query))
 
 (t/deftest unparse-test
   (t/testing "query"
@@ -296,3 +291,21 @@
     (t/is (= "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
              (unparse-and-validate [:oksa/query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
                                     [:fooField]])))))
+
+(t/deftest gql-test
+  (t/is (= "{foo}\nquery {bar}\nmutation {qux}\nsubscription {baz}\nfragment foo on Foo{bar}\n{foo2}\nquery {bar2}\nmutation {qux2}\nsubscription {baz2}\nfragment foo2 on Foo2{bar2}"
+           (oksa.core/gql
+            (api/document
+             (api/select :foo)
+             (api/query (api/select :bar))
+             (api/mutation (api/select :qux))
+             (api/subscription (api/select :baz))
+             (api/fragment (api/opts (api/name :foo)
+                                     (api/on :Foo))
+                           (api/select :bar)))
+            [:oksa/document
+             [:foo2]
+             [:oksa/query [:bar2]]
+             [:oksa/mutation [:qux2]]
+             [:oksa/subscription [:baz2]]
+             [:oksa/fragment {:name :foo2 :on :Foo2} [:bar2]]]))))
