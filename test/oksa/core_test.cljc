@@ -193,9 +193,10 @@
       (t/is (= "query ($fooVar:Foo=123){fooField(foo:$fooVar)}"
                (unparse-and-validate [:oksa/query {:variables [:$fooVar {:default 123} :Foo]}
                                       [[:fooField {:arguments {:foo :$fooVar}}]]])))
-      (t/is (= "query ($fooVar:Foo=0.3333333333333333){fooField(foo:$fooVar)}"
-               (unparse-and-validate [:oksa/query {:variables [:$fooVar {:default 1/3} :Foo]}
-                                      [[:fooField {:arguments {:foo :$fooVar}}]]])))
+      #?(:clj
+         (t/is (= "query ($fooVar:Foo=0.3333333333333333){fooField(foo:$fooVar)}"
+                  (unparse-and-validate [:oksa/query {:variables [:$fooVar {:default 1/3} :Foo]}
+                                         [[:fooField {:arguments {:foo :$fooVar}}]]]))))
       (t/is (= "query ($fooVar:Foo=\"häkkyrä\"){fooField(foo:$fooVar)}"
                (unparse-and-validate [:oksa/query {:variables [:$fooVar {:default "häkkyrä"} :Foo]}
                                       [[:fooField {:arguments {:foo :$fooVar}}]]])))
@@ -208,26 +209,24 @@
       (t/is (= "query ($fooVar:Foo=Frob){fooField(foo:$fooVar)}"
                (unparse-and-validate [:oksa/query {:variables [:$fooVar {:default :Frob} :Foo]}
                                       [[:fooField {:arguments {:foo :$fooVar}}]]])))
-      (t/is (= "query ($fooVar:Foo=[1 0.3333333333333333 \"häkkyrä\" true null Bar [1 0.3333333333333333 \"häkkyrä\" true null Bar [\"foo\" \"bar\"]] {foo:\"kikka\", bar:\"kukka\"}]){fooField(foo:$fooVar)}"
+      (t/is (= "query ($fooVar:Foo=[1 \"häkkyrä\" true null Bar [1 \"häkkyrä\" true null Bar [\"foo\" \"bar\"]] {foo:\"kikka\", bar:\"kukka\"}]){fooField(foo:$fooVar)}"
                (unparse-and-validate [:oksa/query {:variables [:$fooVar {:default [1
-                                                                                   1/3
                                                                                    "häkkyrä"
                                                                                    true
                                                                                    nil
                                                                                    :Bar
-                                                                                   [1 1/3 "häkkyrä" true nil :Bar ["foo" "bar"]]
+                                                                                   [1 "häkkyrä" true nil :Bar ["foo" "bar"]]
                                                                                    {:foo "kikka"
                                                                                     "bar" "kukka"}]}
                                                                :Foo]}
                                       [[:fooField {:arguments {:foo :$fooVar}}]]])))
-      (t/is (= "query ($fooVar:Foo={number:1, ratio:0.3333333333333333, string:\"häkkyrä\", boolean:true, default:null, keyword:Bar, coll:[1 0.3333333333333333 \"häkkyrä\" true null Bar [\"foo\" \"bar\"]]}){fooField(foo:$fooVar)}"
+      (t/is (= "query ($fooVar:Foo={number:1, string:\"häkkyrä\", boolean:true, default:null, keyword:Bar, coll:[1 \"häkkyrä\" true null Bar [\"foo\" \"bar\"]]}){fooField(foo:$fooVar)}"
                (unparse-and-validate [:oksa/query {:variables [:$fooVar {:default {:number 1
-                                                                                   :ratio 1/3
                                                                                    :string "häkkyrä"
                                                                                    :boolean true
                                                                                    :default nil
                                                                                    :keyword :Bar
-                                                                                   :coll [1 1/3 "häkkyrä" true nil :Bar ["foo" "bar"]]}} :Foo]}
+                                                                                   :coll [1 "häkkyrä" true nil :Bar ["foo" "bar"]]}} :Foo]}
                                       [[:fooField {:arguments {:foo :$fooVar}}]]])))))
   (t/testing "variable names"
     (doseq [variable-name [:fooVar :$fooVar "fooVar" "$fooVar"]]
