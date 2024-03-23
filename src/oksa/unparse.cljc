@@ -3,6 +3,8 @@
             [oksa.util :as util])
   #?(:clj (:import (clojure.lang Keyword PersistentVector PersistentArrayMap))))
 
+(defmulti format-value type)
+
 (defn- format-type
   [[type opts child]]
   (if (= :oksa/list type)
@@ -20,8 +22,8 @@
   (str (variable-name variable)
        ":"
        (format-type type)
-       (when (:default opts)
-         (str "=" (:default opts)))
+       (when (contains? opts :default)
+         (str "=" (format-value (:default opts))))
        (when (:directives opts)
          (str " " (format-directives (:directives opts))))))
 
@@ -57,7 +59,6 @@
                  \u000C "\\f"
                  \u000D "\\r"}))
 
-(defmulti format-value type)
 (defmethod format-value #?(:clj Number
                            :cljs js/Number) [x] (str x))
 #?(:clj (defmethod format-value clojure.lang.Ratio [x] (str (double x))))
@@ -75,7 +76,7 @@
 (defmethod format-value #?(:clj PersistentVector
                            :cljs cljs.core/PersistentVector)
   [x]
-  (str x))
+  (str "[" (clojure.string/join " " (mapv format-value x)) "]"))
 (defmethod format-value #?(:clj PersistentArrayMap
                            :cljs cljs.core/PersistentArrayMap)
   [x]
