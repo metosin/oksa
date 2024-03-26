@@ -27,7 +27,8 @@
   [& objs]
   (apply str
          (clojure.string/join
-          (System/lineSeparator)
+          #?(:clj  (System/lineSeparator)
+             :cljs (with-out-str (newline)))
           (map (fn [obj]
                  (if (satisfies? oksa.alpha.protocol/Representable obj)
                    (api/gql obj)
