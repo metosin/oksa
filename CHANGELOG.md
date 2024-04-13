@@ -13,3 +13,17 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 [breakver]: https://github.com/ptaoussanis/encore/blob/master/BREAK-VERSIONING.md
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
+
+## 0.0.2-SNAPSHOT
+
+- Adds `oksa.core/explain` as a convenience function for `malli.core/explain`
+- Fixes default value formatting [#6](https://github.com/metosin/oksa/pull/6)
+- Introduces `oksa.alpha.api` for programmatic API access
+  [#7](https://github.com/metosin/oksa/pull/7)
+  - Restricts `FragmentDefinition` and `OperationDefinition` to have just
+    single SelectionSet as per spec
+  - Fixes `TypeName` to also support string-typed name
+
+## 0.0.1
+
+First release! 🎉
