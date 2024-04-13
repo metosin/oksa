@@ -296,7 +296,7 @@ Fragment definitions can be created:
 
 ```clojure
 (oksa/gql [:oksa/fragment {:name :Foo :on :Bar} [:foo]])
-(oksa/unparse [:# {:name :Foo :on :Bar} [:foo]]) ; shortcut
+(oksa/gql [:# {:name :Foo :on :Bar} [:foo]]) ; shortcut
 (oksa/gql (fragment (opts
                       (name :Foo)
                       (on :Bar))
