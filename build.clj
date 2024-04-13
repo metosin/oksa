@@ -29,7 +29,12 @@
                       :connection "scm:git:git://github.com/metosin/oksa/oksa.git"
                       :tag (if is-release
                              version
-                             (b/git-process {:git-args "rev-parse HEAD"}))}})
+                             (b/git-process {:git-args "rev-parse HEAD"}))}
+                :pom-data [[:licenses
+                            [:license
+                              [:name "Eclipse Public License 2.0"]
+                              [:url "https://opensource.org/license/epl-2-0/"]
+                              [:distribution "repo"]]]]})
   (b/jar {:class-dir jar-content
           :jar-file jar-file-name})
   (println (format "Jar file created: \"%s\"" jar-file-name)))
