@@ -37,6 +37,43 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 (oksa/gql (select :hello (select :world)))
 ```
 
+More complete example using `oksa.alpha.api`:
+
+```clojure
+(oksa/gql
+  (document
+    (fragment (opts
+                (name :Kikka)
+                (on :Kukka))
+      (select :kikka :kukka))
+    (select :ylakikka
+      (select :kikka :kukka :kakku)
+      ;; v similar to ^, but allow to specify option for single field (only)
+      (field :kikka (opts
+                      (alias :KIKKA)
+                      (directives :kakku :kukka)
+                      (directive :kikkaized {:x 1 :y 2 :z 3})))
+      (when false (field :conditionalKikka)) ; nils are dropped
+      (fragment-spread (opts (name :FooFragment)))
+      (inline-fragment (opts (on :Kikka))
+        (select :kikka :kukka)))
+    (query (opts (name :KikkaQuery))
+      (select :specialKikka))
+    (mutation (opts
+                (name :saveKikka)
+                (variable :myKikka (opts (default 123)) :KikkaType))
+      (select :getKikka))
+    (subscription (opts (name :subscribeToKikka))
+      (select :realtimeKikka))))
+
+; =>
+; "fragment Kikka on Kukka{kikka kukka}
+;  {ylakikka{kikka kukka kakku} KIKKA:kikka@kakku @kukka @kikkaized(x:1, y:2, z:3) ...FooFragment ...on Kikka{kikka kukka}}
+;  query KikkaQuery {specialKikka}
+;  mutation saveKikka ($myKikka:KikkaType=123){getKikka}
+;  subscription subscribeToKikka {realtimeKikka}"
+```
+
 ### Operation definitions
 
 #### Selection sets
