@@ -14,7 +14,7 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
-## 0.0.2-SNAPSHOT
+## 0.0.2
 
 - Adds `oksa.core/explain` as a convenience function for `malli.core/explain`
 - Fixes default value formatting [#6](https://github.com/metosin/oksa/pull/6)
