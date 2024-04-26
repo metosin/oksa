@@ -99,14 +99,17 @@
                                 [:? [:schema [:ref ::TypeOpts]]]
                                 [:schema [:ref ::Type]]]
    ::SelectionSet [:orn
-                   [::SelectionSet [:+ [:catn
-                                        [::node [:schema [:ref ::Selection]]]
-                                        [::children [:? [:schema [:ref ::SelectionSet]]]]]]]]
+                   [::SelectionSet [:+ [:alt
+                                        [:catn
+                                         [::node [:schema [:ref ::Selection]]]
+                                         [::children [:? [:schema [:ref ::SelectionSet]]]]]
+                                        [:catn
+                                         [::node [:schema [:ref ::FieldSelection]]]]]]]]
+   ::FieldSelection [:orn [::WrappedField [:schema [:ref ::Field]]]]
    ::Selection [:orn
                 [::FragmentSpread [:schema [:ref ::FragmentSpread]]]
                 [::InlineFragment [:schema [:ref ::InlineFragment]]]
-                [::NakedField [:schema [:ref ::NakedField]]]
-                [::WrappedField [:schema [:ref ::Field]]]]
+                [::NakedField [:schema [:ref ::NakedField]]]]
    ::Field [:orn [::Field [:cat
                            [:schema [:ref ::FieldName]]
                            [:map

@@ -2,7 +2,7 @@
   (:require [camel-snake-kebab.core :as csk]
             [#?(:clj  clojure.test
                 :cljs cljs.test) :as t]
-            [oksa.core]
+            [oksa.core :as oksa]
             [oksa.test-util :refer [unparse-and-validate]]
             [oksa.alpha.api :as api])
   #?(:clj (:import [graphql.parser Parser])))
@@ -296,7 +296,10 @@
                                     [:fooField]])))
     (t/is (= "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
              (unparse-and-validate [:oksa/query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
-                                    [:fooField]])))))
+                                    [:fooField]]))))
+  (t/testing "sequential selection sets should throw an exception"
+    (t/is (thrown? #?(:clj Exception :cljs js/Error)
+                   (oksa/gql [[:foo {} [:qux :baz]] [:basho]])))))
 
 (t/deftest transformers-test
   (t/testing "names are transformed when transformer fn is provided"

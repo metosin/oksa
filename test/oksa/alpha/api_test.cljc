@@ -2,6 +2,7 @@
   (:require [camel-snake-kebab.core :as csk]
             [#?(:clj clojure.test
                 :cljs cljs.test) :as t]
+            [oksa.core :as oksa]
             [oksa.alpha.api :as api])
   #?(:clj (:import [graphql.parser Parser])))
 
@@ -101,9 +102,6 @@
              (unparse-and-validate (api/select :bar
                                      (api/select :qux
                                       (api/select :baz))))
-             (unparse-and-validate (api/select (api/field :bar)
-                                     (api/select (api/field :qux)
-                                       (api/select (api/field :baz)))))
              (unparse-and-validate (api/select
                                      (api/field :bar
                                        (api/select
@@ -482,7 +480,13 @@
     (t/is (= "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
              (unparse-and-validate (api/query (api/opts (api/variable :foo (api/opts (api/directive :fooDirective {:fooArg 123}))
                                                           :Bar))
-                                     (api/select :fooField)))))))
+                                     (api/select :fooField))))))
+  (t/testing "sequential selection sets should throw an exception"
+    (t/is (thrown? #?(:clj Exception :cljs js/Error)
+                   (oksa/gql
+                     (api/select (api/field :foo
+                                   (api/select :qux :baz))
+                       (api/select :basho)))))))
 
 (t/deftest transformers-test
   (t/testing "names are transformed when transformer fn is provided"
