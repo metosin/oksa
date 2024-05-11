@@ -16,13 +16,11 @@
 
 (defn -format-list
   [child opts]
-  (str "[" (format-type (serialize opts child)) "]" (when (:non-null opts) "!")))
+  (str "[" (serialize opts child) "]" (when (:non-null opts) "!")))
 
 (defn- format-type
-  [[type opts child]]
-  (if (= :oksa/list type)
-    (-format-list child opts)
-    (str (name type) (when (:non-null opts) "!"))))
+  [type opts]
+  (protocol/-unparse type opts))
 
 (defn -variable-name
   [variable]
@@ -30,36 +28,36 @@
 
 (declare format-directives)
 
-(defn- format-variable-definition
+(defn -format-variable-definition
   [variable opts type]
   (str (-variable-name variable)
        ":"
-       (format-type type)
+       (format-type type opts)
        (when (contains? opts :default)
          (str "=" (format-value (:default opts))))
        (when (:directives opts)
-         (str " " (format-directives (:directives opts))))))
+         (str " " (protocol/-unparse (:directives opts) opts)))))
 
 (defn- format-variable-definitions
   [variable-definitions]
   (str "("
        (str/join ","
-                 (map (fn [[variable opts type]]
-                        (format-variable-definition variable opts type))
+                 (map (fn [variable-definition]
+                        (protocol/-unparse variable-definition nil))
                       variable-definitions))
        ")"))
 
 (declare format-arguments)
 
-(defn- format-directive
-  [[directive-name opts :as _directive]]
+(defn format-directive
+  [directive-name opts]
   (str "@"
        (name directive-name)
        (when (:arguments opts) (format-arguments (:arguments opts)))))
 
 (defn format-directives
   [directives]
-  (str/join " " (map format-directive directives)))
+  (str/join " " (map #(protocol/-unparse % nil) directives)))
 
 (defn- escape-string
   [s]
@@ -127,7 +125,7 @@
           (when (and (some? arguments)
                      (not-empty arguments))
             (format-arguments arguments))
-          (when directives (format-directives directives))
+          (when directives (protocol/-unparse directives opts))
           (apply str (serialize opts xs))))))
 
 (defn none?
@@ -175,7 +173,7 @@
                                               "invalid name")
                    " ")))
           (when (:variables opts) (format-variable-definitions (:variables opts)))
-          (when (:directives opts) (format-directives (:directives opts)))
+          (when (:directives opts) (protocol/-unparse (:directives opts) opts))
           (apply str (map (partial serialize opts) xs))))))
 
 (defn unparse-fragment-definition
@@ -186,7 +184,7 @@
         (name (:name opts))
         " "
         (when (:on opts) (str "on " (name (:on opts))))
-        (when (:directives opts) (format-directives (:directives opts)))
+        (when (:directives opts) (protocol/-unparse (:directives opts) opts))
         (apply str (map (partial serialize opts) xs)))))
 
 (defn unparse-fragment-spread
@@ -199,7 +197,7 @@
                                       (name-fn fragment-spread-name)
                                       fragment-spread-name)
                                     "invalid name")
-         (when (:directives opts) (format-directives (:directives opts))))))
+         (when (:directives opts) (protocol/-unparse (:directives opts) opts)))))
 
 (defn unparse-inline-fragment
   ([opts]
@@ -207,7 +205,7 @@
   ([opts xs]
    (str "..."
         (when (:on opts) (str "on " (name (:on opts))))
-        (when (:directives opts) (format-directives (:directives opts)))
+        (when (:directives opts) (protocol/-unparse (:directives opts) opts))
         (apply str (serialize opts xs)))))
 
 (def -unparse-xf

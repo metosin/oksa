@@ -3,7 +3,6 @@
 (defprotocol AST
   (-type [this] "returns the type of the parsed object")
   (-opts [this] "returns the options of the token")
-  (-parsed-form [this] "returns the malli-parsed AST")
   (-form [this] "returns a malli-parseable representation of the token"))
 
 (defprotocol Serializable

@@ -15,8 +15,8 @@
 (declare -transform-map)
 
 (def ^:private reserved-keywords
-  (set (into (filter #(some-> % namespace (= "oksa")) (keys -transform-map))
-             #{:<> :# :...})))
+  (delay (set (into (filter #(some-> % namespace (= "oksa")) (keys -transform-map))
+                    #{:<> :# :...}))))
 
 (defn ^:private registry
   [opts]
@@ -102,7 +102,7 @@
    ::NakedField [:schema [:ref ::FieldName]]
    ::FieldName [:and
                 [:schema [:ref ::Name]]
-                [:fn #(not (reserved-keywords %))]]
+                [:fn #(not (@reserved-keywords %))]]
    ::FragmentSpread [:cat
                      [:enum :oksa/fragment-spread :...]
                      [:? [:map
@@ -211,7 +211,6 @@
       AST
       (-type [_] type)
       (-opts [_] opts)
-      (-parsed-form [_] document*)
       (-form [_] form)
       Serializable
       (-unparse [_ opts]
@@ -226,30 +225,37 @@
       parsed
       (throw (ex-info "invalid form" {})))))
 
+(defn -create-operation-definition
+  [type opts form selection-set]
+  (reify
+    AST
+    (-type [_] type)
+    (-opts [_] (-> opts
+                   (update :directives (partial oksa.util/transform-malli-ast -transform-map))
+                   (update :variables (partial oksa.util/transform-malli-ast -transform-map))))
+    (-form [_] form)
+    Serializable
+    (-unparse [this opts]
+      (oksa.unparse/unparse-operation-definition
+       (clojure.core/name (protocol/-type this))
+       (merge (-get-oksa-opts opts) (protocol/-opts this))
+       selection-set))
+    Representable
+    (-gql [this opts] (protocol/-unparse this opts))))
+
+(defn -operation-definition-form
+  [operation-type opts selection-set]
+  [operation-type opts (protocol/-form selection-set)])
+
 (defn -operation-definition
   [operation-type opts selection-set]
   (let [opts (or opts {})
-        form [operation-type opts (protocol/-form selection-set)]
-        [type opts _selection-set :as parsed-form] (oksa.parse/-parse-or-throw :oksa.parse/OperationDefinition
-                                                                               form
-                                                                               (oksa.parse/-operation-definition-parser opts)
-                                                                               "invalid operation definition")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] (-> opts
-                     (update :directives (partial oksa.util/transform-malli-ast -transform-map))
-                     (update :variables (partial oksa.util/transform-malli-ast -transform-map))))
-      (-parsed-form [_] parsed-form)
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/unparse-operation-definition
-          (clojure.core/name (protocol/-type this))
-          (merge (-get-oksa-opts opts) (protocol/-opts this))
-          selection-set))
-      Representable
-      (-gql [this opts] (protocol/-unparse this opts)))))
+        form (-operation-definition-form operation-type opts selection-set)
+        [_type opts _selection-set] (oksa.parse/-parse-or-throw :oksa.parse/OperationDefinition
+                                                                form
+                                                                (oksa.parse/-operation-definition-parser opts)
+                                                                "invalid operation definition")]
+    (-create-operation-definition operation-type opts form selection-set)))
 
 (defn -fragment
   [opts selection-set]
@@ -263,7 +269,6 @@
       AST
       (-type [_] type)
       (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast -transform-map)))
-      (-parsed-form [_] fragment*)
       (-form [_] form)
       Serializable
       (-unparse [this opts]
@@ -285,7 +290,6 @@
       AST
       (-type [_] type)
       (-opts [_] opts)
-      (-parsed-form [_] parsed-form)
       (-form [_] form)
       Serializable
       (-unparse [this opts]
@@ -313,7 +317,6 @@
       (-opts [_] (update field-opts
                          :directives
                          (partial oksa.util/transform-malli-ast -transform-map)))
-      (-parsed-form [_] field*)
       (-form [_] form)
       Serializable
       (-unparse [this opts] (oksa.unparse/unparse-field name
@@ -331,7 +334,6 @@
       AST
       (-type [_] :oksa.parse/NakedField)
       (-opts [_] {})
-      (-parsed-form [_] naked-field*)
       (-form [_] naked-field*)
       Serializable
       (-unparse [_ opts]
@@ -358,7 +360,6 @@
                 :directives
                 (partial oksa.util/transform-malli-ast
                          -transform-map)))
-      (-parsed-form [_] fragment-spread*)
       (-form [_] form)
       Serializable
       (-unparse [this opts]
@@ -382,7 +383,6 @@
                          :directives
                          (partial oksa.util/transform-malli-ast
                                   -transform-map)))
-      (-parsed-form [_] inline-fragment*)
       (-form [_] form)
       Serializable
       (-unparse [this opts]
@@ -410,7 +410,6 @@
       AST
       (-type [_] :oksa.parse/DirectiveName)
       (-opts [_] {})
-      (-parsed-form [_] directive-name*)
       (-form [_] directive-name)
       Serializable
       (-unparse [_ _opts] (clojure.core/name directive-name*)))))
@@ -427,16 +426,20 @@
       AST
       (-type [_] type)
       (-form [_] form)
-      (-parsed-form [_] directives*)
       (-opts [_] {})
       UpdateableOption
       (-update-key [_] :directives)
-      (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this))))))
+      (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this)))
+      Serializable
+      (-unparse [_ _opts]
+        (oksa.unparse/format-directives directives)))))
+
+(declare -type)
 
 (defn -list
   [opts type-or-list]
   (let [type-or-list* (if (or (keyword? type-or-list) (string? type-or-list))
-                        (type type-or-list)
+                        (-type type-or-list)
                         type-or-list)
         form [:oksa/list opts (protocol/-form type-or-list*)]
         list* (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
@@ -447,7 +450,6 @@
       AST
       (-type [_] :oksa.parse/ListTypeOrNonNullListType)
       (-form [_] form)
-      (-parsed-form [_] list*)
       (-opts [_] opts)
       Serializable
       (-unparse [this _opts]
@@ -466,10 +468,9 @@
       AST
       (-type [_] :oksa.parse/TypeName)
       (-form [_] form)
-      (-parsed-form [_] type*)
       (-opts [_] {})
       Serializable
-      (-unparse [this _opts] (clojure.core/name (protocol/-parsed-form this))))))
+      (-unparse [this _opts] (clojure.core/name (protocol/-form this))))))
 
 (defn -type!
   [type-name]
@@ -482,7 +483,6 @@
       AST
       (-type [_] :oksa.parse/NamedTypeOrNonNullNamedType)
       (-form [_] form)
-      (-parsed-form [_] non-null-type*)
       (-opts [_] {})
       Serializable
       (-unparse [_ _opts] (str (clojure.core/name type-name*) "!")))))
@@ -503,11 +503,18 @@
       AST
       (-type [_] :oksa.parse/VariableDefinitions)
       (-form [_] form)
-      (-parsed-form [_] variable*)
       (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast -transform-map)))
       UpdateableOption
       (-update-key [_] :variables)
-      (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this))))))
+      (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this)))
+      Serializable
+      (-unparse [this opts]
+       (oksa.unparse/-format-variable-definition
+        variable-name
+        (merge
+         (-get-oksa-opts opts)
+         (protocol/-opts this))
+        variable-type*)))))
 
 (defn -variables
   [variable-definitions]
@@ -526,7 +533,6 @@
       AST
       (-type [_] :oksa.parse/VariableDefinitions)
       (-form [_] form)
-      (-parsed-form [_] variables*)
       (-opts [_] {})
       UpdateableOption
       (-update-key [_] :variables)
@@ -536,7 +542,7 @@
   [name arguments]
   (let [opts (if (satisfies? protocol/Argumented arguments)
                {:arguments (protocol/-arguments arguments)}
-               (cond-> {} (some? arguments) (assoc :arguments arguments)))
+               (cond-> {} (not-empty arguments) (assoc :arguments arguments)))
         form [name opts]
         directive* (oksa.parse/-parse-or-throw :oksa.parse/Directive
                                                form
@@ -545,12 +551,16 @@
     (reify
       AST
       (-form [_] form)
-      (-parsed-form [_] directive*)
       (-type [_] :oksa.parse/Directive)
       (-opts [_] opts)
       UpdateableOption
       (-update-key [_] :directives)
-      (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this))))))
+      (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this)))
+      Serializable
+      (-unparse [this opts]
+        (oksa.unparse/format-directive name (merge
+                                             (-get-oksa-opts opts)
+                                             (protocol/-opts this)))))))
 
 (defn -on
   [name]
@@ -562,7 +572,6 @@
     (reify
       AST
       (-form [_] form)
-      (-parsed-form [_] name*)
       (-type [_] :oksa.parse/Name)
       (-opts [_] {})
       UpdateableOption
@@ -579,7 +588,6 @@
     (reify
       AST
       (-form [_] form)
-      (-parsed-form [_] name*)
       (-type [_] :oksa.parse/Name)
       (-opts [_] {})
       UpdateableOption
@@ -596,7 +604,6 @@
     (reify
       AST
       (-form [_] form)
-      (-parsed-form [_] alias*)
       (-type [_] :oksa.parse/Alias)
       (-opts [_] {})
       UpdateableOption
@@ -613,7 +620,6 @@
     (reify
       AST
       (-form [_] form)
-      (-parsed-form [_] argument*)
       (-type [_] :oksa.parse/Arguments)
       (-opts [_] {})
       UpdateableOption
@@ -636,7 +642,6 @@
       AST
       (-type [_] :oksa.parse/Arguments)
       (-form [_] form)
-      (-parsed-form [_] arguments*)
       (-opts [_] {})
       UpdateableOption
       (-update-key [_] :arguments)
@@ -654,20 +659,17 @@
       AST
       (-type [_] :oksa.parse/Value)
       (-form [_] value)
-      (-parsed-form [_] value*)
       (-opts [_] {})
       UpdateableOption
       (-update-key [_] :default)
       (-update-fn [_] (constantly value*)))))
 
 (def -transform-map
-  (letfn [(operation [operation-type {:keys [directives variables] :as _opts} xs]
-            (apply -operation-definition
-                   operation-type
-                   (-opts
-                     (when directives (oksa.util/transform-malli-ast -transform-map directives))
-                     (when variables (oksa.util/transform-malli-ast -transform-map variables)))
-                   xs))
+  (letfn [(operation [operation-type opts [xs]]
+            (-create-operation-definition operation-type
+                                          opts
+                                          (-operation-definition-form operation-type opts xs)
+                                          xs))
           (document [_opts xs]
             (-document xs))
           (fragment [{:keys [directives] :as options} xs]
