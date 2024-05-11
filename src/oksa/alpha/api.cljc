@@ -1054,17 +1054,17 @@
                                                 type))
                                              xs))
      :oksa.parse/TypeName (fn [type-name]
-                            (type type-name))
+                            (oksa.parse/-type type-name))
      :oksa.parse/NamedTypeOrNonNullNamedType (fn [[type-name _opts]]
-                                               (type! type-name))
+                                               (oksa.parse/-type! type-name))
      :oksa.parse/ListTypeOrNonNullListType (fn [[_ {:keys [non-null]} type]]
                                              (if non-null
-                                               (list! type)
-                                               (list type)))
+                                               (oksa.parse/-list {:non-null true} type)
+                                               (oksa.parse/-list {:non-null false} type)))
      :oksa.parse/AbbreviatedListType (fn [[type]]
-                                       (list type))
+                                       (oksa.parse/-list {:non-null false} type))
      :oksa.parse/AbbreviatedNonNullListType (fn [[_ type-or-list :as x]]
-                                              (list! type-or-list))}))
+                                              (oksa.parse/-list {:non-null true} type-or-list))}))
 
 (defn- parse
   [x]
