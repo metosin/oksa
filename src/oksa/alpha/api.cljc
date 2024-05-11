@@ -646,7 +646,6 @@
       (-update-key [_] :alias)
       (-update-fn [this] (constantly (protocol/-form this))))))
 
-(def -directives-empty-state [])
 (def -arguments-empty-state {})
 (def -variables-empty-state [])
 
@@ -687,25 +686,7 @@
        (-opts [_] opts)
        UpdateableOption
        (-update-key [_] :directives)
-       (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this)))))))
-
-(defn -directives
-  [directives]
-  (let [form (mapv protocol/-form directives)
-        [type _directives
-         :as directives*] (oksa.parse/-parse-or-throw :oksa.parse/Directives
-                                                      form
-                                                      oksa.parse/-directives-parser
-                                                      "invalid directives")]
-    (reify
-      AST
-      (-type [_] type)
-      (-form [_] form)
-      (-parsed-form [_] directives*)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :directives)
-      (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this))))))
+       (-update-fn [this] #((fnil conj oksa.parse/-directives-empty-state) % (protocol/-form this)))))))
 
 (defn directives
   "Returns `directives` under key `:directives`. Used directly within `oksa.alpha.api/opts`.
@@ -746,7 +727,7 @@
                     (every? #(or (-directive-name? %)
                                  (-directive? %)) directives*))
                "invalid directives, expected `oksa.alpha.api/directive` or naked directive (keyword)")
-    (-directives directives*)))
+    (oksa.parse/-directives directives*)))
 
 (defn argument
   "Returns an argument under key `:arguments`. Used directly within `oksa.alpha.api/opts`.
@@ -1148,7 +1129,7 @@
      :oksa.parse/Field (fn [[name opts xs]]
                          (oksa.parse/-field name opts xs))
      :oksa.parse/Directives (fn [x]
-                              (-directives x))
+                              (oksa.parse/-directives x))
      :oksa.parse/Directive (fn [[name opts]]
                              (directive name opts))
      :oksa.parse/DirectiveName (fn [directive-name]

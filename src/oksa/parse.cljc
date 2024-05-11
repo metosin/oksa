@@ -478,6 +478,26 @@
       Serializable
       (-unparse [_ _opts] (clojure.core/name directive-name*)))))
 
+(def -directives-empty-state [])
+
+(defn -directives
+  [directives]
+  (let [form (mapv protocol/-form directives)
+        [type _directives
+         :as directives*] (oksa.parse/-parse-or-throw :oksa.parse/Directives
+                                                      form
+                                                      oksa.parse/-directives-parser
+                                                      "invalid directives")]
+    (reify
+      AST
+      (-type [_] type)
+      (-form [_] form)
+      (-parsed-form [_] directives*)
+      (-opts [_] {})
+      UpdateableOption
+      (-update-key [_] :directives)
+      (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this))))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
