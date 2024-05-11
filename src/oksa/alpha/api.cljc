@@ -286,30 +286,6 @@
 
 (declare -naked-field)
 
-(defn -selection-set
-  [opts selections]
-  (let [form (mapv #(if (satisfies? AST %) (protocol/-form %) %) selections)
-        [type _selections
-         :as parsed-form] (oksa.parse/-parse-or-throw :oksa.parse/SelectionSet
-                                                      form
-                                                      (oksa.parse/-selection-set-parser opts)
-                                                      "invalid selection-set")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] opts)
-      (-parsed-form [_] parsed-form)
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/unparse-selection-set (merge (-get-oksa-opts opts)
-                                                   (protocol/-opts this))
-                                            selections))
-      Representable
-      (-gql [this opts] (protocol/-unparse this
-                                           (merge (-get-oksa-opts opts)
-                                                  (protocol/-opts this)))))))
-
 (defn select*
   "Produces a selection set using `selections`.
 
@@ -361,7 +337,7 @@
                                  (-fragment-spread? %)
                                  (-inline-fragment? %)) selections*))
                "invalid selections, expected `oksa.alpha.api/field`, keyword (naked field), `oksa.alpha.api/fragment-spread`, or `oksa.alpha.api/inline-fragment`")
-    (-selection-set opts selections*)))
+    (oksa.parse/-selection-set opts selections*)))
 
 (defn select
   "Produces a selection set using `selections`.
@@ -1251,16 +1227,16 @@
                 (when directives (oksa.util/transform-malli-ast -transform-map directives)))
               xs))
           (selection-set [xs]
-            (-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children] :as x}]
-                                          (let [[selection-type value] node]
-                                            (cond-> (into []
-                                                          [(case selection-type
-                                                             :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
-                                                             :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
-                                                             :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
-                                                             :oksa.parse/InlineFragment (oksa.util/transform-malli-ast -transform-map value))])
-                                                    (some? children) (into [(oksa.util/transform-malli-ast -transform-map children)]))))
-                                        xs)))]
+            (oksa.parse/-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children] :as x}]
+                                                     (let [[selection-type value] node]
+                                                       (cond-> (into []
+                                                                     [(case selection-type
+                                                                        :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
+                                                                        :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
+                                                                        :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
+                                                                        :oksa.parse/InlineFragment (oksa.util/transform-malli-ast -transform-map value))])
+                                                         (some? children) (into [(oksa.util/transform-malli-ast -transform-map children)]))))
+                                                   xs)))]
     {:oksa/document document
      :<> document
      :oksa/fragment fragment

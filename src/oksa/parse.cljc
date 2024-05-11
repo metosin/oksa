@@ -345,6 +345,30 @@
       Representable
       (-gql [this opts] (protocol/-unparse this opts)))))
 
+(defn -selection-set
+  [opts selections]
+  (let [form (mapv #(if (satisfies? AST %) (protocol/-form %) %) selections)
+        [type _selections
+         :as parsed-form] (oksa.parse/-parse-or-throw :oksa.parse/SelectionSet
+                                                      form
+                                                      (oksa.parse/-selection-set-parser opts)
+                                                      "invalid selection-set")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] opts)
+      (-parsed-form [_] parsed-form)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts]
+        (oksa.unparse/unparse-selection-set (merge (-get-oksa-opts opts)
+                                                   (protocol/-opts this))
+                                            selections))
+      Representable
+      (-gql [this opts] (protocol/-unparse this
+                                           (merge (-get-oksa-opts opts)
+                                                  (protocol/-opts this)))))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
