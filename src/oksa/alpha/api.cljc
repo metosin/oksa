@@ -574,20 +574,7 @@
 
   See also [TypeCondition](https://spec.graphql.org/October2021/#TypeCondition)."
   [name]
-  (let [form name
-        name* (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                          name
-                                          oksa.parse/-name-parser
-                                          "invalid `on`")]
-    (reify
-      AST
-      (-form [_] form)
-      (-parsed-form [_] name*)
-      (-type [_] :oksa.parse/Name)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :on)
-      (-update-fn [this] (constantly (protocol/-form this))))))
+  (oksa.parse/-on name))
 
 (defn name
   "Returns `name` under key `:name`. Name should conform to [Name](https://spec.graphql.org/October2021/#Name). Used directly within `oksa.alpha.api/opts`.
@@ -976,7 +963,7 @@
             (apply oksa.parse/-fragment
                    (opts
                      (name (:name options))
-                     (when (:on options) (on (:on options)))
+                     (when (:on options) (oksa.parse/-on (:on options)))
                      (when directives (oksa.util/transform-malli-ast -transform-map directives)))
                    xs))
           (fragment-spread [{:keys [directives] :as options}]
@@ -989,7 +976,7 @@
             (assert (not (some? (:name options))) "inline fragments can't have name")
             (oksa.parse/-inline-fragment
               (opts
-                (when (:on options) (on (:on options)))
+                (when (:on options) (oksa.parse/-on (:on options)))
                 (when directives (oksa.util/transform-malli-ast -transform-map directives)))
               xs))
           (selection-set [xs]

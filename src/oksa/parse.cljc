@@ -618,6 +618,23 @@
       (-update-key [_] :directives)
       (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this))))))
 
+(defn -on
+  [name]
+  (let [form name
+        name* (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                          name
+                                          oksa.parse/-name-parser
+                                          "invalid `on`")]
+    (reify
+      AST
+      (-form [_] form)
+      (-parsed-form [_] name*)
+      (-type [_] :oksa.parse/Name)
+      (-opts [_] {})
+      UpdateableOption
+      (-update-key [_] :on)
+      (-update-fn [this] (constantly (protocol/-form this))))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
