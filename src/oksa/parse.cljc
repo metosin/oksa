@@ -560,7 +560,7 @@
   [name arguments]
   (let [opts (if (satisfies? protocol/Argumented arguments)
                {:arguments (protocol/-arguments arguments)}
-               (cond-> {} (not-empty arguments) (assoc :arguments (:arguments arguments))))
+               (cond-> {} (not-empty arguments) (assoc :arguments arguments)))
         form [name opts]
         directive* (oksa.parse/-parse-or-throw :oksa.parse/Directive
                                                form
@@ -748,7 +748,8 @@
      :oksa.parse/Directives (fn [x]
                               (-directives x))
      :oksa.parse/Directive (fn [[name opts]]
-                             (-directive name opts))
+                             (prn :oksa.parse/Directive name opts)
+                             (-directive name (:arguments opts)))
      :oksa.parse/DirectiveName (fn [directive-name]
                                  (-directive directive-name nil))
      :oksa.parse/VariableDefinitions (fn [xs]
