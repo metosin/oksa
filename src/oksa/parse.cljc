@@ -705,13 +705,13 @@
               (-opts
                 (-name (:name options))
                 (when directives (oksa.util/transform-malli-ast -transform-map directives)))))
-          (inline-fragment [{:keys [directives] :as options} xs]
+          (inline-fragment [{:keys [directives] :as options} selection-set]
             (assert (not (some? (:name options))) "inline fragments can't have name")
-            (-inline-fragment
-              (-opts
-                (when (:on options) (-on (:on options)))
-                (when directives (oksa.util/transform-malli-ast -transform-map directives)))
-              xs))
+            (apply -inline-fragment
+             (-opts
+              (when (:on options) (-on (:on options)))
+              (when directives (oksa.util/transform-malli-ast -transform-map directives)))
+             selection-set))
           (selection-set [xs]
             (-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children] :as x}]
                                           (let [[selection-type value] node]
@@ -733,10 +733,10 @@
      :... (fn fragment-dispatcher
             ([opts]
              (fragment-dispatcher opts []))
-            ([opts xs]
+            ([opts selection-set]
              (if (some? (:name opts))
                (fragment-spread opts)
-               (apply inline-fragment opts xs))))
+               (inline-fragment opts selection-set))))
      :oksa/fragment-spread fragment-spread
      :oksa/inline-fragment inline-fragment
      :oksa.parse/SelectionSet selection-set
@@ -745,7 +745,6 @@
      :oksa.parse/Directives (fn [x]
                               (-directives x))
      :oksa.parse/Directive (fn [[name opts]]
-                             (prn :oksa.parse/Directive name opts)
                              (-directive name (:arguments opts)))
      :oksa.parse/DirectiveName (fn [directive-name]
                                  (-directive directive-name nil))
