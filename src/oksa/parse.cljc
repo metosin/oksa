@@ -466,6 +466,15 @@
                  (protocol/-opts this))
           selection-set)))))
 
+(defn -opts
+  [options]
+  (reduce (fn [m itm]
+            (cond
+              (satisfies? UpdateableOption itm) (update m (protocol/-update-key itm) (protocol/-update-fn itm))
+              :else m))
+          {}
+          options))
+
 (defn -directive-name
   [directive-name]
   (let [directive-name* (oksa.parse/-parse-or-throw :oksa.parse/DirectiveName

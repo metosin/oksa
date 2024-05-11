@@ -553,12 +553,7 @@
                     "`oksa.alpha.api/directive`, `oksa.alpha.api/directives`, `oksa.alpha.api/argument`, "
                     "`oksa.alpha.api/arguments`, `oksa.alpha.api/variable`, "
                     "`oksa.alpha.api/variables`, or `oksa.alpha.api/default`"))
-    (reduce (fn [m itm]
-              (cond
-                (satisfies? UpdateableOption itm) (update m (protocol/-update-key itm) (protocol/-update-fn itm))
-                :else m))
-            {}
-            vargs*)))
+    (oksa.parse/-opts vargs*)))
 
 (defn on
   "Returns a type condition under key `:on` using `name` which should conform to [NamedType](https://spec.graphql.org/October2021/#NamedType). Used directly within `oksa.alpha.api/opts`.
