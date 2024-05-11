@@ -159,10 +159,10 @@
                                         [::node [:schema [:ref ::Selection]]]
                                         [::children [:? [:schema [:ref ::SelectionSet]]]]]]]]
    ::Selection [:orn
-                [::WrappedField [:schema [:ref ::Field]]]
-                [::NakedField [:schema [:ref ::NakedField]]]
                 [::FragmentSpread [:schema [:ref ::FragmentSpread]]]
-                [::InlineFragment [:schema [:ref ::InlineFragment]]]]
+                [::InlineFragment [:schema [:ref ::InlineFragment]]]
+                [::NakedField [:schema [:ref ::NakedField]]]
+                [::WrappedField [:schema [:ref ::Field]]]]
    ::Field [:orn [::Field [:cat
                            [:schema [:ref ::FieldName]]
                            [:map

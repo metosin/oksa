@@ -583,6 +583,32 @@
                            (oksa.parse/-name-parser {:oksa/strict true})
                            "invalid naked field"))))))
 
+(declare -transform-map)
+
+(defn -fragment-spread
+  [opts]
+  (let [form [:oksa/fragment-spread opts]
+        [type opts :as fragment-spread*] (-parse-or-throw :oksa.parse/FragmentSpread
+                                                          form
+                                                          (oksa.parse/-fragment-spread-parser opts)
+                                                          "invalid fragment spread parser")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_]
+        (update opts
+                :directives
+                (partial oksa.util/transform-malli-ast
+                         -transform-map)))
+      (-parsed-form [_] fragment-spread*)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts]
+        (oksa.unparse/unparse-fragment-spread
+          (merge
+            (-get-oksa-opts opts)
+            (protocol/-opts this)))))))
+
 (defn fragment-spread
   "Produces a fragment spread using `:name` under `opts`. Can be used directly within `oksa.alpha.api/select`.
 
@@ -613,26 +639,7 @@
   See also [FragmentSpread](https://spec.graphql.org/October2021/#FragmentSpread)."
   [opts]
   (-validate (some? (:name opts)) "expected `oksa.alpha.api/name` for `opts`")
-  (let [form [:oksa/fragment-spread opts]
-        [type opts :as fragment-spread*] (-parse-or-throw :oksa.parse/FragmentSpread
-                                                          form
-                                                          (oksa.parse/-fragment-spread-parser opts)
-                                                          "invalid fragment spread parser")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] (update opts
-                         :directives
-                         (partial oksa.util/transform-malli-ast
-                                  oksa.parse/-transform-map)))
-      (-parsed-form [_] fragment-spread*)
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/unparse-fragment-spread
-          (merge
-            (-get-oksa-opts opts)
-            (protocol/-opts this)))))))
+  (-fragment-spread opts))
 
 (defn inline-fragment
   "Produces an inline fragment using the fields defined in `selection-set`. Can be used directly within `oksa.alpha.api/select`.
@@ -1286,9 +1293,10 @@
                                      :directives
                                      (partial oksa.util/transform-malli-ast -transform-map))]
                   xs))
-          (fragment-spread [opts & xs]
+          (fragment-spread [opts]
             (assert (some? (:name opts)) "missing name")
-            (into [:fragment-spread
+            (-fragment-spread opts)
+            #_(into [:fragment-spread
                    (update opts
                            :directives
                            (partial oksa.util/transform-malli-ast -transform-map))]
@@ -1333,7 +1341,7 @@
              (fragment-dispatcher opts []))
             ([opts xs]
              (if (some? (:name opts))
-               (fragment-spread opts xs)
+               (fragment-spread opts)
                (inline-fragment opts xs))))
      :oksa/fragment-spread fragment-spread
      :oksa/inline-fragment inline-fragment
