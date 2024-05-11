@@ -1293,7 +1293,8 @@
 
 (def -transform-map
   (letfn [(operation [operation-type opts xs]
-            (into [operation-type (-> opts
+            (apply -operation-definition operation-type opts xs)
+            #_(into [operation-type (-> opts
                                       (update :directives (partial oksa.util/transform-malli-ast -transform-map))
                                       (update :variables (partial oksa.util/transform-malli-ast -transform-map)))]
                   xs))
@@ -1348,9 +1349,9 @@
      :<> document
      :oksa/fragment fragment
      :# fragment
-     :oksa/query (partial operation :query)
-     :oksa/mutation (partial operation :mutation)
-     :oksa/subscription (partial operation :subscription)
+     :oksa/query (partial operation :oksa/query)
+     :oksa/mutation (partial operation :oksa/mutation)
+     :oksa/subscription (partial operation :oksa/subscription)
      :... (fn fragment-dispatcher
             ([opts]
              (fragment-dispatcher opts []))
