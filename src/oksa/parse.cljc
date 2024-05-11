@@ -268,6 +268,10 @@
                         (= oksa.util/mode "default") {}
                         :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode}))))))))
 
+(defn -get-oksa-opts
+  [opts]
+  (into {} (filter #(= (namespace (first %)) "oksa") opts)))
+
 (defn -document
   [definitions]
   (let [form (into [:oksa/document {}] (map protocol/-form definitions))
@@ -293,6 +297,31 @@
     (if (not= :malli.core/invalid parsed)
       parsed
       (throw (ex-info "invalid form" {})))))
+
+(defn -operation-definition
+  [operation-type opts selection-set]
+  (let [opts (or opts {})
+        form [operation-type opts (protocol/-form selection-set)]
+        [type opts _selection-set :as parsed-form] (oksa.parse/-parse-or-throw :oksa.parse/OperationDefinition
+                                                                               form
+                                                                               (oksa.parse/-operation-definition-parser opts)
+                                                                               "invalid operation definition")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] (-> opts
+                     (update :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map))
+                     (update :variables (partial oksa.util/transform-malli-ast oksa.parse/-transform-map))))
+      (-parsed-form [_] parsed-form)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts]
+        (oksa.unparse/unparse-operation-definition
+          (clojure.core/name (protocol/-type this))
+          (merge (-get-oksa-opts opts) (protocol/-opts this))
+          selection-set))
+      Representable
+      (-gql [this opts] (protocol/-unparse this opts)))))
 
 (defn- xf
   [ast]

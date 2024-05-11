@@ -137,31 +137,6 @@
                "invalid definitions, expected `oksa.alpha.api/query`, `oksa.alpha.api/mutation`, `oksa.alpha.api/subscription`, `oksa.alpha.api/fragment`, or `oksa.alpha.api/select`")
     (oksa.parse/-document definitions*)))
 
-(defn -operation-definition
-  [operation-type opts selection-set]
-  (let [opts (or opts {})
-        form [operation-type opts (protocol/-form selection-set)]
-        [type opts _selection-set :as parsed-form] (oksa.parse/-parse-or-throw :oksa.parse/OperationDefinition
-                                                                               form
-                                                                               (oksa.parse/-operation-definition-parser opts)
-                                                                               "invalid operation definition")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] (-> opts
-                     (update :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map))
-                     (update :variables (partial oksa.util/transform-malli-ast oksa.parse/-transform-map))))
-      (-parsed-form [_] parsed-form)
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/unparse-operation-definition
-         (clojure.core/name (protocol/-type this))
-         (merge (-get-oksa-opts opts) (protocol/-opts this))
-         selection-set))
-      Representable
-      (-gql [this opts] (protocol/-unparse this opts)))))
-
 (defn query
   "Produces an operation definition of `query` operation type using the fields defined in `selection-set`. Supports query naming, variable definitions, and directives through `opts`.
 
@@ -197,7 +172,7 @@
   ([opts selection-set]
    (-validate (or (and (nil? opts) (-selection-set? selection-set))
                   (and (map? opts) (-selection-set? selection-set))) "expected either `oksa.alpha.api/opts` & `oksa.alpha.api/select`, or `oksa.alpha.api/select`")
-   (-operation-definition :oksa/query opts selection-set)))
+   (oksa.parse/-operation-definition :oksa/query opts selection-set)))
 
 (defn mutation
   "Produces an operation definition of `mutation` operation type using the fields defined in `selection-set`.
@@ -234,7 +209,7 @@
   ([opts selection-set]
    (-validate (or (and (nil? opts) (-selection-set? selection-set))
                   (and (map? opts) (-selection-set? selection-set))) "expected either `oksa.alpha.api/opts` & `oksa.alpha.api/select`, or `oksa.alpha.api/select`")
-   (-operation-definition :oksa/mutation opts selection-set)))
+   (oksa.parse/-operation-definition :oksa/mutation opts selection-set)))
 
 (defn subscription
   "Produces an operation definition of `subscription` operation type using the fields defined in `selection-set`.
@@ -271,7 +246,7 @@
   ([opts selection-set]
    (-validate (or (and (nil? opts) (-selection-set? selection-set))
                   (and (map? opts) (-selection-set? selection-set))) "expected either `oksa.alpha.api/opts` & `oksa.alpha.api/select`, or `oksa.alpha.api/select`")
-   (-operation-definition :oksa/subscription opts selection-set)))
+   (oksa.parse/-operation-definition :oksa/subscription opts selection-set)))
 
 (defn -fragment
   [opts selection-set]
@@ -1268,7 +1243,7 @@
 
 (def -transform-map
   (letfn [(operation [operation-type {:keys [directives variables] :as _opts} xs]
-            (apply -operation-definition
+            (apply oksa.parse/-operation-definition
                    operation-type
                    (apply opts
                      (when directives (oksa.util/transform-malli-ast -transform-map directives))
