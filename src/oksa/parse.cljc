@@ -280,7 +280,7 @@
 
 (defn -selection-set-form
   [selections]
-  (mapv #(if (satisfies? AST %) (protocol/-form %) %) selections))
+  (mapv protocol/-form selections))
 
 (defn -create-selection-set
   [opts selections]
