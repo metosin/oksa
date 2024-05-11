@@ -369,6 +369,30 @@
                                            (merge (-get-oksa-opts opts)
                                                   (protocol/-opts this)))))))
 
+(defn -field
+  [name opts selection-set]
+  (let [opts (or opts {})
+        form (cond-> [name opts]
+               (some? selection-set) (conj (protocol/-form selection-set)))
+        [type [_field-name field-opts _selection-set*]
+         :as field*] (oksa.parse/-parse-or-throw :oksa.parse/Field
+                                                 form
+                                                 (oksa.parse/-field-parser opts)
+                                                 "invalid field")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] (update field-opts
+                         :directives
+                         (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
+      (-parsed-form [_] field*)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts] (oksa.unparse/unparse-field name
+                                                        (merge (-get-oksa-opts opts)
+                                                               (protocol/-opts this))
+                                                        selection-set)))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))

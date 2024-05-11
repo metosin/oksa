@@ -373,30 +373,6 @@
   [& selections]
   (apply select* nil selections))
 
-(defn -field
-  [name opts selection-set]
-  (let [opts (or opts {})
-        form (cond-> [name opts]
-                     (some? selection-set) (conj (protocol/-form selection-set)))
-        [type [_field-name field-opts _selection-set*]
-         :as field*] (oksa.parse/-parse-or-throw :oksa.parse/Field
-                                                 form
-                                                 (oksa.parse/-field-parser opts)
-                                                 "invalid field")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] (update field-opts
-                         :directives
-                         (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
-      (-parsed-form [_] field*)
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts] (oksa.unparse/unparse-field name
-                                                        (merge (-get-oksa-opts opts)
-                                                               (protocol/-opts this))
-                                                        selection-set)))))
-
 (defn field
   "Produces a field using `name`. Can be used directly within `oksa.alpha.api/select` when you need to provide options (eg. arguments, directives) for a particular field.
 
@@ -463,7 +439,7 @@
      (-validate (map? opts) "expected `oksa.alpha.api/opts`"))
    (when (some? selection-set)
      (-validate (-selection-set? selection-set) "expected `oksa.alpha.api/select`"))
-   (-field name opts selection-set)))
+   (oksa.parse/-field name opts selection-set)))
 
 (defn -naked-field
   [opts name]
@@ -1255,7 +1231,7 @@
      :oksa/inline-fragment inline-fragment
      :oksa.parse/SelectionSet selection-set
      :oksa.parse/Field (fn [[name opts xs]]
-                         (-field name opts xs))
+                         (oksa.parse/-field name opts xs))
      :oksa.parse/Directives (fn [x]
                               (-directives x))
      :oksa.parse/Directive (fn [[name opts]]
