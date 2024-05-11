@@ -8,7 +8,7 @@
                                          Representable
                                          UpdateableOption]
              :as protocol])
-  (:refer-clojure :exclude [assert name alias set list type]))
+  (:refer-clojure :exclude [name alias set list type]))
 
 (defn -query?
   [x]
@@ -103,11 +103,11 @@
       retval
       (throw (ex-info message
                       (cond
-                        (= mode "debug") {:malli.core/explain (malli.core/explain
-                                                               (oksa.parse/-graphql-dsl-lang type)
-                                                               form)}
-                        (= mode "default") {}
-                        :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode mode}))))))))
+                        (= oksa.util/mode "debug") {:malli.core/explain (malli.core/explain
+                                                                          (oksa.parse/-graphql-dsl-lang type)
+                                                                          form)}
+                        (= oksa.util/mode "default") {}
+                        :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode}))))))))
 
 (defn -get-oksa-opts
   [opts]
@@ -358,6 +358,30 @@
 
 (declare -naked-field)
 
+(defn -selection-set
+  [opts selections]
+  (let [form (mapv #(if (satisfies? AST %) (protocol/-form %) %) selections)
+        [type _selections
+         :as parsed-form] (-parse-or-throw :oksa.parse/SelectionSet
+                                           form
+                                           (oksa.parse/-selection-set-parser opts)
+                                           "invalid selection-set")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] opts)
+      (-parsed-form [_] parsed-form)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts]
+        (oksa.unparse/unparse-selection-set (merge (-get-oksa-opts opts)
+                                                   (protocol/-opts this))
+                                            selections))
+      Representable
+      (-gql [this opts] (protocol/-unparse this
+                                           (merge (-get-oksa-opts opts)
+                                                  (protocol/-opts this)))))))
+
 (defn select*
   "Produces a selection set using `selections`.
 
@@ -409,27 +433,7 @@
                                  (-fragment-spread? %)
                                  (-inline-fragment? %)) selections*))
                "invalid selections, expected `oksa.alpha.api/field`, keyword (naked field), `oksa.alpha.api/fragment-spread`, or `oksa.alpha.api/inline-fragment`")
-    (let [form (mapv #(if (satisfies? AST %) (protocol/-form %) %) selections*)
-          [type _selections
-           :as parsed-form] (-parse-or-throw :oksa.parse/SelectionSet
-                                             form
-                                             (oksa.parse/-selection-set-parser opts)
-                                             "invalid selection-set")]
-      (reify
-        AST
-        (-type [_] type)
-        (-opts [_] opts)
-        (-parsed-form [_] parsed-form)
-        (-form [_] form)
-        Serializable
-        (-unparse [this opts]
-          (oksa.unparse/unparse-selection-set (merge (-get-oksa-opts opts)
-                                                     (protocol/-opts this))
-                                              selections*))
-        Representable
-        (-gql [this opts] (protocol/-unparse this
-                                             (merge (-get-oksa-opts opts)
-                                                    (protocol/-opts this))))))))
+    (-selection-set opts selections*)))
 
 (defn select
   "Produces a selection set using `selections`.
@@ -464,6 +468,30 @@
   "
   [& selections]
   (apply select* nil selections))
+
+(defn -field
+  [name opts selection-set]
+  (let [opts (or opts {})
+        form (cond-> [name opts]
+                     (some? selection-set) (conj (protocol/-form selection-set)))
+        [type [_field-name field-opts _selection-set*]
+         :as field*] (-parse-or-throw :oksa.parse/Field
+                                      form
+                                      (oksa.parse/-field-parser opts)
+                                      "invalid field")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] (update field-opts
+                         :directives
+                         (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
+      (-parsed-form [_] field*)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts] (oksa.unparse/unparse-field name
+                                                        (merge (-get-oksa-opts opts)
+                                                               (protocol/-opts this))
+                                                        selection-set)))))
 
 (defn field
   "Produces a field using `name`. Can be used directly within `oksa.alpha.api/select` when you need to provide options (eg. arguments, directives) for a particular field.
@@ -531,27 +559,7 @@
      (-validate (map? opts) "expected `oksa.alpha.api/opts`"))
    (when (some? selection-set)
      (-validate (-selection-set? selection-set) "expected `oksa.alpha.api/select`"))
-   (let [opts (or opts {})
-         form (cond-> [name opts]
-                (some? selection-set) (conj (protocol/-form selection-set)))
-         [type [_field-name field-opts _selection-set*]
-          :as field*] (-parse-or-throw :oksa.parse/Field
-                                       form
-                                       (oksa.parse/-field-parser opts)
-                                       "invalid field")]
-     (reify
-       AST
-       (-type [_] type)
-       (-opts [_] (update field-opts
-                          :directives
-                          (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
-       (-parsed-form [_] field*)
-       (-form [_] form)
-       Serializable
-       (-unparse [this opts] (oksa.unparse/unparse-field name
-                                                         (merge (-get-oksa-opts opts)
-                                                                (protocol/-opts this))
-                                                         selection-set))))))
+   (-field name opts selection-set)))
 
 (defn -naked-field
   [opts name]
@@ -1257,3 +1265,119 @@
   ([opts obj]
    (-validate (satisfies? Representable obj) "Object must be Representable (one of `oksa.alpha.api/document`, `oksa.alpha.api/select`, `oksa.alpha.api/query`, `oksa.alpha.api/mutation`, `oksa.alpha.api/subscription`, or `oksa.alpha.api/fragment`)")
    (protocol/-gql obj opts)))
+
+;;
+;;
+;; WIP
+;;
+;;
+
+(def -transform-map
+  (letfn [(operation [operation-type opts xs]
+            (into [operation-type (-> opts
+                                      (update :directives (partial oksa.util/transform-malli-ast -transform-map))
+                                      (update :variables (partial oksa.util/transform-malli-ast -transform-map)))]
+                  xs))
+          (document [opts xs]
+            (into [:document opts] xs))
+          (fragment [opts xs]
+            (assert (some? (:name opts)) "missing name")
+            (into [:fragment (update opts
+                                     :directives
+                                     (partial oksa.util/transform-malli-ast -transform-map))]
+                  xs))
+          (fragment-spread [opts & xs]
+            (assert (some? (:name opts)) "missing name")
+            (into [:fragment-spread
+                   (update opts
+                           :directives
+                           (partial oksa.util/transform-malli-ast -transform-map))]
+                  xs))
+          (inline-fragment [opts xs]
+            (assert (not (some? (:name opts))) "inline fragments can't have name")
+            (into [:inline-fragment (update opts
+                                            :directives
+                                            (partial oksa.util/transform-malli-ast -transform-map))]
+                  xs))
+          (selection-set [xs]
+            (-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children] :as x}]
+                                          (let [[selection-type value] node]
+                                            (cond-> (into []
+                                                          [(case selection-type
+                                                             :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
+                                                             :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
+                                                             :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
+                                                             :oksa.parse/InlineFragment (oksa.util/transform-malli-ast -transform-map value))])
+                                                    (some? children) (into [(oksa.util/transform-malli-ast -transform-map children)]))))
+                                        xs))
+            #_(into [:selectionset {}]
+                  (map (fn [{:oksa.parse/keys [node children] :as x}]
+                         (let [[selection-type value] node]
+                           (cond-> (into [:selection {}]
+                                         [(case selection-type
+                                            :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
+                                            :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
+                                            :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
+                                            :oksa.parse/InlineFragment (oksa.util/transform-malli-ast -transform-map value))])
+                                   (some? children) (into [(oksa.util/transform-malli-ast -transform-map children)]))))
+                       xs)))]
+    {:oksa/document document
+     :<> document
+     :oksa/fragment fragment
+     :# fragment
+     :oksa/query (partial operation :query)
+     :oksa/mutation (partial operation :mutation)
+     :oksa/subscription (partial operation :subscription)
+     :... (fn fragment-dispatcher
+            ([opts]
+             (fragment-dispatcher opts []))
+            ([opts xs]
+             (if (some? (:name opts))
+               (fragment-spread opts xs)
+               (inline-fragment opts xs))))
+     :oksa/fragment-spread fragment-spread
+     :oksa/inline-fragment inline-fragment
+     :oksa.parse/SelectionSet selection-set
+     :oksa.parse/Field (fn [[name opts xs]]
+                         (-field name opts xs)
+                         #_(into [:selection {} [:field (merge (update opts
+                                                                       :directives
+                                                                       (partial oksa.util/transform-malli-ast -transform-map))
+                                                               {:name name})]]
+                                 (filterv some? xs)))
+     :oksa.parse/Directives (partial into [])
+     :oksa.parse/Directive (fn [[name opts]] [name opts])
+     :oksa.parse/DirectiveName (fn [directive-name] [directive-name {}])
+     :oksa.parse/VariableDefinitions (fn [xs]
+                                       (map (fn [[variable-name opts type :as _variable-definition]]
+                                              [variable-name
+                                               (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
+                                               type])
+                                            xs))
+     :oksa.parse/TypeName (fn [type-name] [type-name {}])
+     :oksa.parse/NamedTypeOrNonNullNamedType identity
+     :oksa.parse/ListTypeOrNonNullListType identity
+     :oksa.parse/AbbreviatedListType (fn [x] (into [:oksa/list {}] x))
+     :oksa.parse/AbbreviatedNonNullListType (fn [[_ name-or-list]] (into [:oksa/list {:non-null true}] [name-or-list]))}))
+
+(defn- parse
+  [x]
+  (let [parsed (oksa.parse/-graphql-dsl-parser x)]
+    (if (not= :malli.core/invalid parsed)
+      parsed
+      (throw (ex-info "invalid form" {})))))
+
+(defn- xf
+  [ast]
+  (oksa.util/transform-malli-ast -transform-map ast))
+
+(defn to-ast
+  [x]
+  (-> (parse x)
+      (xf)))
+
+;;
+;;
+;;
+;;
+;;
