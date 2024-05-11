@@ -169,13 +169,14 @@
      (str operation-type
           " "
           (when (:name opts)
-            (let [operation-definition-name (str (name (:name opts)) " ")]
-              (util/-parse-or-throw :oksa.parse/Name
-                                    (if name-fn
-                                      (name-fn operation-definition-name)
-                                      operation-definition-name)
-                                    (oksa.parse/-name-parser {:oksa/strict true})
-                                    "invalid name")))
+            (let [operation-definition-name (str (name (:name opts)))]
+              (str (util/-parse-or-throw :oksa.parse/Name
+                                     (if name-fn
+                                       (name-fn operation-definition-name)
+                                       operation-definition-name)
+                                     (oksa.parse/-name-parser {:oksa/strict true})
+                                     "invalid name")
+                   " ")))
           (when (:variables opts) (format-variable-definitions (:variables opts)))
           (when (:directives opts) (format-directives (:directives opts)))
           (apply str (map (partial serialize opts) xs))))))
