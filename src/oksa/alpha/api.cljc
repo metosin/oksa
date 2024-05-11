@@ -95,20 +95,6 @@
    (when (not x)
      (throw (ex-info msg data)))))
 
-;; TODO: clean up
-(defn -parse-or-throw
-  [type form parser message]
-  (let [retval (parser form)]
-    (if (not= retval :malli.core/invalid)
-      retval
-      (throw (ex-info message
-                      (cond
-                        (= oksa.util/mode "debug") {:malli.core/explain (malli.core/explain
-                                                                          (oksa.parse/-graphql-dsl-lang type)
-                                                                          form)}
-                        (= oksa.util/mode "default") {}
-                        :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode}))))))))
-
 (defn -get-oksa-opts
   [opts]
   (into {} (filter #(= (namespace (first %)) "oksa") opts)))
@@ -116,10 +102,10 @@
 (defn -document
   [definitions]
   (let [form (into [:oksa/document {}] (map protocol/-form definitions))
-        [type opts _definitions :as document*] (-parse-or-throw :oksa.parse/Document
-                                                                form
-                                                                oksa.parse/-graphql-dsl-parser
-                                                                "invalid document")]
+        [type opts _definitions :as document*] (oksa.parse/-parse-or-throw :oksa.parse/Document
+                                                                           form
+                                                                           oksa.parse/-graphql-dsl-parser
+                                                                           "invalid document")]
     (reify
       AST
       (-type [_] type)
@@ -174,10 +160,10 @@
   [operation-type opts selection-set]
   (let [opts (or opts {})
         form [operation-type opts (protocol/-form selection-set)]
-        [type opts _selection-set :as parsed-form] (-parse-or-throw :oksa.parse/OperationDefinition
-                                                                    form
-                                                                    (oksa.parse/-operation-definition-parser opts)
-                                                                    "invalid operation definition")]
+        [type opts _selection-set :as parsed-form] (oksa.parse/-parse-or-throw :oksa.parse/OperationDefinition
+                                                                               form
+                                                                               (oksa.parse/-operation-definition-parser opts)
+                                                                               "invalid operation definition")]
     (reify
       AST
       (-type [_] type)
@@ -310,10 +296,10 @@
   [opts selection-set]
   (let [form [:oksa/fragment opts (protocol/-form selection-set)]
         [type opts _selection-set
-         :as fragment*] (-parse-or-throw :oksa.parse/FragmentDefinition
-                                         form
-                                         (oksa.parse/-fragment-definition-parser opts)
-                                         "invalid fragment definition")]
+         :as fragment*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentDefinition
+                                                    form
+                                                    (oksa.parse/-fragment-definition-parser opts)
+                                                    "invalid fragment definition")]
     (reify
       AST
       (-type [_] type)
@@ -370,10 +356,10 @@
   [opts selections]
   (let [form (mapv #(if (satisfies? AST %) (protocol/-form %) %) selections)
         [type _selections
-         :as parsed-form] (-parse-or-throw :oksa.parse/SelectionSet
-                                           form
-                                           (oksa.parse/-selection-set-parser opts)
-                                           "invalid selection-set")]
+         :as parsed-form] (oksa.parse/-parse-or-throw :oksa.parse/SelectionSet
+                                                      form
+                                                      (oksa.parse/-selection-set-parser opts)
+                                                      "invalid selection-set")]
     (reify
       AST
       (-type [_] type)
@@ -483,10 +469,10 @@
         form (cond-> [name opts]
                      (some? selection-set) (conj (protocol/-form selection-set)))
         [type [_field-name field-opts _selection-set*]
-         :as field*] (-parse-or-throw :oksa.parse/Field
-                                      form
-                                      (oksa.parse/-field-parser opts)
-                                      "invalid field")]
+         :as field*] (oksa.parse/-parse-or-throw :oksa.parse/Field
+                                                 form
+                                                 (oksa.parse/-field-parser opts)
+                                                 "invalid field")]
     (reify
       AST
       (-type [_] type)
@@ -571,10 +557,10 @@
 
 (defn -naked-field
   [opts name]
-  (let [naked-field* (-parse-or-throw :oksa.parse/NakedField
-                                      name
-                                      (oksa.parse/-naked-field-parser opts)
-                                      "invalid naked field")]
+  (let [naked-field* (oksa.parse/-parse-or-throw :oksa.parse/NakedField
+                                                 name
+                                                 (oksa.parse/-naked-field-parser opts)
+                                                 "invalid naked field")]
     (reify
       AST
       (-type [_] :oksa.parse/NakedField)
@@ -584,22 +570,22 @@
       Serializable
       (-unparse [_ opts]
         (let [name-fn (:oksa/name-fn opts)]
-          (-parse-or-throw :oksa.parse/Name
-                           (if name-fn
-                             (name-fn naked-field*)
-                             (clojure.core/name naked-field*))
-                           (oksa.parse/-name-parser {:oksa/strict true})
-                           "invalid naked field"))))))
+          (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                      (if name-fn
+                                        (name-fn naked-field*)
+                                        (clojure.core/name naked-field*))
+                                      (oksa.parse/-name-parser {:oksa/strict true})
+                                      "invalid naked field"))))))
 
 (declare -transform-map)
 
 (defn -fragment-spread
   [opts]
   (let [form [:oksa/fragment-spread opts]
-        [type opts :as fragment-spread*] (-parse-or-throw :oksa.parse/FragmentSpread
-                                                          form
-                                                          (oksa.parse/-fragment-spread-parser opts)
-                                                          "invalid fragment spread parser")]
+        [type opts :as fragment-spread*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentSpread
+                                                                     form
+                                                                     (oksa.parse/-fragment-spread-parser opts)
+                                                                     "invalid fragment spread parser")]
     (reify
       AST
       (-type [_] type)
@@ -653,10 +639,10 @@
   [opts selection-set]
   (let [opts (or opts {})
         form (cond-> [:oksa/inline-fragment opts] (some? selection-set) (conj (protocol/-form selection-set)))
-        [type opts :as inline-fragment*] (-parse-or-throw :oksa.parse/InlineFragment
-                                                          form
-                                                          (oksa.parse/-inline-fragment-parser opts)
-                                                          "invalid inline fragment parser")]
+        [type opts :as inline-fragment*] (oksa.parse/-parse-or-throw :oksa.parse/InlineFragment
+                                                                     form
+                                                                     (oksa.parse/-inline-fragment-parser opts)
+                                                                     "invalid inline fragment parser")]
     (reify
       AST
       (-type [_] type)
@@ -773,10 +759,10 @@
   See also [TypeCondition](https://spec.graphql.org/October2021/#TypeCondition)."
   [name]
   (let [form name
-        name* (-parse-or-throw :oksa.parse/Name
-                               name
-                               oksa.parse/-name-parser
-                               "invalid `on`")]
+        name* (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                          name
+                                          oksa.parse/-name-parser
+                                          "invalid `on`")]
     (reify
       AST
       (-form [_] form)
@@ -802,10 +788,10 @@
   See [Name](https://spec.graphql.org/October2021/#Name)."
   [name]
   (let [form name
-        name* (-parse-or-throw :oksa.parse/Name
-                               name
-                               oksa.parse/-name-parser
-                               "invalid name")]
+        name* (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                          name
+                                          oksa.parse/-name-parser
+                                          "invalid name")]
     (reify
       AST
       (-form [_] form)
@@ -830,10 +816,10 @@
   See also [Alias](https://spec.graphql.org/October2021/#Alias)."
   [name]
   (let [form name
-        alias* (-parse-or-throw :oksa.parse/Alias
-                                form
-                                oksa.parse/-alias-parser
-                                "invalid alias")]
+        alias* (oksa.parse/-parse-or-throw :oksa.parse/Alias
+                                           form
+                                           oksa.parse/-alias-parser
+                                           "invalid alias")]
     (reify
       AST
       (-form [_] form)
@@ -846,10 +832,10 @@
 
 (defn -directive-name
   [directive-name]
-  (let [directive-name* (-parse-or-throw :oksa.parse/DirectiveName
-                                         directive-name
-                                         oksa.parse/-directive-name-parser
-                                         "invalid directive name")]
+  (let [directive-name* (oksa.parse/-parse-or-throw :oksa.parse/DirectiveName
+                                                    directive-name
+                                                    oksa.parse/-directive-name-parser
+                                                    "invalid directive name")]
     (reify
       AST
       (-type [_] :oksa.parse/DirectiveName)
@@ -888,10 +874,10 @@
                 {:arguments (protocol/-arguments arguments)}
                 (cond-> {} (some? arguments) (assoc :arguments arguments)))
          form [name opts]
-         directive* (-parse-or-throw :oksa.parse/Directive
-                                     form
-                                     oksa.parse/-directive-parser
-                                     "invalid directive")]
+         directive* (oksa.parse/-parse-or-throw :oksa.parse/Directive
+                                                form
+                                                oksa.parse/-directive-parser
+                                                "invalid directive")]
      (reify
        AST
        (-form [_] form)
@@ -906,10 +892,10 @@
   [directives]
   (let [form (mapv protocol/-form directives)
         [type _directives
-         :as directives*] (-parse-or-throw :oksa.parse/Directives
-                                           form
-                                           oksa.parse/-directives-parser
-                                           "invalid directives")]
+         :as directives*] (oksa.parse/-parse-or-throw :oksa.parse/Directives
+                                                      form
+                                                      oksa.parse/-directives-parser
+                                                      "invalid directives")]
     (reify
       AST
       (-type [_] type)
@@ -981,10 +967,10 @@
   See also [Argument](https://spec.graphql.org/October2021/#Argument)."
   [name value]
   (let [form {name value}
-        argument* (-parse-or-throw :oksa.parse/Arguments
-                                   form
-                                   oksa.parse/-arguments-parser
-                                   "invalid argument")]
+        argument* (oksa.parse/-parse-or-throw :oksa.parse/Arguments
+                                              form
+                                              oksa.parse/-arguments-parser
+                                              "invalid argument")]
     (reify
       AST
       (-form [_] form)
@@ -1021,10 +1007,10 @@
                   (partition 2)
                   (map vec)
                   (into {}))
-        arguments* (-parse-or-throw :oksa.parse/Arguments
-                                    form
-                                    oksa.parse/-arguments-parser
-                                    "invalid arguments")]
+        arguments* (oksa.parse/-parse-or-throw :oksa.parse/Arguments
+                                               form
+                                               oksa.parse/-arguments-parser
+                                               "invalid arguments")]
     (reify
       AST
       (-type [_] :oksa.parse/Arguments)
@@ -1043,10 +1029,10 @@
   See also [NamedType](https://spec.graphql.org/October2021/#NamedType)."
   [type-name]
   (let [form type-name
-        type* (-parse-or-throw :oksa.parse/TypeName
-                               form
-                               oksa.parse/-type-name-parser
-                               "invalid type")]
+        type* (oksa.parse/-parse-or-throw :oksa.parse/TypeName
+                                          form
+                                          oksa.parse/-type-name-parser
+                                          "invalid type")]
     (reify
       AST
       (-type [_] :oksa.parse/TypeName)
@@ -1062,10 +1048,10 @@
   See also [NonNullType](https://spec.graphql.org/October2021/#NonNullType)."
   [type-name]
   (let [form [type-name {:non-null true}]
-        [type-name* _opts :as non-null-type*] (-parse-or-throw :oksa.parse/NamedTypeOrNonNullNamedType
-                                                               form
-                                                               oksa.parse/-named-type-or-non-null-named-type-parser
-                                                               "invalid non-null type")]
+        [type-name* _opts :as non-null-type*] (oksa.parse/-parse-or-throw :oksa.parse/NamedTypeOrNonNullNamedType
+                                                                          form
+                                                                          oksa.parse/-named-type-or-non-null-named-type-parser
+                                                                          "invalid non-null type")]
     (reify
       AST
       (-type [_] :oksa.parse/NamedTypeOrNonNullNamedType)
@@ -1083,10 +1069,10 @@
                         (type type-or-list)
                         type-or-list)
         form [:oksa/list opts (protocol/-form type-or-list*)]
-        list* (-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
-                               form
-                               oksa.parse/-list-type-or-non-null-list-type-parser
-                               "invalid list")]
+        list* (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
+                                          form
+                                          oksa.parse/-list-type-or-non-null-list-type-parser
+                                          "invalid list")]
     (reify
       AST
       (-type [_] :oksa.parse/ListTypeOrNonNullListType)
@@ -1157,10 +1143,10 @@
         form (cond-> [variable-name]
                (some? opts) (conj opts)
                true (conj (protocol/-form variable-type*)))
-        variable* (-parse-or-throw :oksa.parse/VariableDefinitions
-                                   form
-                                   oksa.parse/-variable-definitions-parser
-                                   "invalid variable definitions")]
+        variable* (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
+                                              form
+                                              oksa.parse/-variable-definitions-parser
+                                              "invalid variable definitions")]
     (reify
       AST
       (-type [_] :oksa.parse/VariableDefinitions)
@@ -1228,10 +1214,10 @@
                                                      variable-type)]
                                 (into acc [variable-name (protocol/-form variable-type*)])))
                             []))
-          variables* (-parse-or-throw :oksa.parse/VariableDefinitions
-                                      form
-                                      oksa.parse/-variable-definitions-parser
-                                      "invalid variable definitions")]
+          variables* (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
+                                                 form
+                                                 oksa.parse/-variable-definitions-parser
+                                                 "invalid variable definitions")]
       (reify
         AST
         (-type [_] :oksa.parse/VariableDefinitions)
@@ -1254,10 +1240,10 @@
 
   See also [DefaultValue](https://spec.graphql.org/October2021/#DefaultValue)."
   [value]
-  (let [value* (-parse-or-throw :oksa.parse/Value
-                                value
-                                oksa.parse/-value-parser
-                                "invalid value")]
+  (let [value* (oksa.parse/-parse-or-throw :oksa.parse/Value
+                                           value
+                                           oksa.parse/-value-parser
+                                           "invalid value")]
     (reify
       AST
       (-type [_] :oksa.parse/Value)

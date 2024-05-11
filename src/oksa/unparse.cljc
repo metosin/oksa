@@ -120,12 +120,12 @@
    (let [name-fn (:oksa/name-fn opts)
          field-name (clojure.core/name name)]
      (str (when alias (str (clojure.core/name alias) ":"))
-          (util/-parse-or-throw :oksa.parse/Name
-                                (if name-fn
-                                  (name-fn field-name)
-                                  field-name)
-                                (oksa.parse/-name-parser {:oksa/strict true})
-                                "invalid name")
+          (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                      (if name-fn
+                                        (name-fn field-name)
+                                        field-name)
+                                      (oksa.parse/-name-parser {:oksa/strict true})
+                                      "invalid name")
           (when (and (some? arguments)
                      (not-empty arguments))
             (format-arguments arguments))
@@ -170,12 +170,12 @@
           " "
           (when (:name opts)
             (let [operation-definition-name (str (name (:name opts)))]
-              (str (util/-parse-or-throw :oksa.parse/Name
-                                     (if name-fn
-                                       (name-fn operation-definition-name)
-                                       operation-definition-name)
-                                     (oksa.parse/-name-parser {:oksa/strict true})
-                                     "invalid name")
+              (str (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                               (if name-fn
+                                                 (name-fn operation-definition-name)
+                                                 operation-definition-name)
+                                               (oksa.parse/-name-parser {:oksa/strict true})
+                                               "invalid name")
                    " ")))
           (when (:variables opts) (format-variable-definitions (:variables opts)))
           (when (:directives opts) (format-directives (:directives opts)))
@@ -197,12 +197,12 @@
   (let [name-fn (:oksa/name-fn opts)
         fragment-spread-name (name (:name opts))]
     (str "..."
-         (util/-parse-or-throw :oksa.parse/Name
-                               (if name-fn
-                                 (name-fn fragment-spread-name)
-                                 fragment-spread-name)
-                               (oksa.parse/-name-parser {:oksa/strict true})
-                               "invalid name")
+         (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                     (if name-fn
+                                       (name-fn fragment-spread-name)
+                                       fragment-spread-name)
+                                     (oksa.parse/-name-parser {:oksa/strict true})
+                                     "invalid name")
          (when (:directives opts) (format-directives (:directives opts))))))
 
 (defn unparse-inline-fragment

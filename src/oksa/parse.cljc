@@ -257,6 +257,19 @@
 (def -list-type-or-non-null-list-type-parser (m/parser (-graphql-dsl-lang ::ListTypeOrNonNullListType)))
 (def -variable-definitions-parser (m/parser (-graphql-dsl-lang ::VariableDefinitions)))
 
+(defn -parse-or-throw
+  [type form parser message]
+  (let [retval (parser form)]
+    (if (not= retval :malli.core/invalid)
+      retval
+      (throw (ex-info message
+                      (cond
+                        (= oksa.util/mode "debug") {:malli.core/explain (malli.core/explain
+                                                                          (-graphql-dsl-lang type)
+                                                                          form)}
+                        (= oksa.util/mode "default") {}
+                        :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode}))))))))
+
 (defn- parse
   [x]
   (let [parsed (-graphql-dsl-parser x)]
