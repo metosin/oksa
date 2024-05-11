@@ -487,34 +487,50 @@
       Serializable
       (-unparse [_ _opts] (str (clojure.core/name type-name*) "!")))))
 
+(declare -default)
+
+(defn -create-variable
+  [variable-name opts form variable-type]
+  (reify
+    AST
+    (-type [_] :oksa.parse/VariableDefinitions)
+    (-form [_] form)
+    (-opts [_]
+      (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
+        (contains? opts :default) (update :default -default)))
+    UpdateableOption
+    (-update-key [_] :variables)
+    (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this)))
+    Serializable
+    (-unparse [this opts]
+      (oksa.unparse/-format-variable-definition
+       variable-name
+       (merge
+        (-get-oksa-opts opts)
+        (protocol/-opts this))
+       variable-type))))
+
+(defn -variable-form
+  [variable-name opts variable-type]
+  (cond-> [variable-name]
+    (some? opts) (conj opts)
+    true (conj (protocol/-form variable-type))))
+
+(defn -coerce-variable-type
+  [variable-type]
+  (if (or (keyword? variable-type) (string? variable-type))
+    (-type variable-type)
+    variable-type))
+
 (defn -variable
   [variable-name opts variable-type]
-  (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))
-                         (-type variable-type)
-                         variable-type)
-        form (cond-> [variable-name]
-               (some? opts) (conj opts)
-               true (conj (protocol/-form variable-type*)))
-        variable* (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
-                                              form
-                                              oksa.parse/-variable-definitions-parser
-                                              "invalid variable definitions")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/VariableDefinitions)
-      (-form [_] form)
-      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast -transform-map)))
-      UpdateableOption
-      (-update-key [_] :variables)
-      (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this)))
-      Serializable
-      (-unparse [this opts]
-       (oksa.unparse/-format-variable-definition
-        variable-name
-        (merge
-         (-get-oksa-opts opts)
-         (protocol/-opts this))
-        variable-type*)))))
+  (let [variable-type* (-coerce-variable-type variable-type)
+        form (-variable-form variable-name opts variable-type*)]
+    (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
+                                form
+                                oksa.parse/-variable-definitions-parser
+                                "invalid variable definitions")
+    (-create-variable variable-name opts form variable-type*)))
 
 (defn -variables
   [variable-definitions]
@@ -662,7 +678,9 @@
       (-opts [_] {})
       UpdateableOption
       (-update-key [_] :default)
-      (-update-fn [_] (constantly value*)))))
+      (-update-fn [_] (constantly value*))
+      Serializable
+      (-unparse [_ _opts] (str "=" (oksa.unparse/format-value value))))))
 
 (def -transform-map
   (letfn [(operation [operation-type opts [xs]]
@@ -731,12 +749,12 @@
                                  (-directive-name directive-name))
      :oksa.parse/VariableDefinitions (fn [xs]
                                        (mapv (fn [[variable-name options type :as _variable-definition]]
-                                               (-variable
-                                                 variable-name
-                                                 (-opts
-                                                   (when (:default options) (-default (:default options)))
-                                                   (when (:directives options) (oksa.util/transform-malli-ast -transform-map (:directives options))))
-                                                 type))
+                                               (-create-variable variable-name
+                                                                 options
+                                                                 (-variable-form variable-name
+                                                                                 options
+                                                                                 type)
+                                                                 type))
                                              xs))
      :oksa.parse/TypeName (fn [type-name]
                             (-type type-name))

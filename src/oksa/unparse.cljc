@@ -34,7 +34,7 @@
        ":"
        (format-type type opts)
        (when (contains? opts :default)
-         (str "=" (format-value (:default opts))))
+         (protocol/-unparse (:default opts) opts))
        (when (:directives opts)
          (str " " (protocol/-unparse (:directives opts) opts)))))
 
