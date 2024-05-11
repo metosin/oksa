@@ -95,10 +95,6 @@
    (when (not x)
      (throw (ex-info msg data)))))
 
-(defn -get-oksa-opts
-  [opts]
-  (into {} (filter #(= (namespace (first %)) "oksa") opts)))
-
 (defn document
   "Composes many executable definitions together to produce a single document.
 
@@ -553,7 +549,7 @@
                     "`oksa.alpha.api/directive`, `oksa.alpha.api/directives`, `oksa.alpha.api/argument`, "
                     "`oksa.alpha.api/arguments`, `oksa.alpha.api/variable`, "
                     "`oksa.alpha.api/variables`, or `oksa.alpha.api/default`"))
-    (oksa.parse/-opts vargs*)))
+    (apply oksa.parse/-opts vargs*)))
 
 (defn on
   "Returns a type condition under key `:on` using `name` which should conform to [NamedType](https://spec.graphql.org/October2021/#NamedType). Used directly within `oksa.alpha.api/opts`.
@@ -865,120 +861,3 @@
   ([opts obj]
    (-validate (satisfies? Representable obj) "Object must be Representable (one of `oksa.alpha.api/document`, `oksa.alpha.api/select`, `oksa.alpha.api/query`, `oksa.alpha.api/mutation`, `oksa.alpha.api/subscription`, or `oksa.alpha.api/fragment`)")
    (protocol/-gql obj opts)))
-
-;;
-;;
-;; WIP
-;;
-;;
-
-(def -transform-map
-  (letfn [(operation [operation-type {:keys [directives variables] :as _opts} xs]
-            (apply oksa.parse/-operation-definition
-                   operation-type
-                   (apply opts
-                     (when directives (oksa.util/transform-malli-ast -transform-map directives))
-                     (when variables (oksa.util/transform-malli-ast -transform-map variables)))
-                   xs))
-          (document [_opts xs]
-            (oksa.parse/-document xs))
-          (fragment [{:keys [directives] :as options} xs]
-            (assert (some? (:name options)) "missing name")
-            (apply oksa.parse/-fragment
-                   (opts
-                     (oksa.parse/-name (:name options))
-                     (when (:on options) (oksa.parse/-on (:on options)))
-                     (when directives (oksa.util/transform-malli-ast -transform-map directives)))
-                   xs))
-          (fragment-spread [{:keys [directives] :as options}]
-            (assert (some? (:name options)) "missing name")
-            (oksa.parse/-fragment-spread
-              (opts
-                (oksa.parse/-name (:name options))
-                (when directives (oksa.util/transform-malli-ast -transform-map directives)))))
-          (inline-fragment [{:keys [directives] :as options} xs]
-            (assert (not (some? (:name options))) "inline fragments can't have name")
-            (oksa.parse/-inline-fragment
-              (opts
-                (when (:on options) (oksa.parse/-on (:on options)))
-                (when directives (oksa.util/transform-malli-ast -transform-map directives)))
-              xs))
-          (selection-set [xs]
-            (oksa.parse/-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children] :as x}]
-                                                     (let [[selection-type value] node]
-                                                       (cond-> (into []
-                                                                     [(case selection-type
-                                                                        :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
-                                                                        :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
-                                                                        :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
-                                                                        :oksa.parse/InlineFragment (oksa.util/transform-malli-ast -transform-map value))])
-                                                         (some? children) (into [(oksa.util/transform-malli-ast -transform-map children)]))))
-                                                   xs)))]
-    {:oksa/document document
-     :<> document
-     :oksa/fragment fragment
-     :# fragment
-     :oksa/query (partial operation :oksa/query)
-     :oksa/mutation (partial operation :oksa/mutation)
-     :oksa/subscription (partial operation :oksa/subscription)
-     :... (fn fragment-dispatcher
-            ([opts]
-             (fragment-dispatcher opts []))
-            ([opts xs]
-             (if (some? (:name opts))
-               (fragment-spread opts)
-               (apply inline-fragment opts xs))))
-     :oksa/fragment-spread fragment-spread
-     :oksa/inline-fragment inline-fragment
-     :oksa.parse/SelectionSet selection-set
-     :oksa.parse/Field (fn [[name opts xs]]
-                         (oksa.parse/-field name opts xs))
-     :oksa.parse/Directives (fn [x]
-                              (oksa.parse/-directives x))
-     :oksa.parse/Directive (fn [[name opts]]
-                             (oksa.parse/-directive name opts))
-     :oksa.parse/DirectiveName (fn [directive-name]
-                                 (oksa.parse/-directive-name directive-name))
-     :oksa.parse/VariableDefinitions (fn [xs]
-                                       (mapv (fn [[variable-name options type :as _variable-definition]]
-                                               (oksa.parse/-variable
-                                                variable-name
-                                                (opts
-                                                  (when (:default options) (default (:default options)))
-                                                  (when (:directives options) (oksa.util/transform-malli-ast -transform-map (:directives options))))
-                                                type))
-                                             xs))
-     :oksa.parse/TypeName (fn [type-name]
-                            (oksa.parse/-type type-name))
-     :oksa.parse/NamedTypeOrNonNullNamedType (fn [[type-name _opts]]
-                                               (oksa.parse/-type! type-name))
-     :oksa.parse/ListTypeOrNonNullListType (fn [[_ {:keys [non-null]} type]]
-                                             (if non-null
-                                               (oksa.parse/-list {:non-null true} type)
-                                               (oksa.parse/-list {:non-null false} type)))
-     :oksa.parse/AbbreviatedListType (fn [[type]]
-                                       (oksa.parse/-list {:non-null false} type))
-     :oksa.parse/AbbreviatedNonNullListType (fn [[_ type-or-list :as x]]
-                                              (oksa.parse/-list {:non-null true} type-or-list))}))
-
-(defn- parse
-  [x]
-  (let [parsed (oksa.parse/-graphql-dsl-parser x)]
-    (if (not= :malli.core/invalid parsed)
-      parsed
-      (throw (ex-info "invalid form" {})))))
-
-(defn- xf
-  [ast]
-  (oksa.util/transform-malli-ast -transform-map ast))
-
-(defn to-ast
-  [x]
-  (-> (parse x)
-      (xf)))
-
-;;
-;;
-;;
-;;
-;;

@@ -1,7 +1,8 @@
 (ns oksa.core
   (:require [oksa.alpha.api :as api]
             [oksa.parse :as parse]
-            [oksa.unparse :as unparse]))
+            [oksa.unparse :as unparse]
+            [oksa.alpha.protocol :as protocol]))
 
 (defn explain
   "Explains `x` using `malli.core/explain`.
@@ -13,10 +14,18 @@
 (defn unparse
   "Attempts to parse `x` and produce a GraphQL request string.
 
+  `opts` is an (optional) map and uses the following fields here:
+
+  | field           | description                                                                      |
+  |-----------------|----------------------------------------------------------------------------------|
+  | `:oksa/name-fn` | A function that accepts a single arg `name` and expects a stringifiable output.  |
+  |                 | Applied recursively to all fields & selections.                                  |
+
   Expects `x` to be a malli-like vector."
-  [x]
-  (-> (parse/to-ast x)
-      (unparse/unparse)))
+  ([x]
+   (unparse nil x))
+  ([opts x]
+   (protocol/-gql (parse/to-ast x) opts)))
 
 (defn gql*
   "Attempts to produce a GraphQL request string from `objs`.
@@ -37,9 +46,9 @@
            #?(:clj  (System/lineSeparator)
               :cljs (with-out-str (newline)))
            (map (fn [obj]
-                  (if (satisfies? oksa.alpha.protocol/Representable obj)
+                  (if (satisfies? protocol/Representable obj)
                     (api/gql opts obj)
-                    (unparse obj)))
+                    (unparse opts obj)))
                 objs))))
 
 (defn gql
