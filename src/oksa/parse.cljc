@@ -301,6 +301,8 @@
                                            (merge (-get-oksa-opts opts)
                                                   (protocol/-opts this)))))))
 
+(declare -arguments)
+
 (defn -field
   [name opts selection-set]
   (let [opts (or opts {})
@@ -314,9 +316,9 @@
     (reify
       AST
       (-type [_] type)
-      (-opts [_] (update field-opts
-                         :directives
-                         (partial oksa.util/transform-malli-ast -transform-map)))
+      (-opts [_]
+        (cond-> (update field-opts :directives (partial oksa.util/transform-malli-ast -transform-map))
+          (:arguments field-opts) (update :arguments -arguments)))
       (-form [_] form)
       Serializable
       (-unparse [this opts] (oksa.unparse/unparse-field name
@@ -642,28 +644,30 @@
       (-update-key [_] :arguments)
       (-update-fn [this] #(merge % (protocol/-form this)))
       Argumented
-      (-arguments [this] (protocol/-form this)))))
+      (-arguments [this] (protocol/-form this))
+      Serializable
+      (-unparse [_ _opts] (oksa.unparse/-format-argument name value)))))
 
 (defn -arguments
   [arguments]
-  (let [form (->> arguments
-                  (partition 2)
-                  (map vec)
-                  (into {}))
-        arguments* (oksa.parse/-parse-or-throw :oksa.parse/Arguments
-                                               form
-                                               oksa.parse/-arguments-parser
-                                               "invalid arguments")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/Arguments)
-      (-form [_] form)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :arguments)
-      (-update-fn [this] #(merge % (protocol/-form this)))
-      Argumented
-      (-arguments [this] (protocol/-form this)))))
+  (let [form arguments]
+    (oksa.parse/-parse-or-throw :oksa.parse/Arguments
+                                form
+                                oksa.parse/-arguments-parser
+                                "invalid arguments")
+    (let [arguments* (map (fn [[argument-name argument-value]] (-argument argument-name argument-value)) form)]
+      (reify
+        AST
+        (-type [_] :oksa.parse/Arguments)
+        (-form [_] form)
+        (-opts [_] {})
+        UpdateableOption
+        (-update-key [_] :arguments)
+        (-update-fn [this] #(merge % (protocol/-form this)))
+        Argumented
+        (-arguments [this] (protocol/-form this))
+        Serializable
+        (-unparse [_ _opts] (oksa.unparse/-format-arguments arguments*))))))
 
 (defn -default
   [value]

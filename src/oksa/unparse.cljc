@@ -47,13 +47,13 @@
                       variable-definitions))
        ")"))
 
-(declare format-arguments)
+(declare -format-arguments)
 
 (defn format-directive
   [directive-name opts]
   (str "@"
        (name directive-name)
-       (when (:arguments opts) (format-arguments (:arguments opts)))))
+       (when (:arguments opts) (-format-arguments (:arguments opts)))))
 
 (defn format-directives
   [directives]
@@ -96,13 +96,13 @@
                              (str (name object-field-name) ":" (format-value object-field-value))) x))
        "}"))
 
-(defn- format-argument
-  [[argument-name value]]
+(defn -format-argument
+  [argument-name value]
   (str (name argument-name) ":" (format-value value)))
 
-(defn format-arguments
+(defn -format-arguments
   [arguments]
-  (str "(" (str/join ", " (map format-argument arguments)) ")"))
+  (str "(" (str/join ", " (map #(protocol/-unparse % nil) arguments)) ")"))
 
 (defn unparse-document
   [opts xs]
@@ -123,8 +123,8 @@
                                        field-name)
                                      "invalid name")
           (when (and (some? arguments)
-                     (not-empty arguments))
-            (format-arguments arguments))
+                     (not-empty (protocol/-form arguments)))
+            (protocol/-unparse arguments opts))
           (when directives (protocol/-unparse directives opts))
           (apply str (serialize opts xs))))))
 

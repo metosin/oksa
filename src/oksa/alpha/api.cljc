@@ -703,7 +703,10 @@
   See also [Arguments](https://spec.graphql.org/October2021/#Arguments)."
   [& arguments]
   (-validate (= (mod (count arguments) 2) 0) "uneven amount of arguments, expected key-value pairs")
-  (oksa.parse/-arguments arguments))
+  (oksa.parse/-arguments (->> arguments
+                              (partition 2)
+                              (map vec)
+                              (into {}))))
 
 (defn type
   "Returns a named type using `type-name`.
