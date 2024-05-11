@@ -9,6 +9,9 @@
              :as protocol]
             [oksa.unparse]))
 
+(def -directives-empty-state [])
+(def -variables-empty-state [])
+
 (def -transform-map
   (letfn [(operation [operation-type opts xs]
             (into [operation-type (-> opts
@@ -478,8 +481,6 @@
       Serializable
       (-unparse [_ _opts] (clojure.core/name directive-name*)))))
 
-(def -directives-empty-state [])
-
 (defn -directives
   [directives]
   (let [form (mapv protocol/-form directives)
@@ -519,6 +520,28 @@
         (oksa.unparse/-format-list type-or-list*
                                    (merge (-get-oksa-opts opts)
                                           (protocol/-opts this)))))))
+
+(defn -variable
+  [variable-name opts variable-type]
+  (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))
+                         (type variable-type)
+                         variable-type)
+        form (cond-> [variable-name]
+               (some? opts) (conj opts)
+               true (conj (protocol/-form variable-type*)))
+        variable* (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
+                                              form
+                                              oksa.parse/-variable-definitions-parser
+                                              "invalid variable definitions")]
+    (reify
+      AST
+      (-type [_] :oksa.parse/VariableDefinitions)
+      (-form [_] form)
+      (-parsed-form [_] variable*)
+      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
+      UpdateableOption
+      (-update-key [_] :variables)
+      (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this))))))
 
 (defn- xf
   [ast]

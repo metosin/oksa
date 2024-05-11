@@ -646,9 +646,6 @@
       (-update-key [_] :alias)
       (-update-fn [this] (constantly (protocol/-form this))))))
 
-(def -arguments-empty-state {})
-(def -variables-empty-state [])
-
 (defn directive
   "Returns a directive under key `:directives` using `name` which should conform to [Name](https://spec.graphql.org/October2021/#Name). Used directly within `oksa.alpha.api/opts`.
 
@@ -895,28 +892,6 @@
   [type-or-list]
   (oksa.parse/-list {:non-null true} type-or-list))
 
-(defn -variable
-  [variable-name opts variable-type]
-  (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))
-                         (type variable-type)
-                         variable-type)
-        form (cond-> [variable-name]
-               (some? opts) (conj opts)
-               true (conj (protocol/-form variable-type*)))
-        variable* (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
-                                              form
-                                              oksa.parse/-variable-definitions-parser
-                                              "invalid variable definitions")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/VariableDefinitions)
-      (-form [_] form)
-      (-parsed-form [_] variable*)
-      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
-      UpdateableOption
-      (-update-key [_] :variables)
-      (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this))))))
-
 (defn variable
   "Returns a variable definition under `:variables` key using `variable-name` (which can be a string or a keyword) and `variable-type`. Used directly within `oksa.alpha.api/opts`.
 
@@ -947,7 +922,7 @@
   ([variable-name opts variable-type]
    (-validate (or (-type? variable-type) (-list? variable-type))
               "invalid type given, expected `oksa.alpha.api/type`, `oksa.alpha.api/type!`, keyword (naked type), `oksa.alpha.api/list`, or `oksa.alpha.api/list!`")
-   (-variable variable-name opts variable-type)))
+   (oksa.parse/-variable variable-name opts variable-type)))
 
 (defn variables
   "Returns `variable-definitions` under key `:variables`. Used directly within `oksa.alpha.api/opts`.
@@ -986,7 +961,7 @@
         (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
         UpdateableOption
         (-update-key [_] :variables)
-        (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this)))))))
+        (-update-fn [this] #((fnil into oksa.parse/-variables-empty-state) % (protocol/-form this)))))))
 
 (defn default
   "Returns default `value` under `:default` key. Used directly within `oksa.alpha.api/opts`.
@@ -1114,7 +1089,7 @@
                                  (oksa.parse/-directive-name directive-name))
      :oksa.parse/VariableDefinitions (fn [xs]
                                        (mapv (fn [[variable-name options type :as _variable-definition]]
-                                               (-variable
+                                               (oksa.parse/-variable
                                                 variable-name
                                                 (opts
                                                   (when (:default options) (default (:default options)))
