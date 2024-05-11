@@ -498,6 +498,28 @@
       (-update-key [_] :directives)
       (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this))))))
 
+(defn -list
+  [opts type-or-list]
+  (let [type-or-list* (if (or (keyword? type-or-list) (string? type-or-list))
+                        (type type-or-list)
+                        type-or-list)
+        form [:oksa/list opts (protocol/-form type-or-list*)]
+        list* (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
+                                          form
+                                          oksa.parse/-list-type-or-non-null-list-type-parser
+                                          "invalid list")]
+    (reify
+      AST
+      (-type [_] :oksa.parse/ListTypeOrNonNullListType)
+      (-form [_] form)
+      (-parsed-form [_] list*)
+      (-opts [_] opts)
+      Serializable
+      (-unparse [this _opts]
+        (oksa.unparse/-format-list type-or-list*
+                                   (merge (-get-oksa-opts opts)
+                                          (protocol/-opts this)))))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))

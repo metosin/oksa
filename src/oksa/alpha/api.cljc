@@ -843,30 +843,6 @@
       Serializable
       (-unparse [_ _opts] (str (clojure.core/name type-name*) "!")))))
 
-(defn -list
-  [opts type-or-list]
-  (-validate (or (-type? type-or-list) (-list? type-or-list))
-             "invalid type given, expected `oksa.alpha.api/type`, `oksa.alpha.api/type!`, keyword (naked type), `oksa.alpha.api/list`, or `oksa.alpha.api/list!`")
-  (let [type-or-list* (if (or (keyword? type-or-list) (string? type-or-list))
-                        (type type-or-list)
-                        type-or-list)
-        form [:oksa/list opts (protocol/-form type-or-list*)]
-        list* (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
-                                          form
-                                          oksa.parse/-list-type-or-non-null-list-type-parser
-                                          "invalid list")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/ListTypeOrNonNullListType)
-      (-form [_] form)
-      (-parsed-form [_] list*)
-      (-opts [_] opts)
-      Serializable
-      (-unparse [this _opts]
-        (oksa.unparse/-format-list type-or-list*
-                                   (merge (-get-oksa-opts opts)
-                                          (protocol/-opts this)))))))
-
 (defn list
   "Returns a list type using `type-or-list`.
 
@@ -887,7 +863,9 @@
 
   See also [ListType](https://spec.graphql.org/October2021/#ListType)."
   [type-or-list]
-  (-list {:non-null false} type-or-list))
+  (-validate (or (-type? type-or-list) (-list? type-or-list))
+             "invalid type given, expected `oksa.alpha.api/type`, `oksa.alpha.api/type!`, keyword (naked type), `oksa.alpha.api/list`, or `oksa.alpha.api/list!`")
+  (oksa.parse/-list {:non-null false} type-or-list))
 
 (defn list!
   "Returns a non-nil list type using `type-or-list`.
@@ -915,7 +893,7 @@
 
   See also [NonNullType](https://spec.graphql.org/October2021/#NonNullType)."
   [type-or-list]
-  (-list {:non-null true} type-or-list))
+  (oksa.parse/-list {:non-null true} type-or-list))
 
 (defn -variable
   [variable-name opts variable-type]
