@@ -690,22 +690,7 @@
 
   See also [Argument](https://spec.graphql.org/October2021/#Argument)."
   [name value]
-  (let [form {name value}
-        argument* (oksa.parse/-parse-or-throw :oksa.parse/Arguments
-                                              form
-                                              oksa.parse/-arguments-parser
-                                              "invalid argument")]
-    (reify
-      AST
-      (-form [_] form)
-      (-parsed-form [_] argument*)
-      (-type [_] :oksa.parse/Arguments)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :arguments)
-      (-update-fn [this] #(merge % (protocol/-form this)))
-      Argumented
-      (-arguments [this] (protocol/-form this)))))
+  (oksa.parse/-argument name value))
 
 (defn arguments
   "Returns `arguments` under key `:arguments`. Used directly within `oksa.alpha.api/opts`.
