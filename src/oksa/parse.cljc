@@ -525,12 +525,12 @@
 (defn -variable
   [variable-name opts variable-type]
   (let [variable-type* (-coerce-variable-type variable-type)
-        form (-variable-form variable-name opts variable-type*)]
-    (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
-                                form
-                                oksa.parse/-variable-definitions-parser
-                                "invalid variable definitions")
-    (-create-variable variable-name opts form variable-type*)))
+        form (-variable-form variable-name opts variable-type*)
+        [_ [[_ opts* _]]] (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
+                                                      form
+                                                      oksa.parse/-variable-definitions-parser
+                                                      "invalid variable definitions")]
+    (-create-variable variable-name opts* form variable-type*)))
 
 (defn -variables
   [variable-definitions]
@@ -746,7 +746,7 @@
      :oksa.parse/Directive (fn [[name opts]]
                              (-directive name opts))
      :oksa.parse/DirectiveName (fn [directive-name]
-                                 (-directive-name directive-name))
+                                 (-directive directive-name nil))
      :oksa.parse/VariableDefinitions (fn [xs]
                                        (mapv (fn [[variable-name options type :as _variable-definition]]
                                                (-create-variable variable-name
