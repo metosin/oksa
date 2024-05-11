@@ -807,19 +807,7 @@
 
   See also [NamedType](https://spec.graphql.org/October2021/#NamedType)."
   [type-name]
-  (let [form type-name
-        type* (oksa.parse/-parse-or-throw :oksa.parse/TypeName
-                                          form
-                                          oksa.parse/-type-name-parser
-                                          "invalid type")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/TypeName)
-      (-form [_] form)
-      (-parsed-form [_] type*)
-      (-opts [_] {})
-      Serializable
-      (-unparse [this _opts] (clojure.core/name (protocol/-parsed-form this))))))
+  (oksa.parse/-type type-name))
 
 (defn type!
   "Returns a non-nil named type using `type-name`.

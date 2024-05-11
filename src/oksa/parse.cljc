@@ -521,10 +521,26 @@
                                    (merge (-get-oksa-opts opts)
                                           (protocol/-opts this)))))))
 
+(defn -type
+  [type-name]
+  (let [form type-name
+        type* (oksa.parse/-parse-or-throw :oksa.parse/TypeName
+                                          form
+                                          oksa.parse/-type-name-parser
+                                          "invalid type")]
+    (reify
+      AST
+      (-type [_] :oksa.parse/TypeName)
+      (-form [_] form)
+      (-parsed-form [_] type*)
+      (-opts [_] {})
+      Serializable
+      (-unparse [this _opts] (clojure.core/name (protocol/-parsed-form this))))))
+
 (defn -variable
   [variable-name opts variable-type]
   (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))
-                         (type variable-type)
+                         (-type variable-type)
                          variable-type)
         form (cond-> [variable-name]
                (some? opts) (conj opts)
