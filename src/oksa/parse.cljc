@@ -79,15 +79,6 @@
      ::AbbreviatedListType (fn [x] (into [:oksa/list {}] x))
      ::AbbreviatedNonNullListType (fn [[_ name-or-list]] (into [:oksa/list {:non-null true}] [name-or-list]))}))
 
-(def ^:private name-pattern "[_A-Za-z][_0-9A-Za-z]*")
-(def ^:private re-name (re-pattern name-pattern))
-(def ^:private re-variable-name (re-pattern (str "[$]?" name-pattern)))
-(def ^:private re-type-name (re-pattern (str name-pattern "[!]?")))
-(def ^:private re-fragment-name (re-pattern (str "(?!on)" name-pattern)))
-
-(def ^:private re-variable-reference (re-pattern (str "[$]" name-pattern)))
-(def ^:private re-enum-value (re-pattern (str "(?!(true|false|null))" name-pattern)))
-
 (def ^:private reserved-keywords
   (set (into (filter #(some-> % namespace (= "oksa")) (keys -transform-map))
              #{:<> :# :...})))
@@ -142,8 +133,8 @@
    ::TypeName [:and
                [:not [:enum :oksa/list]]
                [:or :keyword :string]
-               [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-type-name)}
-                (fn [x] (re-matches re-type-name (name x)))]]
+               [:fn {:error/message (str "invalid character range for name, should follow the pattern: " util/re-type-name)}
+                (fn [x] (re-matches util/re-type-name (name x)))]]
    ::TypeOpts [:map
                [:non-null :boolean]]
    ::NamedTypeOrNonNullNamedType [:cat
@@ -195,15 +186,15 @@
    ::Alias [:schema [:ref ::Name]]
    ::Name (if (:oksa/strict opts)
             [:and [:or :keyword :string]
-             [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-name)}
-              (fn [x] (re-matches re-name (name x)))]]
+             [:fn {:error/message (str "invalid character range for name, should follow the pattern: " util/re-name)}
+              (fn [x] (re-matches util/re-name (name x)))]]
             [:or :keyword :string])
    ::VariableName [:and [:or :keyword :string]
-                   [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " re-variable-name)}
-                    (fn [x] (re-matches re-variable-name (name x)))]]
+                   [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " util/re-variable-name)}
+                    (fn [x] (re-matches util/re-variable-name (name x)))]]
    ::FragmentName [:and [:or :keyword :string]
-                   [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " re-fragment-name)}
-                    (fn [x] (re-matches re-fragment-name (name x)))]]
+                   [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " util/re-fragment-name)}
+                    (fn [x] (re-matches util/re-fragment-name (name x)))]]
    ::Value [:or
             number?
             :string
@@ -211,11 +202,11 @@
             :nil
             [:and :keyword
              [:fn
-              {:error/message (str "invalid character range for value, should follow either: " re-enum-value ", or: " re-variable-reference)}
+              {:error/message (str "invalid character range for value, should follow either: " util/re-enum-value ", or: " util/re-variable-reference)}
               (fn [x]
                 (let [s (name x)]
-                  (or (re-matches re-variable-reference s)
-                      (re-matches re-enum-value s))))]]
+                  (or (re-matches util/re-variable-reference s)
+                      (re-matches util/re-enum-value s))))]]
             coll?
             :map]
    ::Arguments [:map-of [:ref ::Name] [:ref ::Value]]
