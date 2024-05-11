@@ -247,7 +247,15 @@
     (t/is (= "{foo ...on Bar{bar}}"
              (unparse-and-validate (api/select :foo
                                      (api/inline-fragment (api/opts (api/on :Bar))
-                                       (api/select :bar)))))))
+                                       (api/select :bar))))))
+    (t/is (= "{...on Foobar{foo bar ...on Frobnitz{frob nitz}}}"
+             (unparse-and-validate
+              (api/select
+               (api/inline-fragment (api/opts (api/on :Foobar))
+                 (api/select :foo
+                             :bar
+                             (api/inline-fragment (api/opts (api/on :Frobnitz))
+                               (api/select :frob :nitz)))))))))
   (t/testing "variable definitions"
     (t/testing "named type"
       (t/is (= "query ($fooVar:FooType){fooField}"

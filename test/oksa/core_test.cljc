@@ -126,7 +126,11 @@
              (unparse-and-validate [:foo [:oksa/inline-fragment [:bar]]])))
     (t/is (= "{foo ...on Bar{bar}}"
              (unparse-and-validate [:foo [:... {:on :Bar} [:bar]]])
-             (unparse-and-validate [:foo [:oksa/inline-fragment {:on :Bar} [:bar]]]))))
+             (unparse-and-validate [:foo [:oksa/inline-fragment {:on :Bar} [:bar]]])))
+    (t/is (= "{...on Foobar{foo bar ...on Frobnitz{frob nitz}}}"
+             (unparse-and-validate [[:... {:on :Foobar}
+                                     [:foo :bar [:... {:on :Frobnitz}
+                                                 [:frob :nitz]]]]]))))
   (t/testing "variable definitions"
     (t/testing "named type"
       (t/is (= "query ($fooVar:FooType){fooField}"
