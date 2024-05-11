@@ -439,6 +439,30 @@
             (-get-oksa-opts opts)
             (protocol/-opts this)))))))
 
+(defn -inline-fragment
+  [opts selection-set]
+  (let [opts (or opts {})
+        form (cond-> [:oksa/inline-fragment opts] (some? selection-set) (conj (protocol/-form selection-set)))
+        [type opts :as inline-fragment*] (oksa.parse/-parse-or-throw :oksa.parse/InlineFragment
+                                                                     form
+                                                                     (oksa.parse/-inline-fragment-parser opts)
+                                                                     "invalid inline fragment parser")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] (update opts
+                         :directives
+                         (partial oksa.util/transform-malli-ast
+                                  oksa.parse/-transform-map)))
+      (-parsed-form [_] inline-fragment*)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts]
+        (oksa.unparse/unparse-inline-fragment
+          (merge (-get-oksa-opts opts)
+                 (protocol/-opts this))
+          selection-set)))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
