@@ -214,8 +214,8 @@
         (apply str (serialize opts xs)))))
 
 (def -unparse-xf
-  {:document (fn [_opts & xs]
-               (unparse-document xs))
+  {:document (fn [opts & xs]
+               (unparse-document opts xs))
    :fragment unparse-fragment-definition
    :query (partial unparse-operation-definition "query")
    :mutation (partial unparse-operation-definition "mutation")
@@ -224,8 +224,8 @@
             (unparse-field (:name opts) opts xs))
    :selection (fn [_opts & xs]
                 (apply str xs))
-   :selectionset (fn [_opts & xs]
-                   (unparse-selection-set xs))
+   :selectionset (fn [opts & xs]
+                   (unparse-selection-set opts xs))
    :fragment-spread (fn [opts & _xs]
                       (unparse-fragment-spread opts))
    :inline-fragment (fn [opts & xs]
