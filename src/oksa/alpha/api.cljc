@@ -327,7 +327,7 @@
   [opts & selections]
   (let [selections* (->> selections (filter some?) (map (fn [selection]
                                                           (if (-naked-field? selection)
-                                                            (-naked-field opts selection)
+                                                            (oksa.parse/-naked-field opts selection)
                                                             selection))))]
     (-validate (not (-selection-set? (first selections*))) "first selection cannot be `oksa.alpha.api/select`")
     (-validate (and (not-empty selections*)
@@ -440,28 +440,6 @@
    (when (some? selection-set)
      (-validate (-selection-set? selection-set) "expected `oksa.alpha.api/select`"))
    (oksa.parse/-field name opts selection-set)))
-
-(defn -naked-field
-  [opts name]
-  (let [naked-field* (oksa.parse/-parse-or-throw :oksa.parse/NakedField
-                                                 name
-                                                 (oksa.parse/-naked-field-parser opts)
-                                                 "invalid naked field")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/NakedField)
-      (-opts [_] {})
-      (-parsed-form [_] naked-field*)
-      (-form [_] naked-field*)
-      Serializable
-      (-unparse [_ opts]
-        (let [name-fn (:oksa/name-fn opts)]
-          (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                      (if name-fn
-                                        (name-fn naked-field*)
-                                        (clojure.core/name naked-field*))
-                                      (oksa.parse/-name-parser {:oksa/strict true})
-                                      "invalid naked field"))))))
 
 (declare -transform-map)
 

@@ -393,6 +393,28 @@
                                                                (protocol/-opts this))
                                                         selection-set)))))
 
+(defn -naked-field
+  [opts name]
+  (let [naked-field* (oksa.parse/-parse-or-throw :oksa.parse/NakedField
+                                                 name
+                                                 (oksa.parse/-naked-field-parser opts)
+                                                 "invalid naked field")]
+    (reify
+      AST
+      (-type [_] :oksa.parse/NakedField)
+      (-opts [_] {})
+      (-parsed-form [_] naked-field*)
+      (-form [_] naked-field*)
+      Serializable
+      (-unparse [_ opts]
+        (let [name-fn (:oksa/name-fn opts)]
+          (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                      (if name-fn
+                                        (name-fn naked-field*)
+                                        (clojure.core/name naked-field*))
+                                      (oksa.parse/-name-parser {:oksa/strict true})
+                                      "invalid naked field"))))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
