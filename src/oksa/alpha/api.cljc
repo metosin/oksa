@@ -918,26 +918,7 @@
   (-validate (= (mod (count variable-definitions) 2) 0) "uneven amount of arguments, expected key-value pairs")
   (let [variable-definitions* (partition 2 variable-definitions)]
     (-validate (every? (fn [[_ v]] (or (-type? v) (-list? v))) variable-definitions*) "invalid variable types given, expected `oksa.alpha.api/type`, `oksa.alpha.api/type!`, keyword (naked type), `oksa.alpha.api/list`, or `oksa.alpha.api/list!`")
-    (let [form (->> variable-definitions*
-                    (reduce (fn [acc [variable-name variable-type]]
-                              (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))
-                                                     (type variable-type)
-                                                     variable-type)]
-                                (into acc [variable-name (protocol/-form variable-type*)])))
-                            []))
-          variables* (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
-                                                 form
-                                                 oksa.parse/-variable-definitions-parser
-                                                 "invalid variable definitions")]
-      (reify
-        AST
-        (-type [_] :oksa.parse/VariableDefinitions)
-        (-form [_] form)
-        (-parsed-form [_] variables*)
-        (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
-        UpdateableOption
-        (-update-key [_] :variables)
-        (-update-fn [this] #((fnil into oksa.parse/-variables-empty-state) % (protocol/-form this)))))))
+    (oksa.parse/-variables variable-definitions*)))
 
 (defn default
   "Returns default `value` under `:default` key. Used directly within `oksa.alpha.api/opts`.
