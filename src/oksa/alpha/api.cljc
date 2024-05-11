@@ -844,19 +844,7 @@
 
   See also [DefaultValue](https://spec.graphql.org/October2021/#DefaultValue)."
   [value]
-  (let [value* (oksa.parse/-parse-or-throw :oksa.parse/Value
-                                           value
-                                           oksa.parse/-value-parser
-                                           "invalid value")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/Value)
-      (-form [_] value)
-      (-parsed-form [_] value*)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :default)
-      (-update-fn [_] (constantly value*)))))
+  (oksa.parse/-default value))
 
 (defn gql
   "Returns a GraphQL request string for a given `obj`.

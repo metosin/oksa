@@ -710,6 +710,22 @@
       Argumented
       (-arguments [this] (protocol/-form this)))))
 
+(defn -default
+  [value]
+  (let [value* (oksa.parse/-parse-or-throw :oksa.parse/Value
+                                           value
+                                           oksa.parse/-value-parser
+                                           "invalid value")]
+    (reify
+      AST
+      (-type [_] :oksa.parse/Value)
+      (-form [_] value)
+      (-parsed-form [_] value*)
+      (-opts [_] {})
+      UpdateableOption
+      (-update-key [_] :default)
+      (-update-fn [_] (constantly value*)))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
