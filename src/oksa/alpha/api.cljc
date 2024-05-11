@@ -902,6 +902,24 @@
        (-update-key [_] :directives)
        (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this)))))))
 
+(defn -directives
+  [directives]
+  (let [form (mapv protocol/-form directives)
+        [type _directives
+         :as directives*] (-parse-or-throw :oksa.parse/Directives
+                                           form
+                                           oksa.parse/-directives-parser
+                                           "invalid directives")]
+    (reify
+      AST
+      (-type [_] type)
+      (-form [_] form)
+      (-parsed-form [_] directives*)
+      (-opts [_] {})
+      UpdateableOption
+      (-update-key [_] :directives)
+      (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this))))))
+
 (defn directives
   "Returns `directives` under key `:directives`. Used directly within `oksa.alpha.api/opts`.
 
@@ -941,21 +959,7 @@
                     (every? #(or (-directive-name? %)
                                  (-directive? %)) directives*))
                "invalid directives, expected `oksa.alpha.api/directive` or naked directive (keyword)")
-    (let [form (mapv protocol/-form directives*)
-          [type _directives
-           :as directives*] (-parse-or-throw :oksa.parse/Directives
-                                             form
-                                             oksa.parse/-directives-parser
-                                             "invalid directives")]
-      (reify
-        AST
-        (-type [_] type)
-        (-form [_] form)
-        (-parsed-form [_] directives*)
-        (-opts [_] {})
-        UpdateableOption
-        (-update-key [_] :directives)
-        (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this)))))))
+    (-directives directives*)))
 
 (defn argument
   "Returns an argument under key `:arguments`. Used directly within `oksa.alpha.api/opts`.
@@ -1292,8 +1296,13 @@
 ;;
 
 (def -transform-map
-  (letfn [(operation [operation-type opts xs]
-            (apply -operation-definition operation-type opts xs)
+  (letfn [(operation [operation-type {:keys [directives variables] :as _opts} xs]
+            (apply -operation-definition
+                   operation-type
+                   (opts
+                     (when directives (oksa.util/transform-malli-ast -transform-map directives))
+                     (when variables (oksa.util/transform-malli-ast -transform-map variables)))
+                   xs)
             #_(into [operation-type (-> opts
                                       (update :directives (partial oksa.util/transform-malli-ast -transform-map))
                                       (update :variables (partial oksa.util/transform-malli-ast -transform-map)))]
@@ -1301,24 +1310,38 @@
           (document [_opts xs]
             (-document xs)
             #_(into [:document opts] xs))
-          (fragment [opts xs]
-            (assert (some? (:name opts)) "missing name")
-            (apply -fragment opts xs)
+          (fragment [{:keys [directives] :as options} xs]
+            (assert (some? (:name options)) "missing name")
+            (apply -fragment
+                   (opts
+                     (name (:name options))
+                     (when (:on options) (on (:on options)))
+                     (when directives (oksa.util/transform-malli-ast -transform-map directives)))
+                   xs)
             #_(into [:fragment (update opts
                                      :directives
                                      (partial oksa.util/transform-malli-ast -transform-map))]
                   xs))
-          (fragment-spread [opts]
-            (assert (some? (:name opts)) "missing name")
-            (-fragment-spread opts)
+          (fragment-spread [{:keys [directives] :as options}]
+            (assert (some? (:name options)) "missing name")
+            (-fragment-spread
+              (opts
+                (name (:name options))
+                (when directives (oksa.util/transform-malli-ast -transform-map directives)))
+              #_(cond-> opts
+                directives (update :directives (partial oksa.util/transform-malli-ast -transform-map))))
             #_(into [:fragment-spread
                    (update opts
                            :directives
                            (partial oksa.util/transform-malli-ast -transform-map))]
                   xs))
-          (inline-fragment [opts xs]
-            (assert (not (some? (:name opts))) "inline fragments can't have name")
-            (-inline-fragment opts xs)
+          (inline-fragment [{:keys [directives] :as options} xs]
+            (assert (not (some? (:name options))) "inline fragments can't have name")
+            (-inline-fragment
+              (opts
+                (when (:on options) (on (:on options)))
+                (when directives (oksa.util/transform-malli-ast -transform-map directives)))
+              xs)
             #_(into [:inline-fragment (update opts
                                             :directives
                                             (partial oksa.util/transform-malli-ast -transform-map))]
@@ -1369,9 +1392,15 @@
                                                                        (partial oksa.util/transform-malli-ast -transform-map))
                                                                {:name name})]]
                                  (filterv some? xs)))
-     :oksa.parse/Directives (partial into [])
-     :oksa.parse/Directive (fn [[name opts]] [name opts])
-     :oksa.parse/DirectiveName (fn [directive-name] [directive-name {}])
+     :oksa.parse/Directives (fn [x]
+                              (-directives x)
+                              #_(into [] x))
+     :oksa.parse/Directive (fn [[name opts]]
+                             (directive name opts)
+                             #_[name opts])
+     :oksa.parse/DirectiveName (fn [directive-name]
+                                 (-directive-name directive-name)
+                                 #_[directive-name {}])
      :oksa.parse/VariableDefinitions (fn [xs]
                                        (map (fn [[variable-name opts type :as _variable-definition]]
                                               [variable-name
