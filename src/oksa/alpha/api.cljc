@@ -667,23 +667,7 @@
   ([name]
    (directive name nil))
   ([name arguments]
-   (let [opts (if (satisfies? protocol/Argumented arguments)
-                {:arguments (protocol/-arguments arguments)}
-                (cond-> {} (some? arguments) (assoc :arguments arguments)))
-         form [name opts]
-         directive* (oksa.parse/-parse-or-throw :oksa.parse/Directive
-                                                form
-                                                oksa.parse/-directive-parser
-                                                "invalid directive")]
-     (reify
-       AST
-       (-form [_] form)
-       (-parsed-form [_] directive*)
-       (-type [_] :oksa.parse/Directive)
-       (-opts [_] opts)
-       UpdateableOption
-       (-update-key [_] :directives)
-       (-update-fn [this] #((fnil conj oksa.parse/-directives-empty-state) % (protocol/-form this)))))))
+   (oksa.parse/-directive name arguments)))
 
 (defn directives
   "Returns `directives` under key `:directives`. Used directly within `oksa.alpha.api/opts`.
@@ -1041,7 +1025,7 @@
      :oksa.parse/Directives (fn [x]
                               (oksa.parse/-directives x))
      :oksa.parse/Directive (fn [[name opts]]
-                             (directive name opts))
+                             (oksa.parse/-directive name opts))
      :oksa.parse/DirectiveName (fn [directive-name]
                                  (oksa.parse/-directive-name directive-name))
      :oksa.parse/VariableDefinitions (fn [xs]

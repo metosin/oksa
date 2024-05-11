@@ -598,6 +598,26 @@
       (-update-key [_] :variables)
       (-update-fn [this] #((fnil into oksa.parse/-variables-empty-state) % (protocol/-form this))))))
 
+(defn -directive
+  [name arguments]
+  (let [opts (if (satisfies? protocol/Argumented arguments)
+               {:arguments (protocol/-arguments arguments)}
+               (cond-> {} (some? arguments) (assoc :arguments arguments)))
+        form [name opts]
+        directive* (oksa.parse/-parse-or-throw :oksa.parse/Directive
+                                               form
+                                               oksa.parse/-directive-parser
+                                               "invalid directive")]
+    (reify
+      AST
+      (-form [_] form)
+      (-parsed-form [_] directive*)
+      (-type [_] :oksa.parse/Directive)
+      (-opts [_] opts)
+      UpdateableOption
+      (-update-key [_] :directives)
+      (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this))))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
