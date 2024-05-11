@@ -99,25 +99,6 @@
   [opts]
   (into {} (filter #(= (namespace (first %)) "oksa") opts)))
 
-(defn -document
-  [definitions]
-  (let [form (into [:oksa/document {}] (map protocol/-form definitions))
-        [type opts _definitions :as document*] (oksa.parse/-parse-or-throw :oksa.parse/Document
-                                                                           form
-                                                                           oksa.parse/-graphql-dsl-parser
-                                                                           "invalid document")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] opts)
-      (-parsed-form [_] document*)
-      (-form [_] form)
-      Serializable
-      (-unparse [_ opts]
-        (oksa.unparse/unparse-document opts definitions))
-      Representable
-      (-gql [this opts] (protocol/-unparse this opts)))))
-
 (defn document
   "Composes many executable definitions together to produce a single document.
 
@@ -154,7 +135,7 @@
                                  (-selection-set? %)
                                  (-fragment? %)) definitions*))
                "invalid definitions, expected `oksa.alpha.api/query`, `oksa.alpha.api/mutation`, `oksa.alpha.api/subscription`, `oksa.alpha.api/fragment`, or `oksa.alpha.api/select`")
-    (-document definitions*)))
+    (oksa.parse/-document definitions*)))
 
 (defn -operation-definition
   [operation-type opts selection-set]
@@ -1294,7 +1275,7 @@
                      (when variables (oksa.util/transform-malli-ast -transform-map variables)))
                    xs))
           (document [_opts xs]
-            (-document xs))
+            (oksa.parse/-document xs))
           (fragment [{:keys [directives] :as options} xs]
             (assert (some? (:name options)) "missing name")
             (apply -fragment

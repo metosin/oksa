@@ -1,6 +1,13 @@
 (ns oksa.parse
   (:require [malli.core :as m]
-            [oksa.util :as util]))
+            [oksa.util :as util]
+            [oksa.alpha.protocol :refer [Argumented
+                                         AST
+                                         Serializable
+                                         Representable
+                                         UpdateableOption]
+             :as protocol]
+            [oksa.unparse]))
 
 (def -transform-map
   (letfn [(operation [operation-type opts xs]
@@ -260,6 +267,25 @@
                                                                           form)}
                         (= oksa.util/mode "default") {}
                         :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode}))))))))
+
+(defn -document
+  [definitions]
+  (let [form (into [:oksa/document {}] (map protocol/-form definitions))
+        [type opts _definitions :as document*] (oksa.parse/-parse-or-throw :oksa.parse/Document
+                                                                           form
+                                                                           oksa.parse/-graphql-dsl-parser
+                                                                           "invalid document")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] opts)
+      (-parsed-form [_] document*)
+      (-form [_] form)
+      Serializable
+      (-unparse [_ opts]
+        (oksa.unparse/unparse-document opts definitions))
+      Representable
+      (-gql [this opts] (protocol/-unparse this opts)))))
 
 (defn- parse
   [x]
