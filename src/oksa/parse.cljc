@@ -521,7 +521,7 @@
   (let [form (->> variable-definitions
                   (reduce (fn [acc [variable-name variable-type]]
                             (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))
-                                                   (type variable-type)
+                                                   (-type variable-type)
                                                    variable-type)]
                               (into acc [variable-name (protocol/-form variable-type*)])))
                           []))
