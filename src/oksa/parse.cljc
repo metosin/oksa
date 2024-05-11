@@ -323,6 +323,28 @@
       Representable
       (-gql [this opts] (protocol/-unparse this opts)))))
 
+(defn -fragment
+  [opts selection-set]
+  (let [form [:oksa/fragment opts (protocol/-form selection-set)]
+        [type opts _selection-set
+         :as fragment*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentDefinition
+                                                    form
+                                                    (oksa.parse/-fragment-definition-parser opts)
+                                                    "invalid fragment definition")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
+      (-parsed-form [_] fragment*)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts]
+        (oksa.unparse/unparse-fragment-definition
+          (merge (-get-oksa-opts opts) (protocol/-opts this))
+          selection-set))
+      Representable
+      (-gql [this opts] (protocol/-unparse this opts)))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))

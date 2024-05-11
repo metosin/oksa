@@ -248,28 +248,6 @@
                   (and (map? opts) (-selection-set? selection-set))) "expected either `oksa.alpha.api/opts` & `oksa.alpha.api/select`, or `oksa.alpha.api/select`")
    (oksa.parse/-operation-definition :oksa/subscription opts selection-set)))
 
-(defn -fragment
-  [opts selection-set]
-  (let [form [:oksa/fragment opts (protocol/-form selection-set)]
-        [type opts _selection-set
-         :as fragment*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentDefinition
-                                                    form
-                                                    (oksa.parse/-fragment-definition-parser opts)
-                                                    "invalid fragment definition")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
-      (-parsed-form [_] fragment*)
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/unparse-fragment-definition
-          (merge (-get-oksa-opts opts) (protocol/-opts this))
-          selection-set))
-      Representable
-      (-gql [this opts] (protocol/-unparse this opts)))))
-
 (defn fragment
   "Produces a fragment definition using the fields defined in `selection-set`.
 
@@ -304,7 +282,7 @@
   [opts selection-set]
   (-validate (:name opts) "expected `oksa.alpha.api/name` on `opts`")
   (-validate (:on opts) "expected `oksa.alpha.api/on` on `opts`")
-  (-fragment opts selection-set))
+  (oksa.parse/-fragment opts selection-set))
 
 (declare -naked-field)
 
@@ -1253,7 +1231,7 @@
             (oksa.parse/-document xs))
           (fragment [{:keys [directives] :as options} xs]
             (assert (some? (:name options)) "missing name")
-            (apply -fragment
+            (apply oksa.parse/-fragment
                    (opts
                      (name (:name options))
                      (when (:on options) (on (:on options)))
