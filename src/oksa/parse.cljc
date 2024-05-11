@@ -89,7 +89,8 @@
 (def ^:private re-enum-value (re-pattern (str "(?!(true|false|null))" name-pattern)))
 
 (def ^:private reserved-keywords
-  (set (filter #(some-> % namespace (= "oksa")) (keys -transform-map))))
+  (set (into (filter #(some-> % namespace (= "oksa")) (keys -transform-map))
+             #{:<> :# :...})))
 
 (defn ^:private registry
   [opts]

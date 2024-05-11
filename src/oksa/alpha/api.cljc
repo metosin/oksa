@@ -113,6 +113,25 @@
   [opts]
   (into {} (filter #(= (namespace (first %)) "oksa") opts)))
 
+(defn -document
+  [definitions]
+  (let [form (into [:oksa/document {}] (map protocol/-form definitions))
+        [type opts _definitions :as document*] (-parse-or-throw :oksa.parse/Document
+                                                                form
+                                                                oksa.parse/-graphql-dsl-parser
+                                                                "invalid document")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_] opts)
+      (-parsed-form [_] document*)
+      (-form [_] form)
+      Serializable
+      (-unparse [_ opts]
+        (oksa.unparse/unparse-document opts definitions))
+      Representable
+      (-gql [this opts] (protocol/-unparse this opts)))))
+
 (defn document
   "Composes many executable definitions together to produce a single document.
 
@@ -149,22 +168,7 @@
                                  (-selection-set? %)
                                  (-fragment? %)) definitions*))
                "invalid definitions, expected `oksa.alpha.api/query`, `oksa.alpha.api/mutation`, `oksa.alpha.api/subscription`, `oksa.alpha.api/fragment`, or `oksa.alpha.api/select`")
-    (let [form (into [:oksa/document {}] (map protocol/-form definitions*))
-          [type opts _definitions :as document*] (-parse-or-throw :oksa.parse/Document
-                                                                  form
-                                                                  oksa.parse/-graphql-dsl-parser
-                                                                  "invalid document")]
-      (reify
-        AST
-        (-type [_] type)
-        (-opts [_] opts)
-        (-parsed-form [_] document*)
-        (-form [_] form)
-        Serializable
-        (-unparse [_ opts]
-          (oksa.unparse/unparse-document opts definitions*))
-        Representable
-        (-gql [this opts] (protocol/-unparse this opts))))))
+    (-document definitions*)))
 
 (defn -operation-definition
   [operation-type opts selection-set]
@@ -1293,8 +1297,9 @@
                                       (update :directives (partial oksa.util/transform-malli-ast -transform-map))
                                       (update :variables (partial oksa.util/transform-malli-ast -transform-map)))]
                   xs))
-          (document [opts xs]
-            (into [:document opts] xs))
+          (document [_opts xs]
+            (-document xs)
+            #_(into [:document opts] xs))
           (fragment [opts xs]
             (assert (some? (:name opts)) "missing name")
             (apply -fragment opts xs)
