@@ -646,21 +646,6 @@
       (-update-key [_] :alias)
       (-update-fn [this] (constantly (protocol/-form this))))))
 
-(defn -directive-name
-  [directive-name]
-  (let [directive-name* (oksa.parse/-parse-or-throw :oksa.parse/DirectiveName
-                                                    directive-name
-                                                    oksa.parse/-directive-name-parser
-                                                    "invalid directive name")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/DirectiveName)
-      (-opts [_] {})
-      (-parsed-form [_] directive-name*)
-      (-form [_] directive-name)
-      Serializable
-      (-unparse [_ _opts] (clojure.core/name directive-name*)))))
-
 (def -directives-empty-state [])
 (def -arguments-empty-state {})
 (def -variables-empty-state [])
@@ -755,7 +740,7 @@
   [& directives]
   (let [directives* (->> directives (filter some?) (map (fn [x]
                                                           (if (-directive-name? x)
-                                                            (-directive-name x)
+                                                            (oksa.parse/-directive-name x)
                                                             x))))]
     (-validate (and (not-empty directives*)
                     (every? #(or (-directive-name? %)
@@ -1167,7 +1152,7 @@
      :oksa.parse/Directive (fn [[name opts]]
                              (directive name opts))
      :oksa.parse/DirectiveName (fn [directive-name]
-                                 (-directive-name directive-name))
+                                 (oksa.parse/-directive-name directive-name))
      :oksa.parse/VariableDefinitions (fn [xs]
                                        (mapv (fn [[variable-name options type :as _variable-definition]]
                                                (-variable

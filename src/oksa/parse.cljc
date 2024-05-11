@@ -463,6 +463,21 @@
                  (protocol/-opts this))
           selection-set)))))
 
+(defn -directive-name
+  [directive-name]
+  (let [directive-name* (oksa.parse/-parse-or-throw :oksa.parse/DirectiveName
+                                                    directive-name
+                                                    oksa.parse/-directive-name-parser
+                                                    "invalid directive name")]
+    (reify
+      AST
+      (-type [_] :oksa.parse/DirectiveName)
+      (-opts [_] {})
+      (-parsed-form [_] directive-name*)
+      (-form [_] directive-name)
+      Serializable
+      (-unparse [_ _opts] (clojure.core/name directive-name*)))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
