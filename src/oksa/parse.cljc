@@ -415,6 +415,30 @@
                                       (oksa.parse/-name-parser {:oksa/strict true})
                                       "invalid naked field"))))))
 
+(defn -fragment-spread
+  [opts]
+  (let [form [:oksa/fragment-spread opts]
+        [type opts :as fragment-spread*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentSpread
+                                                                     form
+                                                                     (oksa.parse/-fragment-spread-parser opts)
+                                                                     "invalid fragment spread parser")]
+    (reify
+      AST
+      (-type [_] type)
+      (-opts [_]
+        (update opts
+                :directives
+                (partial oksa.util/transform-malli-ast
+                         -transform-map)))
+      (-parsed-form [_] fragment-spread*)
+      (-form [_] form)
+      Serializable
+      (-unparse [this opts]
+        (oksa.unparse/unparse-fragment-spread
+          (merge
+            (-get-oksa-opts opts)
+            (protocol/-opts this)))))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
