@@ -590,20 +590,7 @@
 
   See [Name](https://spec.graphql.org/October2021/#Name)."
   [name]
-  (let [form name
-        name* (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                          name
-                                          oksa.parse/-name-parser
-                                          "invalid name")]
-    (reify
-      AST
-      (-form [_] form)
-      (-parsed-form [_] name*)
-      (-type [_] :oksa.parse/Name)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :name)
-      (-update-fn [this] (constantly (protocol/-form this))))))
+  (oksa.parse/-name name))
 
 (defn alias
   "Returns an alias under key `:alias` using `name` which should conform to [Name](https://spec.graphql.org/October2021/#Name). Used directly within `oksa.alpha.api/opts`.
@@ -962,7 +949,7 @@
             (assert (some? (:name options)) "missing name")
             (apply oksa.parse/-fragment
                    (opts
-                     (name (:name options))
+                     (oksa.parse/-name (:name options))
                      (when (:on options) (oksa.parse/-on (:on options)))
                      (when directives (oksa.util/transform-malli-ast -transform-map directives)))
                    xs))
@@ -970,7 +957,7 @@
             (assert (some? (:name options)) "missing name")
             (oksa.parse/-fragment-spread
               (opts
-                (name (:name options))
+                (oksa.parse/-name (:name options))
                 (when directives (oksa.util/transform-malli-ast -transform-map directives)))))
           (inline-fragment [{:keys [directives] :as options} xs]
             (assert (not (some? (:name options))) "inline fragments can't have name")
