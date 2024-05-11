@@ -605,20 +605,7 @@
 
   See also [Alias](https://spec.graphql.org/October2021/#Alias)."
   [name]
-  (let [form name
-        alias* (oksa.parse/-parse-or-throw :oksa.parse/Alias
-                                           form
-                                           oksa.parse/-alias-parser
-                                           "invalid alias")]
-    (reify
-      AST
-      (-form [_] form)
-      (-parsed-form [_] alias*)
-      (-type [_] :oksa.parse/Alias)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :alias)
-      (-update-fn [this] (constantly (protocol/-form this))))))
+  (oksa.parse/-alias name))
 
 (defn directive
   "Returns a directive under key `:directives` using `name` which should conform to [Name](https://spec.graphql.org/October2021/#Name). Used directly within `oksa.alpha.api/opts`.

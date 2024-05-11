@@ -652,6 +652,23 @@
       (-update-key [_] :name)
       (-update-fn [this] (constantly (protocol/-form this))))))
 
+(defn -alias
+  [name]
+  (let [form name
+        alias* (oksa.parse/-parse-or-throw :oksa.parse/Alias
+                                           form
+                                           oksa.parse/-alias-parser
+                                           "invalid alias")]
+    (reify
+      AST
+      (-form [_] form)
+      (-parsed-form [_] alias*)
+      (-type [_] :oksa.parse/Alias)
+      (-opts [_] {})
+      UpdateableOption
+      (-update-key [_] :alias)
+      (-update-fn [this] (constantly (protocol/-form this))))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
