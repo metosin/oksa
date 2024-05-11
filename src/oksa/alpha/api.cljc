@@ -10,10 +10,6 @@
              :as protocol])
   (:refer-clojure :exclude [assert name alias set list type]))
 
-#?(:cljs (goog-define mode "default")
-   :clj  (def ^{:doc "Modes `default` and `debug` supported."}
-           mode (as-> (or (System/getProperty "oksa.api/mode") "default") $ (.intern $))))
-
 (defn -query?
   [x]
   (and (satisfies? AST x)
@@ -99,6 +95,7 @@
    (when (not x)
      (throw (ex-info msg data)))))
 
+;; TODO: clean up
 (defn -parse-or-throw
   [type form parser message]
   (let [retval (parser form)]
@@ -111,6 +108,10 @@
                                                                form)}
                         (= mode "default") {}
                         :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode mode}))))))))
+
+(defn -get-oksa-opts
+  [opts]
+  (into {} (filter #(= (namespace (first %)) "oksa") opts)))
 
 (defn document
   "Composes many executable definitions together to produce a single document.
@@ -160,10 +161,10 @@
         (-parsed-form [_] document*)
         (-form [_] form)
         Serializable
-        (-unparse [_]
-          (oksa.unparse/unparse-document definitions*))
+        (-unparse [_ opts]
+          (oksa.unparse/unparse-document opts definitions*))
         Representable
-        (-gql [this] (protocol/-unparse this))))))
+        (-gql [this opts] (protocol/-unparse this opts))))))
 
 (defn -operation-definition
   [operation-type opts selection-set]
@@ -171,7 +172,7 @@
         form [operation-type opts (protocol/-form selection-set)]
         [type opts _selection-set :as parsed-form] (-parse-or-throw :oksa.parse/OperationDefinition
                                                                     form
-                                                                    oksa.parse/-operation-definition-parser
+                                                                    (oksa.parse/-operation-definition-parser opts)
                                                                     "invalid operation definition")]
     (reify
       AST
@@ -182,13 +183,13 @@
       (-parsed-form [_] parsed-form)
       (-form [_] form)
       Serializable
-      (-unparse [this]
+      (-unparse [this opts]
         (oksa.unparse/unparse-operation-definition
          (clojure.core/name (protocol/-type this))
-         (protocol/-opts this)
+         (merge (-get-oksa-opts opts) (protocol/-opts this))
          selection-set))
       Representable
-      (-gql [this] (protocol/-unparse this)))))
+      (-gql [this opts] (protocol/-unparse this opts)))))
 
 (defn query
   "Produces an operation definition of `query` operation type using the fields defined in `selection-set`. Supports query naming, variable definitions, and directives through `opts`.
@@ -339,7 +340,7 @@
         [type opts _selection-set
          :as fragment*] (-parse-or-throw :oksa.parse/FragmentDefinition
                                          form
-                                         oksa.parse/-fragment-definition-parser
+                                         (oksa.parse/-fragment-definition-parser opts)
                                          "invalid fragment definition")]
     (reify
       AST
@@ -348,11 +349,87 @@
       (-parsed-form [_] fragment*)
       (-form [_] form)
       Serializable
-      (-unparse [this] (oksa.unparse/unparse-fragment-definition (protocol/-opts this) selection-set))
+      (-unparse [this opts]
+        (oksa.unparse/unparse-fragment-definition
+          (merge (-get-oksa-opts opts) (protocol/-opts this))
+          selection-set))
       Representable
-      (-gql [this] (protocol/-unparse this)))))
+      (-gql [this opts] (protocol/-unparse this opts)))))
 
 (declare -naked-field)
+
+(defn select*
+  "Produces a selection set using `selections`.
+
+  Expects an entry in `selections` to be an instance of:
+  - `oksa.alpha.api/field`
+  - keyword (representing a naked field)
+  - `oksa.alpha.api/fragment-spread`
+  - `oksa.alpha.api/inline-fragment`
+
+  Tolerates nil entries.
+
+  `opts` is an (optional) map and uses the following fields here:
+
+  | field           | description                                                                      |
+  |-----------------|----------------------------------------------------------------------------------|
+  | `:oksa/name-fn` | A function that accepts a single arg `name` and expects a stringifiable output.  |
+  |                 | Applied recursively to all contained fields & selections.                        |
+
+  Examples:
+
+  ```
+  (gql
+   (select :foo :bar))
+  ; => {foo bar}
+
+  (gql
+   (select :foo :bar
+     (select :qux :baz)
+     (field :foobar (opts (alias :BAR)))
+     (when false (field :conditionalFoo))
+     (fragment-spread (opts (name :FooFragment)))
+     (inline-fragment (opts (on :KikkaType))
+       (select :kikka :kukka))))
+  ; => {foo bar{qux baz} BAR:foobar ...FooFragment ...on KikkaType{kikka kukka}}
+  ```
+
+  See also [SelectionSet](https://spec.graphql.org/October2021/#SelectionSet).
+  "
+  [opts & selections]
+  (let [selections* (->> selections (filter some?) (map (fn [selection]
+                                                          (if (-naked-field? selection)
+                                                            (-naked-field opts selection)
+                                                            selection))))]
+    (-validate (not (-selection-set? (first selections*))) "first selection cannot be `oksa.alpha.api/select`")
+    (-validate (and (not-empty selections*)
+                    (every? #(or (-field? %)
+                                 (-naked-field? %)
+                                 (-selection-set? %)
+                                 (-fragment-spread? %)
+                                 (-inline-fragment? %)) selections*))
+               "invalid selections, expected `oksa.alpha.api/field`, keyword (naked field), `oksa.alpha.api/fragment-spread`, or `oksa.alpha.api/inline-fragment`")
+    (let [form (mapv #(if (satisfies? AST %) (protocol/-form %) %) selections*)
+          [type _selections
+           :as parsed-form] (-parse-or-throw :oksa.parse/SelectionSet
+                                             form
+                                             (oksa.parse/-selection-set-parser opts)
+                                             "invalid selection-set")]
+      (reify
+        AST
+        (-type [_] type)
+        (-opts [_] opts)
+        (-parsed-form [_] parsed-form)
+        (-form [_] form)
+        Serializable
+        (-unparse [this opts]
+          (oksa.unparse/unparse-selection-set (merge (-get-oksa-opts opts)
+                                                     (protocol/-opts this))
+                                              selections*))
+        Representable
+        (-gql [this opts] (protocol/-unparse this
+                                             (merge (-get-oksa-opts opts)
+                                                    (protocol/-opts this))))))))
 
 (defn select
   "Produces a selection set using `selections`.
@@ -386,34 +463,7 @@
   See also [SelectionSet](https://spec.graphql.org/October2021/#SelectionSet).
   "
   [& selections]
-  (let [selections* (->> selections (filter some?) (map (fn [selection]
-                                                          (if (-naked-field? selection)
-                                                            (-naked-field selection)
-                                                            selection))))]
-    (-validate (not (-selection-set? (first selections*))) "first selection cannot be `oksa.alpha.api/select`")
-    (-validate (and (not-empty selections*)
-                    (every? #(or (-field? %)
-                                 (-naked-field? %)
-                                 (-selection-set? %)
-                                 (-fragment-spread? %)
-                                 (-inline-fragment? %)) selections*))
-               "invalid selections, expected `oksa.alpha.api/field`, keyword (naked field), `oksa.alpha.api/fragment-spread`, or `oksa.alpha.api/inline-fragment`")
-    (let [form (mapv #(if (satisfies? AST %) (protocol/-form %) %) selections*)
-          [type _selections
-           :as parsed-form] (-parse-or-throw :oksa.parse/SelectionSet
-                                             form
-                                             oksa.parse/-selection-set-parser
-                                             "invalid selection-set")]
-      (reify
-        AST
-        (-type [_] type)
-        (-opts [_] {})
-        (-parsed-form [_] parsed-form)
-        (-form [_] form)
-        Serializable
-        (-unparse [_] (oksa.unparse/unparse-selection-set selections*))
-        Representable
-        (-gql [this] (protocol/-unparse this))))))
+  (apply select* nil selections))
 
 (defn field
   "Produces a field using `name`. Can be used directly within `oksa.alpha.api/select` when you need to provide options (eg. arguments, directives) for a particular field.
@@ -487,7 +537,7 @@
          [type [_field-name field-opts _selection-set*]
           :as field*] (-parse-or-throw :oksa.parse/Field
                                        form
-                                       oksa.parse/-field-parser
+                                       (oksa.parse/-field-parser opts)
                                        "invalid field")]
      (reify
        AST
@@ -498,13 +548,16 @@
        (-parsed-form [_] field*)
        (-form [_] form)
        Serializable
-       (-unparse [this] (oksa.unparse/unparse-field name (protocol/-opts this) selection-set))))))
+       (-unparse [this opts] (oksa.unparse/unparse-field name
+                                                         (merge (-get-oksa-opts opts)
+                                                                (protocol/-opts this))
+                                                         selection-set))))))
 
 (defn -naked-field
-  [name]
+  [opts name]
   (let [naked-field* (-parse-or-throw :oksa.parse/NakedField
                                       name
-                                      oksa.parse/-naked-field-parser
+                                      (oksa.parse/-naked-field-parser opts)
                                       "invalid naked field")]
     (reify
       AST
@@ -513,7 +566,14 @@
       (-parsed-form [_] naked-field*)
       (-form [_] naked-field*)
       Serializable
-      (-unparse [_] (clojure.core/name naked-field*)))))
+      (-unparse [_ opts]
+        (let [name-fn (:oksa/name-fn opts)]
+          (-parse-or-throw :oksa.parse/Name
+                           (if name-fn
+                             (name-fn naked-field*)
+                             (clojure.core/name naked-field*))
+                           (oksa.parse/-name-parser {:oksa/strict true})
+                           "invalid naked field"))))))
 
 (defn fragment-spread
   "Produces a fragment spread using `:name` under `opts`. Can be used directly within `oksa.alpha.api/select`.
@@ -548,7 +608,7 @@
   (let [form [:oksa/fragment-spread opts]
         [type opts :as fragment-spread*] (-parse-or-throw :oksa.parse/FragmentSpread
                                                           form
-                                                          oksa.parse/-fragment-spread-parser
+                                                          (oksa.parse/-fragment-spread-parser opts)
                                                           "invalid fragment spread parser")]
     (reify
       AST
@@ -560,7 +620,11 @@
       (-parsed-form [_] fragment-spread*)
       (-form [_] form)
       Serializable
-      (-unparse [this] (oksa.unparse/unparse-fragment-spread (protocol/-opts this))))))
+      (-unparse [this opts]
+        (oksa.unparse/unparse-fragment-spread
+          (merge
+            (-get-oksa-opts opts)
+            (protocol/-opts this)))))))
 
 (defn inline-fragment
   "Produces an inline fragment using the fields defined in `selection-set`. Can be used directly within `oksa.alpha.api/select`.
@@ -600,7 +664,7 @@
          form (cond-> [:oksa/inline-fragment opts] (some? selection-set) (conj (protocol/-form selection-set)))
          [type opts :as inline-fragment*] (-parse-or-throw :oksa.parse/InlineFragment
                                                            form
-                                                           oksa.parse/-inline-fragment-parser
+                                                           (oksa.parse/-inline-fragment-parser opts)
                                                            "invalid inline fragment parser")]
      (reify
        AST
@@ -612,7 +676,11 @@
        (-parsed-form [_] inline-fragment*)
        (-form [_] form)
        Serializable
-       (-unparse [this] (oksa.unparse/unparse-inline-fragment (protocol/-opts this) selection-set))))))
+       (-unparse [this opts]
+         (oksa.unparse/unparse-inline-fragment
+           (merge (-get-oksa-opts opts)
+                  (protocol/-opts this))
+           selection-set))))))
 
 (defn opts
   "Produces a map of `options`, a collection of `oksa.alpha.protocol/UpdateableOption`s. Output is a `clojure.lang.IPersistentMap`.
@@ -762,7 +830,7 @@
       (-parsed-form [_] directive-name*)
       (-form [_] directive-name)
       Serializable
-      (-unparse [_] (clojure.core/name directive-name*)))))
+      (-unparse [_ _opts] (clojure.core/name directive-name*)))))
 
 (def -directives-empty-state [])
 (def -arguments-empty-state {})
@@ -955,7 +1023,7 @@
       (-parsed-form [_] type*)
       (-opts [_] {})
       Serializable
-      (-unparse [this] (clojure.core/name (protocol/-parsed-form this))))))
+      (-unparse [this _opts] (clojure.core/name (protocol/-parsed-form this))))))
 
 (defn type!
   "Returns a non-nil named type using `type-name`.
@@ -974,7 +1042,7 @@
       (-parsed-form [_] non-null-type*)
       (-opts [_] {})
       Serializable
-      (-unparse [_] (str (clojure.core/name type-name*) "!")))))
+      (-unparse [_ _opts] (str (clojure.core/name type-name*) "!")))))
 
 (defn -list
   [opts type-or-list]
@@ -995,8 +1063,10 @@
       (-parsed-form [_] list*)
       (-opts [_] opts)
       Serializable
-      (-unparse [this]
-        (oksa.unparse/-format-list type-or-list* (protocol/-opts this))))))
+      (-unparse [this _opts]
+        (oksa.unparse/-format-list type-or-list*
+                                   (merge (-get-oksa-opts opts)
+                                          (protocol/-opts this)))))))
 
 (defn list
   "Returns a list type using `type-or-list`.
@@ -1174,7 +1244,16 @@
   - `oksa.alpha.api/query`
   - `oksa.alpha.api/mutation`
   - `oksa.alpha.api/subscription`
-  - `oksa.alpha.api/fragment`"
-  [obj]
-  (-validate (satisfies? Representable obj) "Object must be Representable (one of `oksa.alpha.api/document`, `oksa.alpha.api/select`, `oksa.alpha.api/query`, `oksa.alpha.api/mutation`, `oksa.alpha.api/subscription`, or `oksa.alpha.api/fragment`)")
-  (protocol/-gql obj))
+  - `oksa.alpha.api/fragment`
+
+  `opts` is an (optional) map and uses the following fields here:
+
+  | field           | description                                                                      |
+  |-----------------|----------------------------------------------------------------------------------|
+  | `:oksa/name-fn` | A function that accepts a single arg `name` and expects a stringifiable output.  |
+  |                 | Applied recursively to all contained fields & selections.                        |"
+  ([obj]
+   (gql nil obj))
+  ([opts obj]
+   (-validate (satisfies? Representable obj) "Object must be Representable (one of `oksa.alpha.api/document`, `oksa.alpha.api/select`, `oksa.alpha.api/query`, `oksa.alpha.api/mutation`, `oksa.alpha.api/subscription`, or `oksa.alpha.api/fragment`)")
+   (protocol/-gql obj opts)))

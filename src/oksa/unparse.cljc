@@ -1,22 +1,23 @@
 (ns oksa.unparse
   (:require [clojure.string :as str]
             [oksa.alpha.protocol :as protocol]
+            [oksa.parse]
             [oksa.util :as util])
   #?(:clj (:import (clojure.lang Keyword PersistentVector PersistentArrayMap))))
 
 (defmulti format-value type)
 
 (defn serialize
-  [x]
+  [opts x]
   (if (satisfies? protocol/Serializable x)
-    (protocol/-unparse x)
+    (protocol/-unparse x opts)
     x))
 
 (declare format-type)
 
 (defn -format-list
   [child opts]
-  (str "[" (format-type (serialize child)) "]" (when (:non-null opts) "!")))
+  (str "[" (format-type (serialize opts child)) "]" (when (:non-null opts) "!")))
 
 (defn- format-type
   [[type opts child]]
@@ -107,29 +108,36 @@
   (str "(" (str/join ", " (map format-argument arguments)) ")"))
 
 (defn unparse-document
-  [xs]
+  [opts xs]
   (str/join #?(:clj  (System/lineSeparator)
                :cljs (with-out-str (newline)))
-            (map serialize xs)))
+            (map (partial serialize opts) xs)))
 
 (defn unparse-field
   ([name opts]
    (unparse-field name opts nil))
-  ([name {:keys [alias arguments directives] :as _opts} xs]
-   (str (when alias (str (clojure.core/name alias) ":"))
-        (clojure.core/name name)
-        (when (and (some? arguments)
-                   (not-empty arguments))
-          (format-arguments arguments))
-        (when directives (format-directives directives))
-        (apply str (serialize xs)))))
+  ([name {:keys [alias arguments directives] :as opts} xs]
+   (let [name-fn (:oksa/name-fn opts)
+         field-name (clojure.core/name name)]
+     (str (when alias (str (clojure.core/name alias) ":"))
+          (util/-parse-or-throw :oksa.parse/Name
+                                (if name-fn
+                                  (name-fn field-name)
+                                  field-name)
+                                (oksa.parse/-name-parser {:oksa/strict true})
+                                "invalid name")
+          (when (and (some? arguments)
+                     (not-empty arguments))
+            (format-arguments arguments))
+          (when directives (format-directives directives))
+          (apply str (serialize opts xs))))))
 
 (defn none?
   [f coll]
   (every? (complement f) coll))
 
 (defn unparse-selection-set
-  [selections]
+  [opts selections]
   (assert (or (and (every? #(satisfies? protocol/AST %) selections)
                    (every? #(satisfies? protocol/Serializable %) selections))
               (none? #(satisfies? protocol/AST %) selections)))
@@ -140,7 +148,7 @@
                       (if (seq rst)
                         (let [itm (first rst)
                               lookahead (second rst)]
-                          (recur (cond-> (conj acc (protocol/-unparse itm))
+                          (recur (cond-> (conj acc (protocol/-unparse itm opts))
                                    (and (satisfies? protocol/AST lookahead)
                                         (not= (protocol/-type lookahead)
                                               :oksa.parse/SelectionSet)) (conj " "))
@@ -157,12 +165,20 @@
   ([operation-type opts & xs]
    (assert (#{"query" "mutation" "subscription"} operation-type)
            "invalid operation-type")
-   (str operation-type
-        " "
-        (when (:name opts) (str (name (:name opts)) " "))
-        (when (:variables opts) (format-variable-definitions (:variables opts)))
-        (when (:directives opts) (format-directives (:directives opts)))
-        (apply str (map serialize xs)))))
+   (let [name-fn (:oksa/name-fn opts)]
+     (str operation-type
+          " "
+          (when (:name opts)
+            (let [operation-definition-name (str (name (:name opts)) " ")]
+              (util/-parse-or-throw :oksa.parse/Name
+                                    (if name-fn
+                                      (name-fn operation-definition-name)
+                                      operation-definition-name)
+                                    (oksa.parse/-name-parser {:oksa/strict true})
+                                    "invalid name")))
+          (when (:variables opts) (format-variable-definitions (:variables opts)))
+          (when (:directives opts) (format-directives (:directives opts)))
+          (apply str (map (partial serialize opts) xs))))))
 
 (defn unparse-fragment-definition
   ([opts]
@@ -173,13 +189,20 @@
         " "
         (when (:on opts) (str "on " (name (:on opts))))
         (when (:directives opts) (format-directives (:directives opts)))
-        (apply str (map serialize xs)))))
+        (apply str (map (partial serialize opts) xs)))))
 
 (defn unparse-fragment-spread
   [opts]
-  (str "..."
-       (name (:name opts))
-       (when (:directives opts) (format-directives (:directives opts)))))
+  (let [name-fn (:oksa/name-fn opts)
+        fragment-spread-name (name (:name opts))]
+    (str "..."
+         (util/-parse-or-throw :oksa.parse/Name
+                               (if name-fn
+                                 (name-fn fragment-spread-name)
+                                 fragment-spread-name)
+                               (oksa.parse/-name-parser {:oksa/strict true})
+                               "invalid name")
+         (when (:directives opts) (format-directives (:directives opts))))))
 
 (defn unparse-inline-fragment
   ([opts]
@@ -188,7 +211,7 @@
    (str "..."
         (when (:on opts) (str "on " (name (:on opts))))
         (when (:directives opts) (format-directives (:directives opts)))
-        (apply str (serialize xs)))))
+        (apply str (serialize opts xs)))))
 
 (def -unparse-xf
   {:document (fn [_opts & xs]

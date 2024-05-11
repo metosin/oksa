@@ -91,7 +91,8 @@
 (def ^:private reserved-keywords
   (set (filter #(some-> % namespace (= "oksa")) (keys -transform-map))))
 
-(def ^:private registry
+(defn ^:private registry
+  [opts]
   {::Document [:or
                [:schema [:ref ::Definition]]
                [:cat
@@ -191,9 +192,11 @@
                            [:ref ::Name]]]]
                      [:repeat {:max 1} [:schema [:ref ::SelectionSet]]]]
    ::Alias [:schema [:ref ::Name]]
-   ::Name [:and [:or :keyword :string]
-           [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-name)}
-            (fn [x] (re-matches re-name (name x)))]]
+   ::Name (if (:oksa/strict opts)
+            [:and [:or :keyword :string]
+             [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-name)}
+              (fn [x] (re-matches re-name (name x)))]]
+            [:or :keyword :string])
    ::VariableName [:and [:or :keyword :string]
                    [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " re-variable-name)}
                     (fn [x] (re-matches re-variable-name (name x)))]]
@@ -226,23 +229,27 @@
    ::DirectiveName [:ref ::Name]})
 
 (defn -graphql-dsl-lang
-  [schema]
-  [:schema {:registry registry} schema])
+  ([schema]
+   [:schema {:registry (registry nil)} schema])
+  ([opts schema]
+   [:schema {:registry (registry opts)} schema]))
 
-(def -graphql-dsl-parser (m/parser (-graphql-dsl-lang ::Document)))
-(def -field-parser (m/parser (-graphql-dsl-lang ::Field)))
-(def -fragment-spread-parser (m/parser (-graphql-dsl-lang ::FragmentSpread)))
-(def -inline-fragment-parser (m/parser (-graphql-dsl-lang ::InlineFragment)))
-(def -naked-field-parser (m/parser (-graphql-dsl-lang ::NakedField)))
-(def -selection-set-parser (m/parser (-graphql-dsl-lang ::SelectionSet)))
-(def -operation-definition-parser (m/parser (-graphql-dsl-lang ::OperationDefinition)))
-(def -fragment-definition-parser (m/parser (-graphql-dsl-lang ::FragmentDefinition)))
+(def -graphql-dsl-parser (m/parser (-graphql-dsl-lang ::Document))) ; TODO
+(defn -field-parser [opts] (m/parser (-graphql-dsl-lang opts ::Field)))
+(defn -fragment-spread-parser [opts] (m/parser (-graphql-dsl-lang opts ::FragmentSpread)))
+(defn -inline-fragment-parser [opts] (m/parser (-graphql-dsl-lang opts ::InlineFragment)))
+(defn -naked-field-parser [opts] (m/parser (-graphql-dsl-lang opts ::NakedField)))
+(defn -selection-set-parser [opts] (m/parser (-graphql-dsl-lang opts ::SelectionSet)))
+(defn -operation-definition-parser [opts] (m/parser (-graphql-dsl-lang opts ::OperationDefinition)))
+(defn -fragment-definition-parser [opts] (m/parser (-graphql-dsl-lang opts ::FragmentDefinition)))
 (def -directives-parser (m/parser (-graphql-dsl-lang ::Directives)))
 (def -directive-parser (m/parser (-graphql-dsl-lang ::Directive)))
 (def -directive-name-parser (m/parser (-graphql-dsl-lang ::DirectiveName)))
 (def -arguments-parser (m/parser (-graphql-dsl-lang ::Arguments)))
 (def -alias-parser (m/parser (-graphql-dsl-lang ::Alias)))
-(def -name-parser (m/parser (-graphql-dsl-lang ::Name)))
+(defn -name-parser
+  ([] (m/parser (-graphql-dsl-lang ::Name)))
+  ([opts] (m/parser (-graphql-dsl-lang opts ::Name))))
 (def -value-parser (m/parser (-graphql-dsl-lang ::Value)))
 (def -type-name-parser (m/parser (-graphql-dsl-lang ::TypeName)))
 (def -named-type-or-non-null-named-type-parser (m/parser (-graphql-dsl-lang ::NamedTypeOrNonNullNamedType)))
