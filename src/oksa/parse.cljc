@@ -537,6 +537,22 @@
       Serializable
       (-unparse [this _opts] (clojure.core/name (protocol/-parsed-form this))))))
 
+(defn -type!
+  [type-name]
+  (let [form [type-name {:non-null true}]
+        [type-name* _opts :as non-null-type*] (oksa.parse/-parse-or-throw :oksa.parse/NamedTypeOrNonNullNamedType
+                                                                          form
+                                                                          oksa.parse/-named-type-or-non-null-named-type-parser
+                                                                          "invalid non-null type")]
+    (reify
+      AST
+      (-type [_] :oksa.parse/NamedTypeOrNonNullNamedType)
+      (-form [_] form)
+      (-parsed-form [_] non-null-type*)
+      (-opts [_] {})
+      Serializable
+      (-unparse [_ _opts] (str (clojure.core/name type-name*) "!")))))
+
 (defn -variable
   [variable-name opts variable-type]
   (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))

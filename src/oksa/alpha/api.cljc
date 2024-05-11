@@ -814,19 +814,7 @@
 
   See also [NonNullType](https://spec.graphql.org/October2021/#NonNullType)."
   [type-name]
-  (let [form [type-name {:non-null true}]
-        [type-name* _opts :as non-null-type*] (oksa.parse/-parse-or-throw :oksa.parse/NamedTypeOrNonNullNamedType
-                                                                          form
-                                                                          oksa.parse/-named-type-or-non-null-named-type-parser
-                                                                          "invalid non-null type")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/NamedTypeOrNonNullNamedType)
-      (-form [_] form)
-      (-parsed-form [_] non-null-type*)
-      (-opts [_] {})
-      Serializable
-      (-unparse [_ _opts] (str (clojure.core/name type-name*) "!")))))
+  (oksa.parse/-type! type-name))
 
 (defn list
   "Returns a list type using `type-or-list`.
