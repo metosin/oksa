@@ -8,9 +8,7 @@
 
 (defn serialize
   [opts x]
-  (if (satisfies? protocol/Serializable x)
-    (protocol/-unparse x opts)
-    x))
+  (protocol/-unparse x opts))
 
 (declare format-type)
 
@@ -126,7 +124,7 @@
                      (not-empty (protocol/-form arguments)))
             (protocol/-unparse arguments opts))
           (when directives (protocol/-unparse directives opts))
-          (apply str (serialize opts xs))))))
+          (when (some? xs) (apply str (serialize opts xs)))))))
 
 (defn none?
   [f coll]
