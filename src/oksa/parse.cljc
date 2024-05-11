@@ -238,8 +238,8 @@
       AST
       (-type [_] type)
       (-opts [_] (-> opts
-                     (update :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map))
-                     (update :variables (partial oksa.util/transform-malli-ast oksa.parse/-transform-map))))
+                     (update :directives (partial oksa.util/transform-malli-ast -transform-map))
+                     (update :variables (partial oksa.util/transform-malli-ast -transform-map))))
       (-parsed-form [_] parsed-form)
       (-form [_] form)
       Serializable
@@ -262,7 +262,7 @@
     (reify
       AST
       (-type [_] type)
-      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
+      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast -transform-map)))
       (-parsed-form [_] fragment*)
       (-form [_] form)
       Serializable
@@ -312,7 +312,7 @@
       (-type [_] type)
       (-opts [_] (update field-opts
                          :directives
-                         (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
+                         (partial oksa.util/transform-malli-ast -transform-map)))
       (-parsed-form [_] field*)
       (-form [_] form)
       Serializable
@@ -381,7 +381,7 @@
       (-opts [_] (update opts
                          :directives
                          (partial oksa.util/transform-malli-ast
-                                  oksa.parse/-transform-map)))
+                                  -transform-map)))
       (-parsed-form [_] inline-fragment*)
       (-form [_] form)
       Serializable
@@ -504,7 +504,7 @@
       (-type [_] :oksa.parse/VariableDefinitions)
       (-form [_] form)
       (-parsed-form [_] variable*)
-      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast oksa.parse/-transform-map)))
+      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast -transform-map)))
       UpdateableOption
       (-update-key [_] :variables)
       (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this))))))
