@@ -560,7 +560,7 @@
   [name arguments]
   (let [opts (if (satisfies? protocol/Argumented arguments)
                {:arguments (protocol/-arguments arguments)}
-               (cond-> {} (not-empty arguments) (assoc :arguments arguments)))
+               (cond-> {} (not-empty arguments) (assoc :arguments (:arguments arguments))))
         form [name opts]
         directive* (oksa.parse/-parse-or-throw :oksa.parse/Directive
                                                form
@@ -570,7 +570,7 @@
       AST
       (-form [_] form)
       (-type [_] :oksa.parse/Directive)
-      (-opts [_] opts)
+      (-opts [_] (cond-> opts (:arguments opts) (update :arguments -arguments)))
       UpdateableOption
       (-update-key [_] :directives)
       (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this)))

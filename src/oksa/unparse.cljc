@@ -53,7 +53,7 @@
   [directive-name opts]
   (str "@"
        (name directive-name)
-       (when (:arguments opts) (-format-arguments (:arguments opts)))))
+       (when (:arguments opts) (protocol/-unparse (:arguments opts) opts))))
 
 (defn format-directives
   [directives]
