@@ -712,25 +712,7 @@
   See also [Arguments](https://spec.graphql.org/October2021/#Arguments)."
   [& arguments]
   (-validate (= (mod (count arguments) 2) 0) "uneven amount of arguments, expected key-value pairs")
-  (let [form (->> arguments
-                  (partition 2)
-                  (map vec)
-                  (into {}))
-        arguments* (oksa.parse/-parse-or-throw :oksa.parse/Arguments
-                                               form
-                                               oksa.parse/-arguments-parser
-                                               "invalid arguments")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/Arguments)
-      (-form [_] form)
-      (-parsed-form [_] arguments*)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :arguments)
-      (-update-fn [this] #(merge % (protocol/-form this)))
-      Argumented
-      (-arguments [this] (protocol/-form this)))))
+  (oksa.parse/-arguments arguments))
 
 (defn type
   "Returns a named type using `type-name`.

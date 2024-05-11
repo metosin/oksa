@@ -688,6 +688,28 @@
       Argumented
       (-arguments [this] (protocol/-form this)))))
 
+(defn -arguments
+  [arguments]
+  (let [form (->> arguments
+                  (partition 2)
+                  (map vec)
+                  (into {}))
+        arguments* (oksa.parse/-parse-or-throw :oksa.parse/Arguments
+                                               form
+                                               oksa.parse/-arguments-parser
+                                               "invalid arguments")]
+    (reify
+      AST
+      (-type [_] :oksa.parse/Arguments)
+      (-form [_] form)
+      (-parsed-form [_] arguments*)
+      (-opts [_] {})
+      UpdateableOption
+      (-update-key [_] :arguments)
+      (-update-fn [this] #(merge % (protocol/-form this)))
+      Argumented
+      (-arguments [this] (protocol/-form this)))))
+
 (defn- xf
   [ast]
   (util/transform-malli-ast -transform-map ast))
