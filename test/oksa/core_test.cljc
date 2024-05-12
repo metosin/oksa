@@ -1,6 +1,9 @@
 (ns oksa.core-test
-  (:require [#?(:clj clojure.test
+  (:require [camel-snake-kebab.core :as csk]
+            [clojure.string :as str]
+            [#?(:clj  clojure.test
                 :cljs cljs.test) :as t]
+            [oksa.core]
             [oksa.test-util :refer [unparse-and-validate]]
             [oksa.alpha.api :as api])
   #?(:clj (:import [graphql.parser Parser])))
@@ -295,6 +298,91 @@
     (t/is (= "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
              (unparse-and-validate [:oksa/query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
                                     [:fooField]])))))
+
+(t/deftest transformers-test
+  (t/testing "names are transformed when transformer fn is provided"
+    (t/testing "selection set"
+      (let [query [[:foo-bar {:alias :bar-foo
+                              #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                   [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
+                    [:foo-bar]]
+                   :naked-foo-bar
+                   [:...
+                    [:foo-bar]]
+                   [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                          :directives [:foo-bar]}
+                    [:foo-bar]]]]
+        (t/is (= "{bar-foo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}"
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
+    (t/testing "query"
+      (let [query [:oksa/query {:name :FooBarQuery #_:foo-bar-query ; TODO: fixme
+                                #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
+                                #_#_:directives [:foo-bar]} ; TODO: fixme
+                   [[:foo-bar {:alias :bar-foo
+                               #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                    [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
+                     [:foo-bar]]
+                    :naked-foo-bar
+                    [:...
+                     [:foo-bar]]
+                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                           :directives [:foo-bar]}
+                     [:foo-bar]]]]]
+        (t/is (= "query fooBarQuery {bar-foo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}"
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
+    (t/testing "mutation"
+      (let [query [:oksa/mutation {:name :FooBarQuery #_:foo-bar-query ; TODO: fixme
+                                #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
+                                #_#_:directives [:foo-bar]} ; TODO: fixme
+                   [[:foo-bar {:alias :bar-foo
+                               #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                    [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
+                     [:foo-bar]]
+                    :naked-foo-bar
+                    [:...
+                     [:foo-bar]]
+                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                           :directives [:foo-bar]}
+                     [:foo-bar]]]]]
+        (t/is (= "mutation fooBarQuery {bar-foo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}"
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
+    (t/testing "subscription"
+      (let [query [:oksa/subscription {:name :FooBarQuery #_:foo-bar-query ; TODO: fixme
+                                #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
+                                #_#_:directives [:foo-bar]} ; TODO: fixme
+                   [[:foo-bar {:alias :bar-foo
+                               #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                    [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
+                     [:foo-bar]]
+                    :naked-foo-bar
+                    [:...
+                     [:foo-bar]]
+                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                           :directives [:foo-bar]}
+                     [:foo-bar]]]]]
+        (t/is (= "subscription fooBarQuery {bar-foo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}"
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
+    (t/testing "fragment"
+      (let [query [:oksa/fragment {:name :fooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                                   :on :fooBarType #_:foo-bar-type ; TODO: fixme
+                                   #_#_:directives [:foo-bar]} ; TODO: fixme
+                   [[:foo-bar {:alias :bar-foo
+                               #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                    [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
+                     [:foo-bar]]
+                    :naked-foo-bar
+                    [:...
+                     [:foo-bar]]
+                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                           :directives [:foo-bar]}
+                     [:foo-bar]]]]]
+        (t/is (= "fragment fooBarFragment on fooBarType{bar-foo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}"
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
+                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))))
 
 (t/deftest gql-test
   (t/is (= "{foo}\nquery {bar}\nmutation {qux}\nsubscription {baz}\nfragment foo on Foo{bar}\n{foo2}\nquery {bar2}\nmutation {qux2}\nsubscription {baz2}\nfragment foo2 on Foo2{bar2}"
