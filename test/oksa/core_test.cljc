@@ -303,8 +303,9 @@
   (t/testing "names are transformed when transformer fn is provided"
     (t/testing "selection set"
       (let [query [[:foo-bar {:alias :bar-foo
-                              #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
-                   [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
+                              :oksa/name-fn csk/->SCREAMING_SNAKE_CASE
+                              #_#_:directives [:foo-bar] ; TODO: fixme
+                              #_#_:arguments {:foo-arg :bar-value}} ; TODO: fixme
                     [:foo-bar]]
                    :naked-foo-bar
                    [:...
@@ -312,7 +313,7 @@
                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
                           :directives [:foo-bar]}
                     [:foo-bar]]]]
-        (t/is (= "{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}"
+        (t/is (= "{BAR_FOO:FOO_BAR@foo-bar{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}"
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "query"
