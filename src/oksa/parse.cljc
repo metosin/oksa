@@ -173,9 +173,8 @@
 (def -directive-parser (m/parser (-graphql-dsl-lang ::Directive)))
 (def -directive-name-parser (m/parser (-graphql-dsl-lang ::DirectiveName)))
 (def -arguments-parser (m/parser (-graphql-dsl-lang ::Arguments)))
-(defn -alias-parser
-  ([] (m/parser (-graphql-dsl-lang ::Alias)))
-  ([opts] (m/parser (-graphql-dsl-lang opts ::Alias))))
+(def -alias-parser (m/parser (-graphql-dsl-lang ::Alias)))
+(def -alias-parser-strict (m/parser (-graphql-dsl-lang {:oksa/strict true} ::Alias)))
 (defn -name-parser
   ([] (m/parser (-graphql-dsl-lang ::Name)))
   ([opts] (m/parser (-graphql-dsl-lang opts ::Name))))
@@ -636,7 +635,7 @@
   (let [form name
         alias* (oksa.parse/-parse-or-throw :oksa.parse/Alias
                                            form
-                                           (oksa.parse/-alias-parser)
+                                           oksa.parse/-alias-parser
                                            "invalid alias")]
     (reify
       AST
@@ -653,7 +652,7 @@
                                            (clojure.core/name (if name-fn
                                                                 (name-fn alias*)
                                                                 alias*))
-                                           (oksa.parse/-alias-parser {:oksa/strict true})
+                                           oksa.parse/-alias-parser-strict
                                            "invalid naked field")
                ":"))))))
 
