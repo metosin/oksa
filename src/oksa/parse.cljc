@@ -161,23 +161,22 @@
   ([opts schema]
    [:schema {:registry (registry opts)} schema]))
 
-(def -graphql-dsl-parser (m/parser (-graphql-dsl-lang ::Document))) ; TODO
-(defn -field-parser [opts] (m/parser (-graphql-dsl-lang opts ::Field)))
-(defn -fragment-spread-parser [opts] (m/parser (-graphql-dsl-lang opts ::FragmentSpread)))
-(defn -inline-fragment-parser [opts] (m/parser (-graphql-dsl-lang opts ::InlineFragment)))
-(defn -naked-field-parser [opts] (m/parser (-graphql-dsl-lang opts ::NakedField)))
-(defn -selection-set-parser [opts] (m/parser (-graphql-dsl-lang opts ::SelectionSet)))
-(defn -operation-definition-parser [opts] (m/parser (-graphql-dsl-lang opts ::OperationDefinition)))
-(defn -fragment-definition-parser [opts] (m/parser (-graphql-dsl-lang opts ::FragmentDefinition)))
+(def -graphql-dsl-parser (m/parser (-graphql-dsl-lang ::Document)))
+(def -field-parser (m/parser (-graphql-dsl-lang ::Field)))
+(def -fragment-spread-parser (m/parser (-graphql-dsl-lang ::FragmentSpread)))
+(def -inline-fragment-parser (m/parser (-graphql-dsl-lang ::InlineFragment)))
+(def -naked-field-parser (m/parser (-graphql-dsl-lang ::NakedField)))
+(def -selection-set-parser (m/parser (-graphql-dsl-lang ::SelectionSet)))
+(def -operation-definition-parser (m/parser (-graphql-dsl-lang ::OperationDefinition)))
+(def -fragment-definition-parser (m/parser (-graphql-dsl-lang ::FragmentDefinition)))
 (def -directives-parser (m/parser (-graphql-dsl-lang ::Directives)))
 (def -directive-parser (m/parser (-graphql-dsl-lang ::Directive)))
 (def -directive-name-parser (m/parser (-graphql-dsl-lang ::DirectiveName)))
 (def -arguments-parser (m/parser (-graphql-dsl-lang ::Arguments)))
 (def -alias-parser (m/parser (-graphql-dsl-lang ::Alias)))
 (def -alias-parser-strict (m/parser (-graphql-dsl-lang {:oksa/strict true} ::Alias)))
-(defn -name-parser
-  ([] (m/parser (-graphql-dsl-lang ::Name)))
-  ([opts] (m/parser (-graphql-dsl-lang opts ::Name))))
+(def -name-parser (m/parser (-graphql-dsl-lang ::Name)))
+(def -name-parser-strict (m/parser (-graphql-dsl-lang {:oksa/strict true} ::Name)))
 (def -value-parser (m/parser (-graphql-dsl-lang ::Value)))
 (def -type-name-parser (m/parser (-graphql-dsl-lang ::TypeName)))
 (def -named-type-or-non-null-named-type-parser (m/parser (-graphql-dsl-lang ::NamedTypeOrNonNullNamedType)))
@@ -254,7 +253,7 @@
   (let [opts (or opts {})
         [_type opts _selection-set] (oksa.parse/-parse-or-throw :oksa.parse/OperationDefinition
                                                                 (-operation-definition-form operation-type opts selection-set)
-                                                                (oksa.parse/-operation-definition-parser opts)
+                                                                oksa.parse/-operation-definition-parser
                                                                 "invalid operation definition")]
     (-create-operation-definition operation-type opts selection-set)))
 
@@ -264,7 +263,7 @@
         [type opts _selection-set
          :as fragment*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentDefinition
                                                     form
-                                                    (oksa.parse/-fragment-definition-parser opts)
+                                                    oksa.parse/-fragment-definition-parser
                                                     "invalid fragment definition")]
     (reify
       AST
@@ -305,7 +304,7 @@
   (let [form (-selection-set-form selections)
         [type _selections] (oksa.parse/-parse-or-throw :oksa.parse/SelectionSet
                                                        form
-                                                       (oksa.parse/-selection-set-parser opts)
+                                                       oksa.parse/-selection-set-parser
                                                        "invalid selection-set")]
     (-create-selection-set opts selections)))
 
@@ -339,16 +338,16 @@
   (let [opts (or opts {})
         form (-field-form name opts selection-set)
         [_ [_field-name opts* _selection-set*]] (oksa.parse/-parse-or-throw :oksa.parse/Field
-                                                                               form
-                                                                               (oksa.parse/-field-parser opts)
-                                                                               "invalid field")]
+                                                                            form
+                                                                            oksa.parse/-field-parser
+                                                                            "invalid field")]
     (-create-field name (-field-form name opts selection-set) opts* selection-set)))
 
 (defn -naked-field
   [opts name]
   (let [naked-field* (oksa.parse/-parse-or-throw :oksa.parse/NakedField
                                                  name
-                                                 (oksa.parse/-naked-field-parser opts)
+                                                 oksa.parse/-naked-field-parser
                                                  "invalid naked field")]
     (reify
       AST
@@ -362,7 +361,7 @@
                                       (clojure.core/name (if name-fn
                                                            (name-fn naked-field*)
                                                            naked-field*))
-                                      (oksa.parse/-name-parser {:oksa/strict true})
+                                      oksa.parse/-name-parser-strict
                                       "invalid naked field"))))))
 
 (defn -fragment-spread
@@ -370,7 +369,7 @@
   (let [form [:oksa/fragment-spread opts]
         [type opts :as fragment-spread*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentSpread
                                                                      form
-                                                                     (oksa.parse/-fragment-spread-parser opts)
+                                                                     oksa.parse/-fragment-spread-parser
                                                                      "invalid fragment spread parser")]
     (reify
       AST
@@ -394,7 +393,7 @@
         form (cond-> [:oksa/inline-fragment opts] (some? selection-set) (conj (protocol/-form selection-set)))
         [type opts :as inline-fragment*] (oksa.parse/-parse-or-throw :oksa.parse/InlineFragment
                                                                      form
-                                                                     (oksa.parse/-inline-fragment-parser opts)
+                                                                     oksa.parse/-inline-fragment-parser
                                                                      "invalid inline fragment parser")]
     (reify
       AST
