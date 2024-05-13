@@ -484,9 +484,11 @@
 (t/deftest transformers-test
   (t/testing "names are transformed when transformer fn is provided"
     (t/testing "selection set"
-      (let [query (api/select* (api/opts (api/alias :bar-foo)
-                                         #_(api/arguments :foo-arg :bar-value)) ; TODO: fixme
-                    (api/field :foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE} ; TODO: create API for this
+      (let [query (api/select
+                    (api/field :foo-bar (api/opts
+                                         (api/alias :bar-foo)
+                                         (api/name-fn csk/->SCREAMING_SNAKE_CASE) ; TODO: create API for this
+                                         #_(api/arguments :foo-arg :bar-value))  ; TODO: fixme
                       (api/select :foo-bar))
                     :naked-foo-bar
                     (api/inline-fragment
@@ -495,7 +497,7 @@
                                           (api/on :FooBarFragment #_:foo-bar-fragment) ; TODO: fixme
                                           (api/directives :foo-bar))
                       (api/select :foo-bar)))]
-        (t/is (= "{FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}" ; TODO: fixme
+        (t/is (= "{bar-foo:FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on FooBarFragment@foo-bar{fooBar}}" ; TODO: fixme
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "query"

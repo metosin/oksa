@@ -840,6 +840,15 @@
   [value]
   (oksa.parse/-default value))
 
+(defn name-fn
+  "Sets name transformer function `f` to `:oksa/name-fn`. Function `f` is invoked against all instances of
+   `:oksa.parse/Name`."
+  [f]
+  (reify
+    UpdateableOption
+    (-update-key [_] :oksa/name-fn)
+    (-update-fn [_] (constantly f))))
+
 (defn gql
   "Returns a GraphQL request string for a given `obj`.
 
