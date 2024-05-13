@@ -114,7 +114,7 @@
   ([name {:keys [alias arguments directives] :as opts} xs]
    (let [name-fn (:oksa/name-fn opts)
          field-name (clojure.core/name name)]
-     (str (when alias (str (clojure.core/name alias) ":"))
+     (str (when (some? alias) (protocol/-unparse alias opts))
           (util/-validate-re-pattern util/re-name
                                      (if name-fn
                                        (name-fn field-name)

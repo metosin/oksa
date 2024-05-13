@@ -173,7 +173,9 @@
 (def -directive-parser (m/parser (-graphql-dsl-lang ::Directive)))
 (def -directive-name-parser (m/parser (-graphql-dsl-lang ::DirectiveName)))
 (def -arguments-parser (m/parser (-graphql-dsl-lang ::Arguments)))
-(def -alias-parser (m/parser (-graphql-dsl-lang ::Alias)))
+(defn -alias-parser
+  ([] (m/parser (-graphql-dsl-lang ::Alias)))
+  ([opts] (m/parser (-graphql-dsl-lang opts ::Alias))))
 (defn -name-parser
   ([] (m/parser (-graphql-dsl-lang ::Name)))
   ([opts] (m/parser (-graphql-dsl-lang opts ::Name))))
@@ -315,6 +317,8 @@
   (cond-> [name opts]
     (some? selection-set) (conj (protocol/-form selection-set))))
 
+(declare -alias)
+
 (defn -create-field
   [name form opts selection-set]
   (reify
@@ -322,7 +326,8 @@
     (-type [_] :oksa.parse/Field)
     (-opts [_]
       (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
-        (:arguments opts) (update :arguments -arguments)))
+        (:arguments opts) (update :arguments -arguments)
+        (:alias opts) (update :alias -alias)))
     (-form [_] form)
     Serializable
     (-unparse [this opts] (oksa.unparse/unparse-field name
@@ -631,7 +636,7 @@
   (let [form name
         alias* (oksa.parse/-parse-or-throw :oksa.parse/Alias
                                            form
-                                           oksa.parse/-alias-parser
+                                           (oksa.parse/-alias-parser)
                                            "invalid alias")]
     (reify
       AST
@@ -640,7 +645,17 @@
       (-opts [_] {})
       UpdateableOption
       (-update-key [_] :alias)
-      (-update-fn [this] (constantly (protocol/-form this))))))
+      (-update-fn [this] (constantly (protocol/-form this)))
+      Serializable
+      (-unparse [_ opts]
+        (let [name-fn (:oksa/name-fn opts)]
+          (str (oksa.parse/-parse-or-throw :oksa.parse/Alias
+                                           (clojure.core/name (if name-fn
+                                                                (name-fn alias*)
+                                                                alias*))
+                                           (oksa.parse/-alias-parser {:oksa/strict true})
+                                           "invalid naked field")
+               ":"))))))
 
 (defn -argument
   [name value]
