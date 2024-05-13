@@ -355,9 +355,9 @@
       (-unparse [_ opts]
         (let [name-fn (:oksa/name-fn opts)]
           (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                      (if name-fn
-                                        (name-fn naked-field*)
-                                        (clojure.core/name naked-field*))
+                                      (clojure.core/name (if name-fn
+                                                           (name-fn naked-field*)
+                                                           naked-field*))
                                       (oksa.parse/-name-parser {:oksa/strict true})
                                       "invalid naked field"))))))
 
