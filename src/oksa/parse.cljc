@@ -259,6 +259,7 @@
                                                                 "invalid operation definition")]
     (-create-operation-definition operation-type opts selection-set)))
 
+(declare -on)
 (declare -name)
 
 (defn -fragment
@@ -274,7 +275,8 @@
       (-type [_] type)
       (-opts [_]
         (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
-          (:name opts) (update :name -name)))
+          (:name opts) (update :name -name)
+          (:on opts) (update :on -on)))
       (-form [_] form)
       Serializable
       (-unparse [this opts]
@@ -404,10 +406,11 @@
     (reify
       AST
       (-type [_] type)
-      (-opts [_] (update opts
-                         :directives
-                         (partial oksa.util/transform-malli-ast
-                                  -transform-map)))
+      (-opts [_] (cond-> (update opts
+                                 :directives
+                                 (partial oksa.util/transform-malli-ast
+                                          -transform-map))
+                   (:on opts) (update :on -on)))
       (-form [_] form)
       Serializable
       (-unparse [this opts]
@@ -617,7 +620,17 @@
       (-opts [_] {})
       UpdateableOption
       (-update-key [_] :on)
-      (-update-fn [this] (constantly (protocol/-form this))))))
+      (-update-fn [this] (constantly (protocol/-form this)))
+      Serializable
+      (-unparse [_ opts]
+        (let [name-fn (:oksa/name-fn opts)]
+          (str "on "
+               (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                           (clojure.core/name (if name-fn
+                                                                (name-fn name*)
+                                                                name*))
+                                           oksa.parse/-name-parser-strict
+                                           "invalid name")))))))
 
 (defn -name
   [name]
