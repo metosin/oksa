@@ -314,8 +314,8 @@
                           :directives [:foo-bar]}
                     [:foo-bar]]]]
         (t/is (= "{BAR_FOO:FOO_BAR@FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "query"
       (let [query [:oksa/query {:name :foo-bar-query
                                 #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
@@ -331,8 +331,8 @@
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
         (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "mutation"
       (let [query [:oksa/mutation {:name :foo-bar-query
                                 #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
@@ -348,8 +348,8 @@
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
         (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "subscription"
       (let [query [:oksa/subscription {:name :foo-bar-query
                                 #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
@@ -365,8 +365,8 @@
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
         (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "fragment"
       (let [query [:oksa/fragment {:name :foo-bar-fragment
                                    :on :foo-bar-type
@@ -382,8 +382,8 @@
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
         (t/is (= "fragment fooBarFragment on fooBarType@fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))))
 
 (t/deftest gql-test
   (t/is (= "{foo}\nquery {bar}\nmutation {qux}\nsubscription {baz}\nfragment foo on Foo{bar}\n{foo2}\nquery {bar2}\nmutation {qux2}\nsubscription {baz2}\nfragment foo2 on Foo2{bar2}"

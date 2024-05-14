@@ -7,10 +7,12 @@
   #?(:clj (:import [graphql.parser Parser])))
 
 (defn unparse-and-validate
-  [x]
-  (let [graphql-query (api/gql x)]
-    #?(:clj (Parser/parse graphql-query))
-    graphql-query))
+  ([x]
+   (unparse-and-validate nil x))
+  ([opts x]
+   (let [graphql-query (api/gql opts x)]
+     #?(:clj (Parser/parse graphql-query))
+     graphql-query)))
 
 (t/deftest unparse-test
   (t/testing "query"
@@ -499,8 +501,8 @@
                                           (api/directives :foo-bar))
                       (api/select :foo-bar)))]
         (t/is (= "{BAR_FOO:FOO_BAR@FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} (api/document query))))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "query"
       (let [query (api/query
                    (api/opts (api/name :foo-bar-query))
@@ -517,8 +519,8 @@
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
         (t/is (= "query fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} (api/document query))))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "mutation"
       (let [query (api/mutation
                    (api/opts (api/name :foo-bar-query))
@@ -535,8 +537,8 @@
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
         (t/is (= "mutation fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} (api/document query))))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "subscription"
       (let [query (api/subscription
                    (api/opts (api/name :foo-bar-query))
@@ -553,8 +555,8 @@
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
         (t/is (= "subscription fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} (api/document query))))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "fragment"
       (let [query (api/fragment (api/opts
                                  (api/name :foo-bar-fragment)
@@ -573,5 +575,5 @@
                                                         (api/directives :foo-bar))
                                     (api/select :foo-bar))))]
         (t/is (= "fragment fooBarFragment on fooBarType@fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
-                 (oksa.core/gql* {:oksa/name-fn csk/->camelCase} (api/document query))))))))
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
+                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))))

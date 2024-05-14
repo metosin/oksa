@@ -3,7 +3,9 @@
   #?(:clj (:import [graphql.parser Parser])))
 
 (defn unparse-and-validate
-  [x]
-  (let [graphql-query (core/unparse x)]
-    #?(:clj (Parser/parse graphql-query))
-    graphql-query))
+  ([x]
+   (unparse-and-validate nil x))
+  ([opts x]
+   (let [graphql-query (core/unparse opts x)]
+     #?(:clj (Parser/parse graphql-query))
+     graphql-query)))
