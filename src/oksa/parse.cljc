@@ -202,23 +202,30 @@
   [opts]
   (into {} (filter #(= (namespace (first %)) "oksa") opts)))
 
+(defn -create-document-form
+  [definitions]
+  (into [:oksa/document {}] (map protocol/-form definitions)))
+
+(defn -create-document
+  [opts definitions]
+  (reify
+    AST
+    (-type [_] :oksa/document)
+    (-opts [_] opts)
+    (-form [_] (-create-document-form definitions))
+    Serializable
+    (-unparse [_ opts]
+      (oksa.unparse/unparse-document opts definitions))
+    Representable
+    (-gql [this opts] (protocol/-unparse this opts))))
+
 (defn -document
   [definitions]
-  (let [form (into [:oksa/document {}] (map protocol/-form definitions))
-        [type opts _definitions :as document*] (oksa.parse/-parse-or-throw :oksa.parse/Document
-                                                                           form
-                                                                           oksa.parse/-graphql-dsl-parser
-                                                                           "invalid document")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] opts)
-      (-form [_] form)
-      Serializable
-      (-unparse [_ opts]
-        (oksa.unparse/unparse-document opts definitions))
-      Representable
-      (-gql [this opts] (protocol/-unparse this opts)))))
+  (let [[_ opts _definitions] (oksa.parse/-parse-or-throw :oksa.parse/Document
+                                                          (-create-document-form definitions)
+                                                          oksa.parse/-graphql-dsl-parser
+                                                          "invalid document")]
+    (-create-document opts definitions)))
 
 (defn- parse
   [x]
@@ -747,8 +754,8 @@
 (def -transform-map
   (letfn [(operation [operation-type opts [xs]]
             (-create-operation-definition operation-type opts xs))
-          (document [_opts xs]
-            (-document xs))
+          (document [opts xs]
+            (-create-document opts xs))
           (fragment [{:keys [directives] :as options} xs]
             (assert (some? (:name options)) "missing name")
             (apply -fragment
