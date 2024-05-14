@@ -241,33 +241,35 @@
 (declare -name)
 
 (defn -create-operation-definition
-  [type opts selection-set]
-  (let [form (-operation-definition-form type opts selection-set)]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] (cond-> opts
-                   true (update :directives (partial oksa.util/transform-malli-ast -transform-map))
-                   true (update :variables (partial oksa.util/transform-malli-ast -transform-map))
-                   (:name opts) (update :name -name)))
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/unparse-operation-definition
-         (clojure.core/name (protocol/-type this))
-         (merge (-get-oksa-opts opts) (protocol/-opts this))
-         selection-set))
-      Representable
-      (-gql [this opts] (protocol/-unparse this opts)))))
+  [type form opts* selection-set]
+  (reify
+    AST
+    (-type [_] type)
+    (-opts [_] (cond-> opts*
+                 true (update :directives (partial oksa.util/transform-malli-ast -transform-map))
+                 true (update :variables (partial oksa.util/transform-malli-ast -transform-map))
+                 (:name opts*) (update :name -name)))
+    (-form [_] form)
+    Serializable
+    (-unparse [this opts]
+      (oksa.unparse/unparse-operation-definition
+       (clojure.core/name (protocol/-type this))
+       (merge (-get-oksa-opts opts) (protocol/-opts this))
+       selection-set))
+    Representable
+    (-gql [this opts] (protocol/-unparse this opts))))
 
 (defn -operation-definition
   [operation-type opts selection-set]
   (let [opts (or opts {})
-        [_type opts _selection-set] (oksa.parse/-parse-or-throw :oksa.parse/OperationDefinition
-                                                                (-operation-definition-form operation-type opts selection-set)
-                                                                oksa.parse/-operation-definition-parser
-                                                                "invalid operation definition")]
-    (-create-operation-definition operation-type opts selection-set)))
+        [_ opts* _] (oksa.parse/-parse-or-throw :oksa.parse/OperationDefinition
+                                                (-operation-definition-form operation-type opts selection-set)
+                                                oksa.parse/-operation-definition-parser
+                                                "invalid operation definition")]
+    (-create-operation-definition operation-type
+                                  (-operation-definition-form operation-type opts selection-set)
+                                  opts*
+                                  selection-set)))
 
 (declare -on)
 
@@ -761,7 +763,10 @@
 
 (def -transform-map
   (letfn [(operation [operation-type opts [xs]]
-            (-create-operation-definition operation-type opts xs))
+            (-create-operation-definition operation-type
+                                          (-operation-definition-form operation-type opts xs)
+                                          opts
+                                          xs))
           (document [opts xs]
             (-create-document opts xs))
           (fragment [{:keys [directives] :as options} xs]

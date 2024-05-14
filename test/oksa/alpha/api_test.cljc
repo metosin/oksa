@@ -507,8 +507,7 @@
       (let [query (api/query
                    (api/opts (api/name :foo-bar-query)
                              ;; TODO: variables
-                             ;; TODO: directives
-                             )
+                             (api/directives :foo-bar))
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)
@@ -523,15 +522,14 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "query fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "mutation"
       (let [query (api/mutation
                    (api/opts (api/name :foo-bar-query)
                              ;; TODO: variables
-                             ;; TODO: directives
-                             )
+                             (api/directives :foo-bar))
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)
@@ -546,15 +544,14 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "mutation fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "subscription"
       (let [query (api/subscription
                    (api/opts (api/name :foo-bar-query)
                              ;; TODO: variables
-                             ;; TODO: directives
-                             )
+                             (api/directives :foo-bar))
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)
@@ -569,7 +566,7 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "subscription fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "fragment"

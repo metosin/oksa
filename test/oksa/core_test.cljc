@@ -319,7 +319,7 @@
     (t/testing "query"
       (let [query [:oksa/query {:name :foo-bar-query
                                 #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
-                                :directives [:foo-bar]} ; TODO: fixme
+                                :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
                                #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
                     [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
@@ -335,8 +335,8 @@
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "mutation"
       (let [query [:oksa/mutation {:name :foo-bar-query
-                                #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
-                                :directives [:foo-bar]} ; TODO: fixme
+                                   #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
+                                   :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
                                #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
                     [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
