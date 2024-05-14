@@ -489,7 +489,7 @@
       (let [query (api/select
                     (api/field :foo-bar (api/opts
                                          (api/alias :bar-foo)
-                                         (api/name-fn csk/->SCREAMING_SNAKE_CASE) ; TODO: create API for this
+                                         (api/name-fn csk/->SCREAMING_SNAKE_CASE)
                                          #_(api/arguments :foo-arg :bar-value) ; TODO: fixme
                                          (api/directives :foo-bar))
                       (api/select :foo-bar))
@@ -509,7 +509,7 @@
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)))
-                     (api/field :foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE} ; TODO: create API for this
+                     (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
                      (api/inline-fragment
@@ -527,7 +527,7 @@
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)))
-                     (api/field :foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE} ; TODO: create API for this
+                     (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
                      (api/inline-fragment
@@ -545,7 +545,7 @@
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)))
-                     (api/field :foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE} ; TODO: create API for this
+                     (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
                      (api/inline-fragment
@@ -565,7 +565,7 @@
                                 (api/select
                                   (api/field :foo-bar (api/opts
                                                        (api/alias :bar-foo)))
-                                  (api/field :foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE} ; TODO: create API for this
+                                  (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                                     (api/select :foo-bar))
                                   :naked-foo-bar
                                   (api/inline-fragment

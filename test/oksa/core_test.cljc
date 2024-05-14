@@ -327,7 +327,7 @@
                     :naked-foo-bar
                     [:...
                      [:foo-bar]]
-                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                    [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
         (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
@@ -344,7 +344,7 @@
                     :naked-foo-bar
                     [:...
                      [:foo-bar]]
-                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                    [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
         (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
@@ -361,7 +361,7 @@
                     :naked-foo-bar
                     [:...
                      [:foo-bar]]
-                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                    [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
         (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
