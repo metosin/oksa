@@ -310,7 +310,7 @@
                    :naked-foo-bar
                    [:...
                     [:foo-bar]]
-                   [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                   [:... {:on :foo-bar-fragment
                           :directives [:foo-bar]}
                     [:foo-bar]]]]
         (t/is (= "{BAR_FOO:FOO_BAR@foo-bar{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
@@ -368,8 +368,8 @@
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "fragment"
-      (let [query [:oksa/fragment {:name :fooBarFragment #_:foo-bar-fragment ; TODO: fixme
-                                   :on :fooBarType #_:foo-bar-type ; TODO: fixme
+      (let [query [:oksa/fragment {:name :foo-bar-fragment
+                                   :on :foo-bar-type
                                    #_#_:directives [:foo-bar]} ; TODO: fixme
                    [[:foo-bar {:alias :bar-foo
                                #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
@@ -378,7 +378,7 @@
                     :naked-foo-bar
                     [:...
                      [:foo-bar]]
-                    [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
+                    [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
         (t/is (= "fragment fooBarFragment on fooBarType{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
