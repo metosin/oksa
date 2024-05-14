@@ -231,15 +231,18 @@
   [operation-type opts selection-set]
   [operation-type (or opts {}) (protocol/-form selection-set)])
 
+(declare -name)
+
 (defn -create-operation-definition
   [type opts selection-set]
   (let [form (-operation-definition-form type opts selection-set)]
     (reify
       AST
       (-type [_] type)
-      (-opts [_] (-> opts
-                     (update :directives (partial oksa.util/transform-malli-ast -transform-map))
-                     (update :variables (partial oksa.util/transform-malli-ast -transform-map))))
+      (-opts [_] (cond-> opts
+                   true (update :directives (partial oksa.util/transform-malli-ast -transform-map))
+                   true (update :variables (partial oksa.util/transform-malli-ast -transform-map))
+                   (:name opts) (update :name -name)))
       (-form [_] form)
       Serializable
       (-unparse [this opts]
@@ -260,7 +263,6 @@
     (-create-operation-definition operation-type opts selection-set)))
 
 (declare -on)
-(declare -name)
 
 (defn -fragment
   [opts selection-set]

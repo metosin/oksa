@@ -495,7 +495,7 @@
                     (api/inline-fragment
                       (api/select :foo-bar))
                     (api/inline-fragment (api/opts
-                                          (api/on :FooBarFragment #_:foo-bar-fragment) ; TODO: fixme
+                                          (api/on :foo-bar-fragment)
                                           (api/directives :foo-bar))
                       (api/select :foo-bar)))]
         (t/is (= "{BAR_FOO:FOO_BAR@foo-bar{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}" ; TODO: fixme
@@ -503,7 +503,7 @@
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "query"
       (let [query (api/query
-                   (api/opts (api/name :FooBarQuery #_:foo-bar-query)) ; TODO: fixme
+                   (api/opts (api/name :foo-bar-query))
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)))
@@ -513,7 +513,7 @@
                      (api/inline-fragment
                        (api/select :foo-bar))
                      (api/inline-fragment (api/opts
-                                           (api/on :FooBarFragment #_:foo-bar-fragment) ; TODO: fixme
+                                           (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
         (t/is (= "query fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}" ; TODO: fixme
@@ -531,7 +531,7 @@
                      (api/inline-fragment
                        (api/select :foo-bar))
                      (api/inline-fragment (api/opts
-                                           (api/on :FooBarFragment #_:foo-bar-fragment) ; TODO: fixme
+                                           (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
         (t/is (= "mutation fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
@@ -549,7 +549,7 @@
                      (api/inline-fragment
                        (api/select :foo-bar))
                      (api/inline-fragment (api/opts
-                                           (api/on :FooBarFragment #_:foo-bar-fragment) ; TODO: fixme
+                                           (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
         (t/is (= "subscription fooBarQuery {barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
@@ -569,7 +569,7 @@
                                   (api/inline-fragment
                                     (api/select :foo-bar))
                                   (api/inline-fragment (api/opts
-                                                        (api/on :FooBarFragment #_:foo-bar-fragment) ; TODO: fixme
+                                                        (api/on :foo-bar-fragment)
                                                         (api/directives :foo-bar))
                                     (api/select :foo-bar))))]
         (t/is (= "fragment fooBarFragment on fooBarType{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"

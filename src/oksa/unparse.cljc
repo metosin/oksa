@@ -159,20 +159,12 @@
   ([operation-type opts & xs]
    (assert (#{"query" "mutation" "subscription"} operation-type)
            "invalid operation-type")
-   (let [name-fn (:oksa/name-fn opts)]
-     (str operation-type
-          " "
-          (when (:name opts)
-            (let [operation-definition-name (str (name (:name opts)))]
-              (str (util/-validate-re-pattern util/re-name
-                                              (if name-fn
-                                                (name-fn operation-definition-name)
-                                                operation-definition-name)
-                                              "invalid name")
-                   " ")))
-          (when (:variables opts) (format-variable-definitions (:variables opts)))
-          (when (:directives opts) (protocol/-unparse (:directives opts) opts))
-          (apply str (map (partial serialize opts) xs))))))
+   (str operation-type
+        " "
+        (when (:name opts) (str (protocol/-unparse (:name opts) opts) " "))
+        (when (:variables opts) (format-variable-definitions (:variables opts)))
+        (when (:directives opts) (protocol/-unparse (:directives opts) opts))
+        (apply str (map (partial serialize opts) xs)))))
 
 (defn unparse-fragment-definition
   ([opts]
