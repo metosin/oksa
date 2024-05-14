@@ -564,6 +564,7 @@
   [variable-definitions]
   (let [form (->> variable-definitions
                   (reduce (fn [acc [variable-name variable-type]]
+                            ;; TODO: maybe use `-coerce-variable-type` here?
                             (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))
                                                    (-type variable-type)
                                                    variable-type)]
