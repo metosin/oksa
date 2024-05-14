@@ -352,8 +352,8 @@
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "subscription"
       (let [query [:oksa/subscription {:name :foo-bar-query
-                                #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
-                                :directives [:foo-bar]} ; TODO: fixme
+                                       #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
+                                       :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
                                #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
                     [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
@@ -370,7 +370,7 @@
     (t/testing "fragment"
       (let [query [:oksa/fragment {:name :foo-bar-fragment
                                    :on :foo-bar-type
-                                   :directives [:foo-bar]} ; TODO: fixme
+                                   :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
                                #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
                     [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}

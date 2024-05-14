@@ -505,10 +505,15 @@
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "query"
       (let [query (api/query
-                   (api/opts (api/name :foo-bar-query))
+                   (api/opts (api/name :foo-bar-query)
+                             ;; TODO: variables
+                             ;; TODO: directives
+                             )
                    (api/select
                      (api/field :foo-bar (api/opts
-                                          (api/alias :bar-foo)))
+                                          (api/alias :bar-foo)
+                                          ;; TODO: arguments
+                                          ))
                      (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
@@ -523,10 +528,15 @@
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "mutation"
       (let [query (api/mutation
-                   (api/opts (api/name :foo-bar-query))
+                   (api/opts (api/name :foo-bar-query)
+                             ;; TODO: variables
+                             ;; TODO: directives
+                             )
                    (api/select
                      (api/field :foo-bar (api/opts
-                                          (api/alias :bar-foo)))
+                                          (api/alias :bar-foo)
+                                          ;; TODO: arguments
+                                          ))
                      (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
@@ -541,10 +551,15 @@
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "subscription"
       (let [query (api/subscription
-                   (api/opts (api/name :foo-bar-query))
+                   (api/opts (api/name :foo-bar-query)
+                             ;; TODO: variables
+                             ;; TODO: directives
+                             )
                    (api/select
                      (api/field :foo-bar (api/opts
-                                          (api/alias :bar-foo)))
+                                          (api/alias :bar-foo)
+                                          ;; TODO: arguments
+                                          ))
                      (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
@@ -564,7 +579,9 @@
                                  (api/directives :foo-bar))
                                 (api/select
                                   (api/field :foo-bar (api/opts
-                                                       (api/alias :bar-foo)))
+                                                       (api/alias :bar-foo)
+                                                       ;; TODO: arguments
+                                                       ))
                                   (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                                     (api/select :foo-bar))
                                   :naked-foo-bar
