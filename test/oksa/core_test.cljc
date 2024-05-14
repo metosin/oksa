@@ -313,7 +313,7 @@
                    [:... {:on :foo-bar-fragment
                           :directives [:foo-bar]}
                     [:foo-bar]]]]
-        (t/is (= "{BAR_FOO:FOO_BAR@foo-bar{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
+        (t/is (= "{BAR_FOO:FOO_BAR@FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "query"
@@ -330,7 +330,7 @@
                     [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
-        (t/is (= "query fooBarQuery @foo-bar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
+        (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "mutation"
@@ -347,7 +347,7 @@
                     [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
-        (t/is (= "mutation fooBarQuery @foo-bar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
+        (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "subscription"
@@ -364,7 +364,7 @@
                     [:... {:on :FooBarFragment #_:foo-bar-fragment ; TODO: fixme
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
-        (t/is (= "subscription fooBarQuery @foo-bar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
+        (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "fragment"
@@ -381,7 +381,7 @@
                     [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
-        (t/is (= "fragment fooBarFragment on fooBarType@foo-bar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@foo-bar{fooBar}}"
+        (t/is (= "fragment fooBarFragment on fooBarType@fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))))
 

@@ -468,8 +468,8 @@
       (-update-key [_] :directives)
       (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this)))
       Serializable
-      (-unparse [_ _opts]
-        (oksa.unparse/format-directives directives)))))
+      (-unparse [_ opts]
+        (oksa.unparse/format-directives opts directives)))))
 
 (declare -type)
 
@@ -598,10 +598,10 @@
                {:arguments (protocol/-arguments arguments)}
                (cond-> {} (not-empty arguments) (assoc :arguments arguments)))
         form [name opts]
-        directive* (oksa.parse/-parse-or-throw :oksa.parse/Directive
-                                               form
-                                               oksa.parse/-directive-parser
-                                               "invalid directive")]
+        [directive-name _] (oksa.parse/-parse-or-throw :oksa.parse/Directive
+                                                       form
+                                                       oksa.parse/-directive-parser
+                                                       "invalid directive")]
     (reify
       AST
       (-form [_] form)
@@ -612,9 +612,17 @@
       (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this)))
       Serializable
       (-unparse [this opts]
-        (oksa.unparse/format-directive name (merge
-                                             (-get-oksa-opts opts)
-                                             (protocol/-opts this)))))))
+        (let [name-fn (:oksa/name-fn opts)]
+          (oksa.unparse/format-directive
+           (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                       (clojure.core/name (if name-fn
+                                                            (name-fn directive-name)
+                                                            directive-name))
+                                       oksa.parse/-name-parser-strict
+                                       "invalid name")
+           (merge
+            (-get-oksa-opts opts)
+            (protocol/-opts this))))))))
 
 (defn -on
   [name]

@@ -54,8 +54,8 @@
        (when (:arguments opts) (protocol/-unparse (:arguments opts) opts))))
 
 (defn format-directives
-  [directives]
-  (str/join " " (map #(protocol/-unparse % nil) directives)))
+  [opts directives]
+  (str/join " " (map #(protocol/-unparse % opts) directives)))
 
 (defn- escape-string
   [s]
