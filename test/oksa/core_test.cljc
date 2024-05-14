@@ -317,7 +317,7 @@
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "query"
-      (let [query [:oksa/query {:name :FooBarQuery #_:foo-bar-query ; TODO: fixme
+      (let [query [:oksa/query {:name :foo-bar-query
                                 #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
                                 :directives [:foo-bar]} ; TODO: fixme
                    [[:foo-bar {:alias :bar-foo
@@ -334,7 +334,7 @@
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "mutation"
-      (let [query [:oksa/mutation {:name :FooBarQuery #_:foo-bar-query ; TODO: fixme
+      (let [query [:oksa/mutation {:name :foo-bar-query
                                 #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
                                 :directives [:foo-bar]} ; TODO: fixme
                    [[:foo-bar {:alias :bar-foo
@@ -351,7 +351,7 @@
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} query)
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "subscription"
-      (let [query [:oksa/subscription {:name :FooBarQuery #_:foo-bar-query ; TODO: fixme
+      (let [query [:oksa/subscription {:name :foo-bar-query
                                 #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
                                 :directives [:foo-bar]} ; TODO: fixme
                    [[:foo-bar {:alias :bar-foo
