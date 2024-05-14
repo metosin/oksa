@@ -557,7 +557,7 @@
                  (oksa.core/gql* {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "fragment"
       (let [query (api/fragment (api/opts
-                                 (api/name :FooBarFragment #_:foo-bar-query) ; TODO: fixme
+                                 (api/name :foo-bar-fragment)
                                  (api/on :FooBarType #_:foo-bar-type) ; TODO: fixme
                                  #_(api/directives [:foo-bar])) ; TODO: fixme
                                 (api/select

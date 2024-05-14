@@ -178,12 +178,16 @@
   ([opts]
    (unparse-fragment-definition opts nil))
   ([opts & xs]
-   (str "fragment "
-        (name (:name opts))
-        " "
-        (when (:on opts) (str "on " (name (:on opts))))
-        (when (:directives opts) (protocol/-unparse (:directives opts) opts))
-        (apply str (map (partial serialize opts) xs)))))
+   (let [name-fn (:oksa/name-fn opts)]
+     (str "fragment "
+          (protocol/-unparse (:name opts) opts)
+          " "
+          (when (:on opts) (str "on "
+                                (clojure.core/name (if name-fn
+                                                     (name-fn (:on opts))
+                                                     (:on opts)))))
+          (when (:directives opts) (protocol/-unparse (:directives opts) opts))
+          (apply str (map (partial serialize opts) xs))))))
 
 (defn unparse-fragment-spread
   [opts]

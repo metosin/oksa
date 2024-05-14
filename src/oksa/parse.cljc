@@ -127,9 +127,11 @@
    ::VariableName [:and [:or :keyword :string]
                    [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " util/re-variable-name)}
                     (fn [x] (re-matches util/re-variable-name (name x)))]]
-   ::FragmentName [:and [:or :keyword :string]
-                   [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " util/re-fragment-name)}
-                    (fn [x] (re-matches util/re-fragment-name (name x)))]]
+   ::FragmentName (if (:oksa/strict opts)
+                    [:and [:or :keyword :string]
+                     [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " util/re-fragment-name)}
+                      (fn [x] (re-matches util/re-fragment-name (name x)))]]
+                    [:or :keyword :string])
    ::Value [:or
             number?
             :string
@@ -257,6 +259,8 @@
                                                                 "invalid operation definition")]
     (-create-operation-definition operation-type opts selection-set)))
 
+(declare -name)
+
 (defn -fragment
   [opts selection-set]
   (let [form [:oksa/fragment opts (protocol/-form selection-set)]
@@ -268,7 +272,9 @@
     (reify
       AST
       (-type [_] type)
-      (-opts [_] (update opts :directives (partial oksa.util/transform-malli-ast -transform-map)))
+      (-opts [_]
+        (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
+          (:name opts) (update :name -name)))
       (-form [_] form)
       Serializable
       (-unparse [this opts]
@@ -627,7 +633,16 @@
       (-opts [_] {})
       UpdateableOption
       (-update-key [_] :name)
-      (-update-fn [this] (constantly (protocol/-form this))))))
+      (-update-fn [this] (constantly (protocol/-form this)))
+      Serializable
+      (-unparse [_this opts]
+        (let [name-fn (:oksa/name-fn opts)]
+          (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                      (clojure.core/name (if name-fn
+                                                           (name-fn name*)
+                                                           name*))
+                                      oksa.parse/-name-parser-strict
+                                      "invalid name"))))))
 
 (defn -alias
   [name]
