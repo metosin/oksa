@@ -94,13 +94,9 @@
                              (str (name object-field-name) ":" (format-value object-field-value))) x))
        "}"))
 
-(defn -format-argument
-  [argument-name value]
-  (str (name argument-name) ":" (format-value value)))
-
 (defn -format-arguments
-  [arguments]
-  (str "(" (str/join ", " (map #(protocol/-unparse % nil) arguments)) ")"))
+  [opts arguments]
+  (str "(" (str/join ", " (map #(protocol/-unparse % opts) arguments)) ")"))
 
 (defn unparse-document
   [opts xs]

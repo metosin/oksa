@@ -490,7 +490,7 @@
                     (api/field :foo-bar (api/opts
                                          (api/alias :bar-foo)
                                          (api/name-fn csk/->SCREAMING_SNAKE_CASE)
-                                         #_(api/arguments :foo-arg :bar-value) ; TODO: fixme
+                                         (api/arguments :foo-arg :bar-value)
                                          (api/directives :foo-bar))
                       (api/select :foo-bar))
                     :naked-foo-bar
@@ -500,7 +500,7 @@
                                           (api/on :foo-bar-fragment)
                                           (api/directives :foo-bar))
                       (api/select :foo-bar)))]
-        (t/is (= "{BAR_FOO:FOO_BAR@FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "{BAR_FOO:FOO_BAR(FOO_ARG:BAR_VALUE)@FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "query"
@@ -511,8 +511,7 @@
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)
-                                          ;; TODO: arguments
-                                          ))
+                                          (api/arguments :foo-arg :bar-value)))
                      (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
@@ -522,7 +521,7 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "mutation"
@@ -533,8 +532,7 @@
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)
-                                          ;; TODO: arguments
-                                          ))
+                                          (api/arguments :foo-arg :bar-value)))
                      (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
@@ -544,7 +542,7 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "subscription"
@@ -555,8 +553,7 @@
                    (api/select
                      (api/field :foo-bar (api/opts
                                           (api/alias :bar-foo)
-                                          ;; TODO: arguments
-                                          ))
+                                          (api/arguments :foo-arg :bar-value)))
                      (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                        (api/select :foo-bar))
                      :naked-foo-bar
@@ -566,7 +563,7 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "fragment"
@@ -577,8 +574,7 @@
                                 (api/select
                                   (api/field :foo-bar (api/opts
                                                        (api/alias :bar-foo)
-                                                       ;; TODO: arguments
-                                                       ))
+                                                       (api/arguments :foo-arg :bar-value)))
                                   (api/field :foo-bar (api/opts (api/name-fn csk/->SCREAMING_SNAKE_CASE))
                                     (api/select :foo-bar))
                                   :naked-foo-bar
@@ -588,6 +584,6 @@
                                                         (api/on :foo-bar-fragment)
                                                         (api/directives :foo-bar))
                                     (api/select :foo-bar))))]
-        (t/is (= "fragment fooBarFragment on fooBarType@fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "fragment fooBarFragment on fooBarType@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))))

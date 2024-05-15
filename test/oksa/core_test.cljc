@@ -305,7 +305,7 @@
       (let [query [[:foo-bar {:alias :bar-foo
                               :oksa/name-fn csk/->SCREAMING_SNAKE_CASE
                               :directives [:foo-bar]
-                              #_#_:arguments {:foo-arg :bar-value}} ; TODO: fixme
+                              :arguments {:foo-arg :bar-value}}
                     [:foo-bar]]
                    :naked-foo-bar
                    [:...
@@ -313,7 +313,7 @@
                    [:... {:on :foo-bar-fragment
                           :directives [:foo-bar]}
                     [:foo-bar]]]]
-        (t/is (= "{BAR_FOO:FOO_BAR@FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "{BAR_FOO:FOO_BAR(FOO_ARG:BAR_VALUE)@FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "query"
@@ -321,7 +321,7 @@
                                 #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
                                 :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
-                               #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                               :arguments {:foo-arg :bar-value}}]
                     [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
                      [:foo-bar]]
                     :naked-foo-bar
@@ -330,7 +330,7 @@
                     [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
-        (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "mutation"
@@ -338,7 +338,7 @@
                                    #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
                                    :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
-                               #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                               :arguments {:foo-arg :bar-value}}]
                     [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
                      [:foo-bar]]
                     :naked-foo-bar
@@ -347,7 +347,7 @@
                     [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
-        (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "subscription"
@@ -355,7 +355,7 @@
                                        #_#_:variables [:foo-var {:directives [:fooDirective]} :foo-type] ; TODO: fixme
                                        :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
-                               #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                               :arguments {:foo-arg :bar-value}}]
                     [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
                      [:foo-bar]]
                     :naked-foo-bar
@@ -364,7 +364,7 @@
                     [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
-        (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))
     (t/testing "fragment"
@@ -372,7 +372,7 @@
                                    :on :foo-bar-type
                                    :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
-                               #_#_:arguments {:foo-arg :bar-value}}] ; TODO: fixme
+                               :arguments {:foo-arg :bar-value}}]
                     [:foo-bar {:oksa/name-fn csk/->SCREAMING_SNAKE_CASE}
                      [:foo-bar]]
                     :naked-foo-bar
@@ -381,7 +381,7 @@
                     [:... {:on :foo-bar-fragment
                            :directives [:foo-bar]}
                      [:foo-bar]]]]]
-        (t/is (= "fragment fooBarFragment on fooBarType@fooBar{barFoo:fooBar FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "fragment fooBarFragment on fooBarType@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} [:<> query])))))))
 

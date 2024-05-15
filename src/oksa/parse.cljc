@@ -137,13 +137,15 @@
             :string
             :boolean
             :nil
-            [:and :keyword
-             [:fn
-              {:error/message (str "invalid character range for value, should follow either: " util/re-enum-value ", or: " util/re-variable-reference)}
-              (fn [x]
-                (let [s (name x)]
-                  (or (re-matches util/re-variable-reference s)
-                      (re-matches util/re-enum-value s))))]]
+            (if (:oksa/strict opts)
+              [:and :keyword
+               [:fn
+                {:error/message (str "invalid character range for value, should follow either: " util/re-enum-value ", or: " util/re-variable-reference)}
+                (fn [x]
+                  (let [s (name x)]
+                    (or (re-matches util/re-variable-reference s)
+                        (re-matches util/re-enum-value s))))]]
+              :keyword)
             coll?
             :map]
    ::Arguments [:map-of [:ref ::Name] [:ref ::Value]]
@@ -180,6 +182,7 @@
 (def -name-parser (m/parser (-graphql-dsl-lang ::Name)))
 (def -name-parser-strict (m/parser (-graphql-dsl-lang {:oksa/strict true} ::Name)))
 (def -value-parser (m/parser (-graphql-dsl-lang ::Value)))
+(def -value-parser-strict (m/parser (-graphql-dsl-lang {:oksa/strict true} ::Value)))
 (def -type-name-parser (m/parser (-graphql-dsl-lang ::TypeName)))
 (def -named-type-or-non-null-named-type-parser (m/parser (-graphql-dsl-lang ::NamedTypeOrNonNullNamedType)))
 (def -list-type-or-non-null-list-type-parser (m/parser (-graphql-dsl-lang ::ListTypeOrNonNullListType)))
@@ -722,7 +725,22 @@
       Argumented
       (-arguments [this] (protocol/-form this))
       Serializable
-      (-unparse [_ _opts] (oksa.unparse/-format-argument name value)))))
+      (-unparse [_ opts]
+        (let [name-fn (:oksa/name-fn opts)]
+          (str (clojure.core/name (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                                              (if name-fn
+                                                                (name-fn name)
+                                                                name)
+                                                              oksa.parse/-name-parser-strict
+                                                              "invalid name"))
+               ":"
+               (oksa.unparse/format-value
+                (oksa.parse/-parse-or-throw :oksa.parse/Value
+                                            (if (and (keyword? value) (some? name-fn))
+                                              (name-fn value)
+                                              value)
+                                            oksa.parse/-value-parser-strict
+                                            "invalid value"))))))))
 
 (defn -arguments
   [arguments]
@@ -743,7 +761,7 @@
         Argumented
         (-arguments [this] (protocol/-form this))
         Serializable
-        (-unparse [_ _opts] (oksa.unparse/-format-arguments arguments*))))))
+        (-unparse [_ opts] (oksa.unparse/-format-arguments opts arguments*))))))
 
 (defn -default
   [value]
