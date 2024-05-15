@@ -194,7 +194,8 @@
                       (cond
                         (= oksa.util/mode "debug") {:malli.core/explain (malli.core/explain
                                                                           (-graphql-dsl-lang type)
-                                                                          form)}
+                                                                          form)
+                                                    :value form}
                         (= oksa.util/mode "default") {}
                         :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode}))))))))
 
