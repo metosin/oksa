@@ -205,25 +205,3 @@
 (defn format-default
   [value]
   (str "=" (format-value value)))
-
-(def -unparse-xf
-  {:document (fn [opts & xs]
-               (unparse-document opts xs))
-   :fragment unparse-fragment-definition
-   :query (partial unparse-operation-definition "query")
-   :mutation (partial unparse-operation-definition "mutation")
-   :subscription (partial unparse-operation-definition "subscription")
-   :field (fn [opts & xs]
-            (unparse-field (:name opts) opts xs))
-   :selection (fn [_opts & xs]
-                (apply str xs))
-   :selectionset (fn [opts & xs]
-                   (unparse-selection-set opts xs))
-   :fragment-spread (fn [opts & _xs]
-                      (unparse-fragment-spread opts))
-   :inline-fragment (fn [opts & xs]
-                      (unparse-inline-fragment opts xs))})
-
-(defn unparse
-  [ast]
-  (util/transform-malli-ast -unparse-xf ast))
