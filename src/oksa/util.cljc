@@ -22,20 +22,3 @@
 
     :else
     parse-tree))
-
-(defn -validate-re-pattern
-  [re val message]
-  (or (re-matches re val)
-      (throw (ex-info message
-                      (cond
-                        (= oksa.util/mode "debug") {:expected-regex re :value val}
-                        (= oksa.util/mode "default") {:expected-regex re}
-                        :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode})))))))
-
-(def -name-pattern "[_A-Za-z][_0-9A-Za-z]*")
-(def re-name (re-pattern -name-pattern))
-(def re-variable-name (re-pattern (str "[$]?" -name-pattern)))
-(def re-type-name (re-pattern (str -name-pattern "[!]?")))
-(def re-fragment-name (re-pattern (str "(?!on)" -name-pattern)))
-(def re-variable-reference (re-pattern (str "[$]" -name-pattern)))
-(def re-enum-value (re-pattern (str "(?!(true|false|null))" -name-pattern)))

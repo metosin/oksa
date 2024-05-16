@@ -14,6 +14,14 @@
 
 (declare -transform-map)
 
+(def -name-pattern "[_A-Za-z][_0-9A-Za-z]*")
+(def re-name (re-pattern -name-pattern))
+(def re-variable-name (re-pattern (str "[$]?" -name-pattern)))
+(def re-type-name (re-pattern (str -name-pattern "[!]?")))
+(def re-fragment-name (re-pattern (str "(?!on)" -name-pattern)))
+(def re-variable-reference (re-pattern (str "[$]" -name-pattern)))
+(def re-enum-value (re-pattern (str "(?!(true|false|null))" -name-pattern)))
+
 (def ^:private reserved-keywords
   (delay (set (into (filter #(some-> % namespace (= "oksa")) (keys -transform-map))
                     #{:<> :# :...}))))
@@ -69,8 +77,8 @@
                 [:and
                  [:not [:enum :oksa/list]]
                  [:or :keyword :string]
-                 [:fn {:error/message (str "invalid character range for name, should follow the pattern: " util/re-type-name)}
-                  (fn [x] (re-matches util/re-type-name (name x)))]]
+                 [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-type-name)}
+                  (fn [x] (re-matches re-type-name (name x)))]]
                 [:and
                  [:not [:enum :oksa/list]]
                  [:or :keyword :string]])
@@ -125,18 +133,18 @@
    ::Alias [:schema [:ref ::Name]]
    ::Name (if (:oksa/strict opts)
             [:and [:or :keyword :string]
-             [:fn {:error/message (str "invalid character range for name, should follow the pattern: " util/re-name)}
-              (fn [x] (re-matches util/re-name (name x)))]]
+             [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-name)}
+              (fn [x] (re-matches re-name (name x)))]]
             [:or :keyword :string])
    ::VariableName (if (:oksa/strict opts)
                     [:and [:or :keyword :string]
-                     [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " util/re-variable-name)}
-                      (fn [x] (re-matches util/re-variable-name (name x)))]]
+                     [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " re-variable-name)}
+                      (fn [x] (re-matches re-variable-name (name x)))]]
                     [:or :keyword :string])
    ::FragmentName (if (:oksa/strict opts)
                     [:and [:or :keyword :string]
-                     [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " util/re-fragment-name)}
-                      (fn [x] (re-matches util/re-fragment-name (name x)))]]
+                     [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " re-fragment-name)}
+                      (fn [x] (re-matches re-fragment-name (name x)))]]
                     [:or :keyword :string])
    ::Value [:or
             number?
@@ -146,11 +154,11 @@
             (if (:oksa/strict opts)
               [:and :keyword
                [:fn
-                {:error/message (str "invalid character range for value, should follow either: " util/re-enum-value ", or: " util/re-variable-reference)}
+                {:error/message (str "invalid character range for value, should follow either: " re-enum-value ", or: " re-variable-reference)}
                 (fn [x]
                   (let [s (name x)]
-                    (or (re-matches util/re-variable-reference s)
-                        (re-matches util/re-enum-value s))))]]
+                    (or (re-matches re-variable-reference s)
+                        (re-matches re-enum-value s))))]]
               :keyword)
             coll?
             :map]
