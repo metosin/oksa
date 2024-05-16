@@ -221,7 +221,8 @@
     (-unparse [_ opts]
       (oksa.unparse/unparse-document opts definitions))
     Representable
-    (-gql [this opts] (protocol/-unparse this opts))))
+    (-gql [this opts] (protocol/-unparse this (merge (-get-oksa-opts opts)
+                                                     (protocol/-opts this))))))
 
 (defn -document
   [definitions]
@@ -261,7 +262,8 @@
        (merge (-get-oksa-opts opts) (protocol/-opts this))
        selection-set))
     Representable
-    (-gql [this opts] (protocol/-unparse this opts))))
+    (-gql [this opts] (protocol/-unparse this (merge (-get-oksa-opts opts)
+                                                     (protocol/-opts this))))))
 
 (defn -operation-definition
   [operation-type opts selection-set]
@@ -299,7 +301,8 @@
           (merge (-get-oksa-opts opts) (protocol/-opts this))
           selection-set))
       Representable
-      (-gql [this opts] (protocol/-unparse this opts)))))
+      (-gql [this opts] (protocol/-unparse this (merge (-get-oksa-opts opts)
+                                                       (protocol/-opts this)))))))
 
 (defn -selection-set-form
   [selections]
@@ -474,8 +477,9 @@
       (-update-key [_] :directives)
       (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this)))
       Serializable
-      (-unparse [_ opts]
-        (oksa.unparse/format-directives opts directives)))))
+      (-unparse [this opts]
+        (oksa.unparse/format-directives (merge (-get-oksa-opts opts)
+                                               (protocol/-opts this)) directives)))))
 
 (declare -type)
 
@@ -761,7 +765,9 @@
         Argumented
         (-arguments [this] (protocol/-form this))
         Serializable
-        (-unparse [_ opts] (oksa.unparse/-format-arguments opts arguments*))))))
+        (-unparse [this opts]
+          (oksa.unparse/-format-arguments (merge (-get-oksa-opts opts)
+                                                 (protocol/-opts this)) arguments*))))))
 
 (defn -default
   [value]
