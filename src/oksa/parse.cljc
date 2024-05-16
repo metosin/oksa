@@ -362,10 +362,18 @@
         (:alias opts) (update :alias -alias)))
     (-form [_] form)
     Serializable
-    (-unparse [this opts] (oksa.unparse/unparse-field name
-                                                      (merge (-get-oksa-opts opts)
-                                                              (protocol/-opts this))
-                                                      selection-set))))
+    (-unparse [this opts]
+      (let [opts* (merge (-get-oksa-opts opts)
+                         (protocol/-opts this))
+            name-fn (:oksa/name-fn opts*)]
+        (oksa.unparse/unparse-field (-parse-or-throw :oksa.parse/Name
+                                                     (if name-fn
+                                                       (name-fn name)
+                                                       name)
+                                                     oksa.parse/-name-parser-strict
+                                                     "invalid naked field")
+                                    opts*
+                                    selection-set)))))
 
 (defn -field
   [name opts selection-set]
