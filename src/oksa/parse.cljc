@@ -65,11 +65,15 @@
            [::ListTypeOrNonNullListType [:schema [:ref ::ListTypeOrNonNullListType]]]
            [::AbbreviatedListType [:schema [:ref ::ListType]]]
            [::AbbreviatedNonNullListType [:schema [:ref ::NonNullListType]]]]
-   ::TypeName [:and
-               [:not [:enum :oksa/list]]
-               [:or :keyword :string]
-               [:fn {:error/message (str "invalid character range for name, should follow the pattern: " util/re-type-name)}
-                (fn [x] (re-matches util/re-type-name (name x)))]]
+   ::TypeName (if (:oksa/strict opts)
+                [:and
+                 [:not [:enum :oksa/list]]
+                 [:or :keyword :string]
+                 [:fn {:error/message (str "invalid character range for name, should follow the pattern: " util/re-type-name)}
+                  (fn [x] (re-matches util/re-type-name (name x)))]]
+                [:and
+                 [:not [:enum :oksa/list]]
+                 [:or :keyword :string]])
    ::TypeOpts [:map
                [:non-null :boolean]]
    ::NamedTypeOrNonNullNamedType [:cat
@@ -124,9 +128,11 @@
              [:fn {:error/message (str "invalid character range for name, should follow the pattern: " util/re-name)}
               (fn [x] (re-matches util/re-name (name x)))]]
             [:or :keyword :string])
-   ::VariableName [:and [:or :keyword :string]
-                   [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " util/re-variable-name)}
-                    (fn [x] (re-matches util/re-variable-name (name x)))]]
+   ::VariableName (if (:oksa/strict opts)
+                    [:and [:or :keyword :string]
+                     [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " util/re-variable-name)}
+                      (fn [x] (re-matches util/re-variable-name (name x)))]]
+                    [:or :keyword :string])
    ::FragmentName (if (:oksa/strict opts)
                     [:and [:or :keyword :string]
                      [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " util/re-fragment-name)}
@@ -184,9 +190,11 @@
 (def -value-parser (m/parser (-graphql-dsl-lang ::Value)))
 (def -value-parser-strict (m/parser (-graphql-dsl-lang {:oksa/strict true} ::Value)))
 (def -type-name-parser (m/parser (-graphql-dsl-lang ::TypeName)))
+(def -type-name-parser-strict (m/parser (-graphql-dsl-lang {:oksa/strict true} ::TypeName)))
 (def -named-type-or-non-null-named-type-parser (m/parser (-graphql-dsl-lang ::NamedTypeOrNonNullNamedType)))
 (def -list-type-or-non-null-list-type-parser (m/parser (-graphql-dsl-lang ::ListTypeOrNonNullListType)))
 (def -variable-definitions-parser (m/parser (-graphql-dsl-lang ::VariableDefinitions)))
+(def -variable-name-parser-strict (m/parser (-graphql-dsl-lang {:oksa/strict true} ::VariableName)))
 
 (defn -parse-or-throw
   [type form parser message]
@@ -258,9 +266,9 @@
     Serializable
     (-unparse [this opts]
       (oksa.unparse/unparse-operation-definition
-       (clojure.core/name (protocol/-type this))
-       (merge (-get-oksa-opts opts) (protocol/-opts this))
-       selection-set))
+        (clojure.core/name (protocol/-type this))
+        (merge (-get-oksa-opts opts) (protocol/-opts this))
+        selection-set))
     Representable
     (-gql [this opts] (protocol/-unparse this (merge (-get-oksa-opts opts)
                                                      (protocol/-opts this))))))
@@ -486,7 +494,7 @@
 (defn -list
   [opts type-or-list]
   (let [type-or-list* (if (or (keyword? type-or-list) (string? type-or-list))
-                        (-type type-or-list)
+                        (-type opts type-or-list)
                         type-or-list)
         form [:oksa/list opts (protocol/-form type-or-list*)]
         list* (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
@@ -505,19 +513,30 @@
                                           (protocol/-opts this)))))))
 
 (defn -type
-  [type-name]
-  (let [form type-name
-        type* (oksa.parse/-parse-or-throw :oksa.parse/TypeName
-                                          form
-                                          oksa.parse/-type-name-parser
-                                          "invalid type")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/TypeName)
-      (-form [_] form)
-      (-opts [_] {})
-      Serializable
-      (-unparse [this _opts] (clojure.core/name (protocol/-form this))))))
+  ([type-name]
+   (-type nil type-name))
+  ([opts type-name]
+   (let [form type-name
+         type* (oksa.parse/-parse-or-throw :oksa.parse/TypeName
+                                           form
+                                           oksa.parse/-type-name-parser
+                                           "invalid type name")]
+     (reify
+       AST
+       (-type [_] :oksa.parse/TypeName)
+       (-form [_] form)
+       (-opts [_] opts)
+       Serializable
+       (-unparse [this opts]
+         (let [name-fn (:oksa/name-fn (merge (-get-oksa-opts opts)
+                                             (protocol/-opts this)))]
+           (clojure.core/name
+             (-parse-or-throw :oksa.parse/TypeName
+                              (clojure.core/name (if name-fn
+                                                   (name-fn type*)
+                                                   type*))
+                              oksa.parse/-type-name-parser-strict
+                              "invalid type name"))))))))
 
 (defn -type!
   [type-name]
@@ -550,12 +569,18 @@
     (-update-fn [this] #((fnil into -variables-empty-state) % (protocol/-form this)))
     Serializable
     (-unparse [this opts]
-      (oksa.unparse/-format-variable-definition
-       variable-name
-       (merge
-        (-get-oksa-opts opts)
-        (protocol/-opts this))
-       variable-type))))
+      (let [name-fn (:oksa/name-fn opts)]
+        (oksa.unparse/-format-variable-definition
+          (-parse-or-throw :oksa.parse/VariableName
+                           (clojure.core/name (if name-fn
+                                                (name-fn variable-name)
+                                                variable-name))
+                           oksa.parse/-variable-name-parser-strict
+                           "invalid variable name")
+          (merge
+            (-get-oksa-opts opts)
+            (protocol/-opts this))
+          variable-type)))))
 
 (defn -variable-form
   [variable-name opts variable-type]
@@ -564,14 +589,14 @@
     true (conj (protocol/-form variable-type))))
 
 (defn -coerce-variable-type
-  [variable-type]
+  [opts variable-type]
   (if (or (keyword? variable-type) (string? variable-type))
-    (-type variable-type)
+    (-type opts variable-type)
     variable-type))
 
 (defn -variable
   [variable-name opts variable-type]
-  (let [variable-type* (-coerce-variable-type variable-type)
+  (let [variable-type* (-coerce-variable-type opts variable-type)
         form (-variable-form variable-name opts variable-type*)
         [_ [[_ opts* _]]] (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
                                                       form
@@ -784,7 +809,15 @@
       (-update-key [_] :default)
       (-update-fn [_] (constantly value*))
       Serializable
-      (-unparse [_ _opts] (str "=" (oksa.unparse/format-value value))))))
+      (-unparse [_ opts]
+        (let [name-fn (:oksa/name-fn opts)]
+          (str "=" (oksa.unparse/format-value
+                     (oksa.parse/-parse-or-throw :oksa.parse/Value
+                                                 (if (and (keyword? value) (some? name-fn))
+                                                   (name-fn value)
+                                                   value)
+                                                 oksa.parse/-value-parser-strict
+                                                 "invalid value"))))))))
 
 (def -transform-map
   (letfn [(operation [operation-type opts [xs]]

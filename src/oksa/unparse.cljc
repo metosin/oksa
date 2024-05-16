@@ -37,12 +37,12 @@
          (str " " (protocol/-unparse (:directives opts) opts)))))
 
 (defn- format-variable-definitions
-  [variable-definitions]
+  [opts]
   (str "("
        (str/join ","
                  (map (fn [variable-definition]
-                        (protocol/-unparse variable-definition nil))
-                      variable-definitions))
+                        (protocol/-unparse variable-definition opts))
+                      (:variables opts)))
        ")"))
 
 (declare -format-arguments)
@@ -158,7 +158,7 @@
    (str operation-type
         " "
         (when (:name opts) (str (protocol/-unparse (:name opts) opts) " "))
-        (when (:variables opts) (format-variable-definitions (:variables opts)))
+        (when (:variables opts) (format-variable-definitions opts))
         (when (:directives opts) (protocol/-unparse (:directives opts) opts))
         (apply str (map (partial serialize opts) xs)))))
 

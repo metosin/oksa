@@ -506,7 +506,8 @@
     (t/testing "query"
       (let [query (api/query
                    (api/opts (api/name :foo-bar-query)
-                             ;; TODO: variables
+                             (api/variable :foo-var (api/opts (api/default :foo-val)
+                                                              (api/directive :foo-directive)) :foo-type)
                              (api/directives :foo-bar))
                    (api/select
                      (api/field :foo-bar (api/opts
@@ -521,13 +522,14 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "query fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "query fooBarQuery ($fooVar:fooType=fooVal @fooDirective)@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "mutation"
       (let [query (api/mutation
                    (api/opts (api/name :foo-bar-query)
-                             ;; TODO: variables
+                             (api/variable :foo-var (api/opts (api/default :foo-val)
+                                                              (api/directive :foo-directive)) :foo-type)
                              (api/directives :foo-bar))
                    (api/select
                      (api/field :foo-bar (api/opts
@@ -542,13 +544,14 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "mutation fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "mutation fooBarQuery ($fooVar:fooType=fooVal @fooDirective)@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "subscription"
       (let [query (api/subscription
                    (api/opts (api/name :foo-bar-query)
-                             ;; TODO: variables
+                             (api/variable :foo-var (api/opts (api/default :foo-val)
+                                                              (api/directive :foo-directive)) :foo-type)
                              (api/directives :foo-bar))
                    (api/select
                      (api/field :foo-bar (api/opts
@@ -563,7 +566,7 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "subscription fooBarQuery @fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+        (t/is (= "subscription fooBarQuery ($fooVar:fooType=fooVal @fooDirective)@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
                  (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
     (t/testing "fragment"
