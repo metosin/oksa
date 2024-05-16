@@ -364,7 +364,7 @@
     Serializable
     (-unparse [this opts] (oksa.unparse/unparse-field name
                                                       (merge (-get-oksa-opts opts)
-                                                             (protocol/-opts this))
+                                                              (protocol/-opts this))
                                                       selection-set))))
 
 (defn -field

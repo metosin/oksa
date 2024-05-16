@@ -105,22 +105,20 @@
             (map #(protocol/-unparse % opts) xs)))
 
 (defn unparse-field
-  ([name opts]
-   (unparse-field name opts nil))
-  ([name {:keys [alias arguments directives] :as opts} xs]
-   (let [name-fn (:oksa/name-fn opts)
-         field-name (clojure.core/name name)]
-     (str (when (some? alias) (protocol/-unparse alias opts))
-          (util/-validate-re-pattern util/re-name
-                                     (if name-fn
-                                       (name-fn field-name)
-                                       field-name)
-                                     "invalid name")
-          (when (and (some? arguments)
-                     (not-empty (protocol/-form arguments)))
-            (protocol/-unparse arguments opts))
-          (when directives (protocol/-unparse directives opts))
-          (when (some? xs) (apply str (protocol/-unparse xs opts)))))))
+  [name {:keys [alias arguments directives] :as opts} xs]
+  (let [name-fn (:oksa/name-fn opts)
+        field-name (clojure.core/name name)]
+    (str (when (some? alias) (protocol/-unparse alias opts))
+         (util/-validate-re-pattern util/re-name
+                                    (if name-fn
+                                      (name-fn field-name)
+                                      field-name)
+                                    "invalid name")
+         (when (and (some? arguments)
+                    (not-empty (protocol/-form arguments)))
+           (protocol/-unparse arguments opts))
+         (when directives (protocol/-unparse directives opts))
+         (when (some? xs) (apply str (protocol/-unparse xs opts))))))
 
 (defn none?
   [f coll]
