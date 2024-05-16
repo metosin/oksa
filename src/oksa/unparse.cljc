@@ -166,16 +166,10 @@
         (apply str (map #(protocol/-unparse % opts) xs)))))
 
 (defn unparse-fragment-spread
-  [opts]
-  (let [name-fn (:oksa/name-fn opts)
-        fragment-spread-name (name (:name opts))]
-    (str "..."
-         (util/-validate-re-pattern util/re-name
-                                    (if name-fn
-                                      (name-fn fragment-spread-name)
-                                      fragment-spread-name)
-                                    "invalid name")
-         (when (:directives opts) (protocol/-unparse (:directives opts) opts)))))
+  [opts fragment-spread-name]
+  (str "..."
+       (clojure.core/name fragment-spread-name)
+       (when (:directives opts) (protocol/-unparse (:directives opts) opts))))
 
 (defn unparse-inline-fragment
   ([opts]

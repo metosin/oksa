@@ -424,10 +424,18 @@
       (-form [_] form)
       Serializable
       (-unparse [this opts]
-        (oksa.unparse/unparse-fragment-spread
-          (merge
-            (-get-oksa-opts opts)
-            (protocol/-opts this)))))))
+        (let [opts* (merge
+                      (-get-oksa-opts opts)
+                      (protocol/-opts this))
+              name-fn (:oksa/name-fn opts*)]
+          (oksa.unparse/unparse-fragment-spread
+            opts*
+            (-parse-or-throw :oksa.parse/Name
+                             (if name-fn
+                               (name-fn (:name opts*))
+                               (:name opts*))
+                             oksa.parse/-name-parser-strict
+                             "invalid naked field")))))))
 
 (defn -inline-fragment
   [opts selection-set]
