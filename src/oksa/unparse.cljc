@@ -90,6 +90,10 @@
                              (str (name object-field-name) ":" (format-value object-field-value))) x))
        "}"))
 
+(defn -format-argument
+  [name value]
+  (str (clojure.core/name name) ":" (oksa.unparse/format-value value)))
+
 (defn -format-arguments
   [opts arguments]
   (str "(" (str/join ", " (map #(protocol/-unparse % opts) arguments)) ")"))
@@ -189,6 +193,18 @@
         (when (:on opts) (protocol/-unparse (:on opts) opts))
         (when (:directives opts) (protocol/-unparse (:directives opts) opts))
         (apply str (protocol/-unparse xs opts)))))
+
+(defn format-on
+  [name]
+  (str "on " name))
+
+(defn format-alias
+  [alias]
+  (str alias ":"))
+
+(defn format-default
+  [value]
+  (str "=" (format-value value)))
 
 (def -unparse-xf
   {:document (fn [opts & xs]

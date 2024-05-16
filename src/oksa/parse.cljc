@@ -677,13 +677,13 @@
       Serializable
       (-unparse [_ opts]
         (let [name-fn (:oksa/name-fn opts)]
-          (str "on "
-               (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                           (clojure.core/name (if name-fn
-                                                                (name-fn name*)
-                                                                name*))
-                                           oksa.parse/-name-parser-strict
-                                           "invalid name")))))))
+          (oksa.unparse/format-on
+            (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                        (clojure.core/name (if name-fn
+                                                             (name-fn name*)
+                                                             name*))
+                                        oksa.parse/-name-parser-strict
+                                        "invalid name")))))))
 
 (defn -name
   [name]
@@ -728,13 +728,12 @@
       Serializable
       (-unparse [_ opts]
         (let [name-fn (:oksa/name-fn opts)]
-          (str (oksa.parse/-parse-or-throw :oksa.parse/Alias
-                                           (clojure.core/name (if name-fn
-                                                                (name-fn alias*)
-                                                                alias*))
-                                           oksa.parse/-alias-parser-strict
-                                           "invalid naked field")
-               ":"))))))
+          (oksa.unparse/format-alias (oksa.parse/-parse-or-throw :oksa.parse/Alias
+                                                                 (clojure.core/name (if name-fn
+                                                                                      (name-fn alias*)
+                                                                                      alias*))
+                                                                 oksa.parse/-alias-parser-strict
+                                                                 "invalid naked field")))))))
 
 (defn -argument
   [name value]
@@ -756,20 +755,19 @@
       Serializable
       (-unparse [_ opts]
         (let [name-fn (:oksa/name-fn opts)]
-          (str (clojure.core/name (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                                              (if name-fn
-                                                                (name-fn name)
-                                                                name)
-                                                              oksa.parse/-name-parser-strict
-                                                              "invalid name"))
-               ":"
-               (oksa.unparse/format-value
-                (oksa.parse/-parse-or-throw :oksa.parse/Value
-                                            (if (and (keyword? value) (some? name-fn))
-                                              (name-fn value)
-                                              value)
-                                            oksa.parse/-value-parser-strict
-                                            "invalid value"))))))))
+          (oksa.unparse/-format-argument
+            (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                        (if name-fn
+                                          (name-fn name)
+                                          name)
+                                        oksa.parse/-name-parser-strict
+                                        "invalid name")
+            (oksa.parse/-parse-or-throw :oksa.parse/Value
+                                        (if (and (keyword? value) (some? name-fn))
+                                          (name-fn value)
+                                          value)
+                                        oksa.parse/-value-parser-strict
+                                        "invalid value")))))))
 
 (defn -arguments
   [arguments]
@@ -811,13 +809,13 @@
       Serializable
       (-unparse [_ opts]
         (let [name-fn (:oksa/name-fn opts)]
-          (str "=" (oksa.unparse/format-value
-                     (oksa.parse/-parse-or-throw :oksa.parse/Value
-                                                 (if (and (keyword? value) (some? name-fn))
-                                                   (name-fn value)
-                                                   value)
-                                                 oksa.parse/-value-parser-strict
-                                                 "invalid value"))))))))
+          (oksa.unparse/format-default
+            (oksa.parse/-parse-or-throw :oksa.parse/Value
+                                        (if (and (keyword? value) (some? name-fn))
+                                          (name-fn value)
+                                          value)
+                                        oksa.parse/-value-parser-strict
+                                        "invalid value")))))))
 
 (def -transform-map
   (letfn [(operation [operation-type opts [xs]]
