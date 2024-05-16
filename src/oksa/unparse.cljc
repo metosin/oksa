@@ -14,7 +14,7 @@
 
 (defn- format-type
   [type opts]
-  (protocol/-unparse type opts))
+  )
 
 (defn -variable-name
   [variable]
@@ -26,7 +26,7 @@
   [variable opts type]
   (str (-variable-name variable)
        ":"
-       (format-type type opts)
+       (protocol/-unparse type opts)
        (when (contains? opts :default)
          (protocol/-unparse (:default opts) opts))
        (when (:directives opts)
