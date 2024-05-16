@@ -9,6 +9,10 @@
              :as protocol]
             [oksa.unparse]))
 
+#?(:cljs (goog-define mode "default")
+   :clj  (def ^{:doc "Modes `default` and `debug` supported."}
+           mode (as-> (or (System/getProperty "oksa.api/mode") "default") $ (.intern $))))
+
 (def -directives-empty-state [])
 (def -variables-empty-state [])
 
@@ -211,11 +215,11 @@
       retval
       (throw (ex-info message
                       (cond
-                        (= oksa.util/mode "debug") {:malli.core/explain (malli.core/explain
-                                                                          (-graphql-dsl-lang type)
-                                                                          form)
-                                                    :value form}
-                        (= oksa.util/mode "default") {}
+                        (= mode "debug") {:malli.core/explain (malli.core/explain
+                                                                (-graphql-dsl-lang type)
+                                                                form)
+                                          :value form}
+                        (= mode "default") {}
                         :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode}))))))))
 
 (defn -get-oksa-opts

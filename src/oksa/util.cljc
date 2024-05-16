@@ -1,9 +1,5 @@
 (ns oksa.util)
 
-#?(:cljs (goog-define mode "default")
-   :clj  (def ^{:doc "Modes `default` and `debug` supported."}
-           mode (as-> (or (System/getProperty "oksa.api/mode") "default") $ (.intern $))))
-
 (defn transform-malli-ast
   "Applies transform-map to parse-tree recursively. Adapted from `instaparse.core/hiccup-transform`."
   [transform-map parse-tree]
