@@ -319,7 +319,7 @@
     (t/testing "query"
       (let [query [:oksa/query {:name :foo-bar-query
                                 :variables [:foo-var {:directives [:foo-directive]
-                                                      :default :foo-value} :foo-type] ; TODO: fixme
+                                                      :default :foo-value} :foo-type]
                                 :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
                                :arguments {:foo-arg :bar-value}}]
@@ -337,7 +337,7 @@
     (t/testing "mutation"
       (let [query [:oksa/mutation {:name :foo-bar-query
                                    :variables [:foo-var {:directives [:foo-directive]
-                                                         :default :foo-value} :foo-type] ; TODO: fixme
+                                                         :default :foo-value} :foo-type]
                                    :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
                                :arguments {:foo-arg :bar-value}}]
@@ -355,7 +355,7 @@
     (t/testing "subscription"
       (let [query [:oksa/subscription {:name :foo-bar-query
                                        :variables [:foo-var {:directives [:foo-directive]
-                                                             :default :foo-value} :foo-type] ; TODO: fixme
+                                                             :default :foo-value} :foo-type]
                                        :directives [:foo-bar]}
                    [[:foo-bar {:alias :bar-foo
                                :arguments {:foo-arg :bar-value}}]
