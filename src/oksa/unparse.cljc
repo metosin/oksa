@@ -6,15 +6,11 @@
 
 (defmulti format-value type)
 
-(defn serialize
-  [opts x]
-  (protocol/-unparse x opts))
-
 (declare format-type)
 
 (defn -format-list
   [child opts]
-  (str "[" (serialize opts child) "]" (when (:non-null opts) "!")))
+  (str "[" (protocol/-unparse child opts) "]" (when (:non-null opts) "!")))
 
 (defn- format-type
   [type opts]
@@ -102,7 +98,7 @@
   [opts xs]
   (str/join #?(:clj  (System/lineSeparator)
                :cljs (with-out-str (newline)))
-            (map (partial serialize opts) xs)))
+            (map #(protocol/-unparse % opts) xs)))
 
 (defn unparse-field
   ([name opts]
@@ -120,7 +116,7 @@
                      (not-empty (protocol/-form arguments)))
             (protocol/-unparse arguments opts))
           (when directives (protocol/-unparse directives opts))
-          (when (some? xs) (apply str (serialize opts xs)))))))
+          (when (some? xs) (apply str (protocol/-unparse xs opts)))))))
 
 (defn none?
   [f coll]
@@ -160,7 +156,7 @@
         (when (:name opts) (str (protocol/-unparse (:name opts) opts) " "))
         (when (:variables opts) (format-variable-definitions opts))
         (when (:directives opts) (protocol/-unparse (:directives opts) opts))
-        (apply str (map (partial serialize opts) xs)))))
+        (apply str (map #(protocol/-unparse % opts) xs)))))
 
 (defn unparse-fragment-definition
   ([opts]
@@ -171,7 +167,7 @@
         " "
         (when (:on opts) (protocol/-unparse (:on opts) opts))
         (when (:directives opts) (protocol/-unparse (:directives opts) opts))
-        (apply str (map (partial serialize opts) xs)))))
+        (apply str (map #(protocol/-unparse % opts) xs)))))
 
 (defn unparse-fragment-spread
   [opts]
@@ -192,7 +188,7 @@
    (str "..."
         (when (:on opts) (protocol/-unparse (:on opts) opts))
         (when (:directives opts) (protocol/-unparse (:directives opts) opts))
-        (apply str (serialize opts xs)))))
+        (apply str (protocol/-unparse xs opts)))))
 
 (def -unparse-xf
   {:document (fn [opts & xs]
