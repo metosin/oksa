@@ -246,10 +246,10 @@
 
 (defn -document
   [definitions]
-  (let [[_ opts _definitions] (oksa.parse/-parse-or-throw :oksa.parse/Document
-                                                          (-create-document-form definitions)
-                                                          oksa.parse/-graphql-dsl-parser
-                                                          "invalid document")]
+  (let [[_ opts _] (oksa.parse/-parse-or-throw :oksa.parse/Document
+                                               (-create-document-form definitions)
+                                               oksa.parse/-graphql-dsl-parser
+                                               "invalid document")]
     (-create-document opts definitions)))
 
 (defn- parse
@@ -851,8 +851,8 @@
                                           (-operation-definition-form operation-type opts xs)
                                           opts
                                           xs))
-          (document [opts xs]
-            (-create-document opts xs))
+          (document [opts definitions]
+            (-create-document opts definitions))
           (fragment [{:keys [directives] :as options} xs]
             (assert (some? (:name options)) "missing name")
             (apply -fragment
