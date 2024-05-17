@@ -299,30 +299,37 @@
 
 (declare -on)
 
+(defn -fragment-form
+  [opts selection-set]
+  [:oksa/fragment opts (protocol/-form selection-set)])
+
+(defn -create-fragment
+  [opts form selection-set]
+  (reify
+    AST
+    (-type [_] :oksa/fragment)
+    (-opts [_]
+      (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
+        (:name opts) (update :name -name)
+        (:on opts) (update :on -on)))
+    (-form [_] form)
+    Serializable
+    (-unparse [this opts]
+      (oksa.unparse/unparse-fragment-definition
+        (merge (-get-oksa-opts opts) (protocol/-opts this))
+        selection-set))
+    Representable
+    (-gql [this opts] (protocol/-unparse this (merge (-get-oksa-opts opts)
+                                                     (protocol/-opts this))))))
+
 (defn -fragment
   [opts selection-set]
-  (let [form [:oksa/fragment opts (protocol/-form selection-set)]
-        [type opts _selection-set
-         :as fragment*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentDefinition
-                                                    form
-                                                    oksa.parse/-fragment-definition-parser
-                                                    "invalid fragment definition")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_]
-        (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
-          (:name opts) (update :name -name)
-          (:on opts) (update :on -on)))
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/unparse-fragment-definition
-          (merge (-get-oksa-opts opts) (protocol/-opts this))
-          selection-set))
-      Representable
-      (-gql [this opts] (protocol/-unparse this (merge (-get-oksa-opts opts)
-                                                       (protocol/-opts this)))))))
+  (let [form (-fragment-form opts selection-set)
+        [_ opts* _] (oksa.parse/-parse-or-throw :oksa.parse/FragmentDefinition
+                                                form
+                                                oksa.parse/-fragment-definition-parser
+                                                "invalid fragment definition")]
+    (-create-fragment opts* form selection-set)))
 
 (defn -selection-set-form
   [selections]
@@ -853,14 +860,13 @@
                                           xs))
           (document [opts definitions]
             (-create-document opts definitions))
-          (fragment [{:keys [directives] :as options} xs]
+          (fragment [{:keys [directives] :as options} [selection-set]]
             (assert (some? (:name options)) "missing name")
-            (apply -fragment
-                   (-opts
-                     (-name (:name options))
-                     (when (:on options) (-on (:on options)))
-                     (when directives (oksa.util/transform-malli-ast -transform-map directives)))
-                   xs))
+            (let [opts (-opts
+                         (-name (:name options))
+                         (when (:on options) (-on (:on options)))
+                         (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
+              (-create-fragment options (-fragment-form opts selection-set) selection-set)))
           (fragment-spread [{:keys [directives] :as options}]
             (assert (some? (:name options)) "missing name")
             (-fragment-spread
