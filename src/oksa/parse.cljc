@@ -425,36 +425,44 @@
                                       oksa.parse/-name-parser-strict
                                       "invalid naked field"))))))
 
+(defn -fragment-spread-form
+  [opts]
+  [:oksa/fragment-spread opts])
+
+(defn -create-fragment-spread
+  [opts form]
+  (reify
+    AST
+    (-type [_] :oksa/fragment-spread)
+    (-opts [_]
+      (update opts
+              :directives
+              (partial oksa.util/transform-malli-ast
+                       -transform-map)))
+    (-form [_] form)
+    Serializable
+    (-unparse [this opts]
+      (let [opts* (merge
+                    (-get-oksa-opts opts)
+                    (protocol/-opts this))
+            name-fn (:oksa/name-fn opts*)]
+        (oksa.unparse/unparse-fragment-spread
+          opts*
+          (-parse-or-throw :oksa.parse/Name
+                           (if name-fn
+                             (name-fn (:name opts*))
+                             (:name opts*))
+                           oksa.parse/-name-parser-strict
+                           "invalid naked field"))))))
+
 (defn -fragment-spread
   [opts]
-  (let [form [:oksa/fragment-spread opts]
-        [type opts :as fragment-spread*] (oksa.parse/-parse-or-throw :oksa.parse/FragmentSpread
-                                                                     form
-                                                                     oksa.parse/-fragment-spread-parser
-                                                                     "invalid fragment spread parser")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_]
-        (update opts
-                :directives
-                (partial oksa.util/transform-malli-ast
-                         -transform-map)))
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (let [opts* (merge
-                      (-get-oksa-opts opts)
-                      (protocol/-opts this))
-              name-fn (:oksa/name-fn opts*)]
-          (oksa.unparse/unparse-fragment-spread
-            opts*
-            (-parse-or-throw :oksa.parse/Name
-                             (if name-fn
-                               (name-fn (:name opts*))
-                               (:name opts*))
-                             oksa.parse/-name-parser-strict
-                             "invalid naked field")))))))
+  (let [form (-fragment-spread-form opts)
+        [_ opts] (oksa.parse/-parse-or-throw :oksa.parse/FragmentSpread
+                                             form
+                                             oksa.parse/-fragment-spread-parser
+                                             "invalid fragment spread parser")]
+    (-create-fragment-spread opts form)))
 
 (defn -inline-fragment
   [opts selection-set]
@@ -869,10 +877,10 @@
               (-create-fragment options (-fragment-form opts selection-set) selection-set)))
           (fragment-spread [{:keys [directives] :as options}]
             (assert (some? (:name options)) "missing name")
-            (-fragment-spread
-              (-opts
-                (-name (:name options))
-                (when directives (oksa.util/transform-malli-ast -transform-map directives)))))
+            (let [opts (-opts
+                         (-name (:name options))
+                         (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
+              (-create-fragment-spread options (-fragment-spread-form opts))))
           (inline-fragment [{:keys [directives] :as options} selection-set]
             (assert (not (some? (:name options))) "inline fragments can't have name")
             (apply -inline-fragment
