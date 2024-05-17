@@ -220,7 +220,7 @@
                                                                 form)
                                           :value form}
                         (= mode "default") {}
-                        :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode oksa.util/mode}))))))))
+                        :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode mode}))))))))
 
 (defn -get-oksa-opts
   [opts]
