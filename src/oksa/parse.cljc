@@ -464,29 +464,37 @@
                                              "invalid fragment spread parser")]
     (-create-fragment-spread opts form)))
 
+(defn -inline-fragment-form
+  [opts selection-set]
+  (cond-> [:oksa/inline-fragment opts] (some? selection-set) (conj (protocol/-form selection-set))))
+
+(defn -create-inline-fragment
+  [opts form selection-set]
+  (reify
+    AST
+    (-type [_] :oksa/inline-fragment)
+    (-opts [_] (cond-> (update opts
+                               :directives
+                               (partial oksa.util/transform-malli-ast
+                                        -transform-map))
+                 (:on opts) (update :on -on)))
+    (-form [_] form)
+    Serializable
+    (-unparse [this opts]
+      (oksa.unparse/unparse-inline-fragment
+        (merge (-get-oksa-opts opts)
+               (protocol/-opts this))
+        selection-set))))
+
 (defn -inline-fragment
   [opts selection-set]
   (let [opts (or opts {})
-        form (cond-> [:oksa/inline-fragment opts] (some? selection-set) (conj (protocol/-form selection-set)))
-        [type opts :as inline-fragment*] (oksa.parse/-parse-or-throw :oksa.parse/InlineFragment
-                                                                     form
-                                                                     oksa.parse/-inline-fragment-parser
-                                                                     "invalid inline fragment parser")]
-    (reify
-      AST
-      (-type [_] type)
-      (-opts [_] (cond-> (update opts
-                                 :directives
-                                 (partial oksa.util/transform-malli-ast
-                                          -transform-map))
-                   (:on opts) (update :on -on)))
-      (-form [_] form)
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/unparse-inline-fragment
-          (merge (-get-oksa-opts opts)
-                 (protocol/-opts this))
-          selection-set)))))
+        form (-inline-fragment-form opts selection-set)
+        [_ opts] (oksa.parse/-parse-or-throw :oksa.parse/InlineFragment
+                                             form
+                                             oksa.parse/-inline-fragment-parser
+                                             "invalid inline fragment parser")]
+    (-create-inline-fragment opts form selection-set)))
 
 (defn -opts
   [& options]
@@ -881,13 +889,12 @@
                          (-name (:name options))
                          (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
               (-create-fragment-spread options (-fragment-spread-form opts))))
-          (inline-fragment [{:keys [directives] :as options} selection-set]
+          (inline-fragment [{:keys [directives] :as options} [selection-set]]
             (assert (not (some? (:name options))) "inline fragments can't have name")
-            (apply -inline-fragment
-             (-opts
-              (when (:on options) (-on (:on options)))
-              (when directives (oksa.util/transform-malli-ast -transform-map directives)))
-             selection-set))
+            (let [opts (-opts
+                         (when (:on options) (-on (:on options)))
+                         (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
+              (-create-inline-fragment options (-inline-fragment-form opts selection-set) selection-set)))
           (selection-set [xs]
             (-create-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children] :as x}]
                                                  (let [[selection-type value] node]
