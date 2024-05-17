@@ -896,7 +896,7 @@
                          (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
               (-create-inline-fragment options (-inline-fragment-form opts selection-set) selection-set)))
           (selection-set [xs]
-            (-create-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children] :as x}]
+            (-create-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children]}]
                                                  (let [[selection-type value] node]
                                                    (cond-> (into []
                                                                  [(case selection-type
