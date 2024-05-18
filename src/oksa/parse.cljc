@@ -336,11 +336,11 @@
   (mapv protocol/-form selections))
 
 (defn -create-selection-set
-  [opts selections]
+  [selections]
   (reify
     AST
     (-type [_] :oksa.parse/SelectionSet)
-    (-opts [_] opts)
+    (-opts [_] {})
     (-form [_] (-selection-set-form selections))
     Serializable
     (-unparse [this opts]
@@ -353,13 +353,13 @@
                                                 (protocol/-opts this))))))
 
 (defn -selection-set
-  [opts selections]
+  [selections]
   (let [form (-selection-set-form selections)]
     (oksa.parse/-parse-or-throw :oksa.parse/SelectionSet
                                 form
                                 oksa.parse/-selection-set-parser
                                 "invalid selection-set")
-    (-create-selection-set opts selections)))
+    (-create-selection-set selections)))
 
 (declare -arguments)
 
@@ -405,7 +405,7 @@
     (-create-field name (-field-form name opts selection-set) opts* selection-set)))
 
 (defn -naked-field
-  [opts name]
+  [name]
   (let [naked-field* (oksa.parse/-parse-or-throw :oksa.parse/NakedField
                                                  name
                                                  oksa.parse/-naked-field-parser
@@ -931,16 +931,16 @@
                          (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
               (-create-inline-fragment options (-inline-fragment-form opts selection-set) selection-set)))
           (selection-set [xs]
-            (-create-selection-set nil (mapcat (fn [{:oksa.parse/keys [node children]}]
-                                                 (let [[selection-type value] node]
-                                                   (cond-> (into []
-                                                                 [(case selection-type
-                                                                    :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
-                                                                    :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
-                                                                    :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
-                                                                    :oksa.parse/InlineFragment (oksa.util/transform-malli-ast -transform-map value))])
-                                                     (some? children) (into [(oksa.util/transform-malli-ast -transform-map children)]))))
-                                               xs)))]
+            (-create-selection-set (mapcat (fn [{:oksa.parse/keys [node children]}]
+                                             (let [[selection-type value] node]
+                                               (cond-> (into []
+                                                             [(case selection-type
+                                                                :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
+                                                                :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
+                                                                :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
+                                                                :oksa.parse/InlineFragment (oksa.util/transform-malli-ast -transform-map value))])
+                                                 (some? children) (into [(oksa.util/transform-malli-ast -transform-map children)]))))
+                                           xs)))]
     {:oksa/document document
      :<> document
      :oksa/fragment fragment

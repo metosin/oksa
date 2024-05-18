@@ -282,59 +282,6 @@
 
 (declare -naked-field)
 
-(defn select*
-  "Produces a selection set using `selections`.
-
-  Expects an entry in `selections` to be an instance of:
-  - `oksa.alpha.api/field`
-  - keyword (representing a naked field)
-  - `oksa.alpha.api/fragment-spread`
-  - `oksa.alpha.api/inline-fragment`
-
-  Tolerates nil entries.
-
-  `opts` is an (optional) map and uses the following fields here:
-
-  | field           | description                                                                      |
-  |-----------------|----------------------------------------------------------------------------------|
-  | `:oksa/name-fn` | A function that accepts a single arg `name` and expects a stringifiable output.  |
-  |                 | Applied recursively to all contained fields & selections.                        |
-
-  Examples:
-
-  ```
-  (gql
-   (select :foo :bar))
-  ; => {foo bar}
-
-  (gql
-   (select :foo :bar
-     (select :qux :baz)
-     (field :foobar (opts (alias :BAR)))
-     (when false (field :conditionalFoo))
-     (fragment-spread (opts (name :FooFragment)))
-     (inline-fragment (opts (on :KikkaType))
-       (select :kikka :kukka))))
-  ; => {foo bar{qux baz} BAR:foobar ...FooFragment ...on KikkaType{kikka kukka}}
-  ```
-
-  See also [SelectionSet](https://spec.graphql.org/October2021/#SelectionSet).
-  "
-  [opts & selections]
-  (let [selections* (->> selections (filter some?) (map (fn [selection]
-                                                          (if (-naked-field? selection)
-                                                            (oksa.parse/-naked-field opts selection)
-                                                            selection))))]
-    (-validate (not (-selection-set? (first selections*))) "first selection cannot be `oksa.alpha.api/select`")
-    (-validate (and (not-empty selections*)
-                    (every? #(or (-field? %)
-                                 (-naked-field? %)
-                                 (-selection-set? %)
-                                 (-fragment-spread? %)
-                                 (-inline-fragment? %)) selections*))
-               "invalid selections, expected `oksa.alpha.api/field`, keyword (naked field), `oksa.alpha.api/fragment-spread`, or `oksa.alpha.api/inline-fragment`")
-    (oksa.parse/-selection-set opts selections*)))
-
 (defn select
   "Produces a selection set using `selections`.
 
@@ -367,7 +314,19 @@
   See also [SelectionSet](https://spec.graphql.org/October2021/#SelectionSet).
   "
   [& selections]
-  (apply select* nil selections))
+  (let [selections* (->> selections (filter some?) (map (fn [selection]
+                                                          (if (-naked-field? selection)
+                                                            (oksa.parse/-naked-field selection)
+                                                            selection))))]
+    (-validate (not (-selection-set? (first selections*))) "first selection cannot be `oksa.alpha.api/select`")
+    (-validate (and (not-empty selections*)
+                    (every? #(or (-field? %)
+                                 (-naked-field? %)
+                                 (-selection-set? %)
+                                 (-fragment-spread? %)
+                                 (-inline-fragment? %)) selections*))
+               "invalid selections, expected `oksa.alpha.api/field`, keyword (naked field), `oksa.alpha.api/fragment-spread`, or `oksa.alpha.api/inline-fragment`")
+    (oksa.parse/-selection-set selections*)))
 
 (defn field
   "Produces a field using `name`. Can be used directly within `oksa.alpha.api/select` when you need to provide options (eg. arguments, directives) for a particular field.
