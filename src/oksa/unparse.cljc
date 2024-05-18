@@ -12,10 +12,6 @@
   [child opts]
   (str "[" (protocol/-unparse child opts) "]" (when (:non-null opts) "!")))
 
-(defn- format-type
-  [type opts]
-  )
-
 (defn -variable-name
   [variable]
   (str "$" (str/replace (name variable) #"^\$" "")))
