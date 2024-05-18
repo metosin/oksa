@@ -16,10 +16,21 @@
 
   `opts` is an (optional) map and uses the following fields here:
 
-  | field           | description                                                                      |
-  |-----------------|----------------------------------------------------------------------------------|
-  | `:oksa/name-fn` | A function that accepts a single arg `name` and expects a stringifiable output.  |
-  |                 | Applied recursively to all fields & selections.                                  |
+  | field                 | description                                                                      |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/name-fn`       | Single-arg fn that applies fn to all names.                                      |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/field-fn`      | Single-arg fn that applies fn to all fields.                                     |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/enum-fn`       | Single-arg fn that applies fn to all enums.                                      |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/directive-fn`  | Single-arg fn that applies fn to all directives.                                 |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/type-fn`       | Single-arg fn that applies fn to all types.                                      |
+  |                       | Overrides :oksa/name-fn.                                                         |
 
   Expects `x` to be a malli-like vector."
   ([x]
@@ -32,12 +43,23 @@
 
   Expects `objs` to either be instance(s) of `oksa.alpha.protocol/Representable` or malli-like vector(s).
 
-  `opts` is a map and uses the following fields here:
+  `opts` is an (optional) map and uses the following fields here:
 
-  | field           | description                                                                      |
-  |-----------------|----------------------------------------------------------------------------------|
-  | `:oksa/name-fn` | A function that accepts a single arg `name` and expects a stringifiable output.  |
-  |                 | Applied recursively to all fields & selections.                                  |
+  | field                 | description                                                                      |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/name-fn`       | Single-arg fn that applies fn to all names.                                      |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/field-fn`      | Single-arg fn that applies fn to all fields.                                     |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/enum-fn`       | Single-arg fn that applies fn to all enums.                                      |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/directive-fn`  | Single-arg fn that applies fn to all directives.                                 |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/type-fn`       | Single-arg fn that applies fn to all types.                                      |
+  |                       | Overrides :oksa/name-fn.                                                         |
 
   See `oksa.alpha.api/api`, `README.md`, or tests for examples."
   [opts & objs]
