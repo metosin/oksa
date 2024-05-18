@@ -501,14 +501,14 @@
 
   See tests for more examples."
   [& options]
-  (let [vargs* (filter some? options)]
-    (-validate (every? #(satisfies? UpdateableOption %) vargs*)
+  (let [options* (filter some? options)]
+    (-validate (every? #(satisfies? UpdateableOption %) options*)
                (str "invalid option, expected: "
                     "`oksa.alpha.api/on`, `oksa.alpha.api/name`, `oksa.alpha.api/alias`, "
                     "`oksa.alpha.api/directive`, `oksa.alpha.api/directives`, `oksa.alpha.api/argument`, "
                     "`oksa.alpha.api/arguments`, `oksa.alpha.api/variable`, "
                     "`oksa.alpha.api/variables`, or `oksa.alpha.api/default`"))
-    (apply oksa.parse/-opts vargs*)))
+    (apply oksa.parse/-opts options*)))
 
 (defn on
   "Returns a type condition under key `:on` using `name` which should conform to [NamedType](https://spec.graphql.org/October2021/#NamedType). Used directly within `oksa.alpha.api/opts`.

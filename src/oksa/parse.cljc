@@ -398,10 +398,10 @@
   [name opts selection-set]
   (let [opts (or opts {})
         form (-field-form name opts selection-set)
-        [_ [_field-name opts* _selection-set*]] (oksa.parse/-parse-or-throw :oksa.parse/Field
-                                                                            form
-                                                                            oksa.parse/-field-parser
-                                                                            "invalid field")]
+        [_ [_ opts* _]] (oksa.parse/-parse-or-throw :oksa.parse/Field
+                                                    form
+                                                    oksa.parse/-field-parser
+                                                    "invalid field")]
     (-create-field name (-field-form name opts selection-set) opts* selection-set)))
 
 (defn -naked-field
@@ -823,11 +823,11 @@
 
 (defn -argument
   [name value]
-  (let [form {name value}
-        argument* (oksa.parse/-parse-or-throw :oksa.parse/Arguments
-                                              form
-                                              oksa.parse/-arguments-parser
-                                              "invalid argument")]
+  (let [form {name value}]
+    (oksa.parse/-parse-or-throw :oksa.parse/Arguments
+                                form
+                                oksa.parse/-arguments-parser
+                                "invalid argument")
     (reify
       AST
       (-form [_] form)

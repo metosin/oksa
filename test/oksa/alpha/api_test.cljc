@@ -265,6 +265,8 @@
       (t/is (= "query ($fooVar:FooType){fooField}"
                (unparse-and-validate (api/query (api/opts (api/variable :fooVar :FooType))
                                        (api/select :fooField)))
+               (unparse-and-validate (api/query (api/opts (api/variables :fooVar (api/type :FooType)))
+                                                (api/select :fooField)))
                (unparse-and-validate (api/query (api/opts (api/variables :fooVar :FooType))
                                        (api/select :fooField))))))
     (t/testing "non-null named type")
