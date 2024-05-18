@@ -7,7 +7,8 @@
                                          Representable
                                          UpdateableOption]
              :as protocol]
-            [oksa.unparse]))
+            [oksa.unparse])
+  (:refer-clojure :exclude [name type]))
 
 #?(:cljs (goog-define mode "default")
    :clj  (def ^{:doc "Modes `default` and `debug` supported."}
@@ -82,7 +83,7 @@
                  [:not [:enum :oksa/list]]
                  [:or :keyword :string]
                  [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-type-name)}
-                  (fn [x] (re-matches re-type-name (name x)))]]
+                  (fn [x] (re-matches re-type-name (clojure.core/name x)))]]
                 [:and
                  [:not [:enum :oksa/list]]
                  [:or :keyword :string]])
@@ -138,17 +139,17 @@
    ::Name (if (:oksa/strict opts)
             [:and [:or :keyword :string]
              [:fn {:error/message (str "invalid character range for name, should follow the pattern: " re-name)}
-              (fn [x] (re-matches re-name (name x)))]]
+              (fn [x] (re-matches re-name (clojure.core/name x)))]]
             [:or :keyword :string])
    ::VariableName (if (:oksa/strict opts)
                     [:and [:or :keyword :string]
                      [:fn {:error/message (str "invalid character range for variable name, should follow the pattern: " re-variable-name)}
-                      (fn [x] (re-matches re-variable-name (name x)))]]
+                      (fn [x] (re-matches re-variable-name (clojure.core/name x)))]]
                     [:or :keyword :string])
    ::FragmentName (if (:oksa/strict opts)
                     [:and [:or :keyword :string]
                      [:fn {:error/message (str "invalid character range for fragment name, should follow the pattern: " re-fragment-name)}
-                      (fn [x] (re-matches re-fragment-name (name x)))]]
+                      (fn [x] (re-matches re-fragment-name (clojure.core/name x)))]]
                     [:or :keyword :string])
    ::Value [:or
             number?
@@ -160,7 +161,7 @@
                [:fn
                 {:error/message (str "invalid character range for value, should follow either: " re-enum-value ", or: " re-variable-reference)}
                 (fn [x]
-                  (let [s (name x)]
+                  (let [s (clojure.core/name x)]
                     (or (re-matches re-variable-reference s)
                         (re-matches re-enum-value s))))]]
               :keyword)
@@ -967,7 +968,7 @@
      :oksa.parse/Directive (fn [[directive-name opts]]
                              (-create-directive opts (-directive-form directive-name opts) directive-name))
      :oksa.parse/DirectiveName (fn [directive-name]
-                                 (-create-directive nil (-directive-form name nil) directive-name))
+                                 (-create-directive nil (-directive-form clojure.core/name nil) directive-name))
      :oksa.parse/VariableDefinitions (fn [xs]
                                        (mapv (fn [[variable-name options type :as _variable-definition]]
                                                (-create-variable variable-name
