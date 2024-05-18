@@ -687,11 +687,11 @@
                   (reduce (fn [acc [variable-name variable-type]]
                             (let [variable-type* (-coerce-variable-type variable-type)]
                               (into acc [variable-name (protocol/-form variable-type*)])))
-                          []))
-        variables* (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
-                                               form
-                                               oksa.parse/-variable-definitions-parser
-                                               "invalid variable definitions")]
+                          []))]
+    (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
+                                form
+                                oksa.parse/-variable-definitions-parser
+                                "invalid variable definitions")
     (reify
       AST
       (-type [_] :oksa.parse/VariableDefinitions)
