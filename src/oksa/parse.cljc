@@ -266,14 +266,14 @@
 (declare -name)
 
 (defn -create-operation-definition
-  [type form opts* selection-set]
+  [type form opts selection-set]
   (reify
     AST
     (-type [_] type)
-    (-opts [_] (cond-> opts*
+    (-opts [_] (cond-> opts
                  true (update :directives (partial oksa.util/transform-malli-ast -transform-map))
                  true (update :variables (partial oksa.util/transform-malli-ast -transform-map))
-                 (:name opts*) (update :name -name)))
+                 (:name opts) (update :name -name)))
     (-form [_] form)
     Serializable
     (-unparse [this opts]
@@ -354,11 +354,11 @@
 
 (defn -selection-set
   [opts selections]
-  (let [form (-selection-set-form selections)
-        [type _selections] (oksa.parse/-parse-or-throw :oksa.parse/SelectionSet
-                                                       form
-                                                       oksa.parse/-selection-set-parser
-                                                       "invalid selection-set")]
+  (let [form (-selection-set-form selections)]
+    (oksa.parse/-parse-or-throw :oksa.parse/SelectionSet
+                                form
+                                oksa.parse/-selection-set-parser
+                                "invalid selection-set")
     (-create-selection-set opts selections)))
 
 (declare -arguments)
@@ -562,7 +562,7 @@
   [:oksa/list opts (protocol/-form type-or-list)])
 
 (defn -create-list
-  [opts form type-or-list*]
+  [opts form type-or-list]
   (reify
     AST
     (-type [_] :oksa.parse/ListTypeOrNonNullListType)
@@ -570,7 +570,7 @@
     (-opts [_] opts)
     Serializable
     (-unparse [this _opts]
-      (oksa.unparse/-format-list type-or-list*
+      (oksa.unparse/-format-list type-or-list
                                  (merge (-get-oksa-opts opts)
                                         (protocol/-opts this))))))
 
@@ -585,11 +585,11 @@
     (-create-list opts form type-or-list*)))
 
 (defn -create-type
-  [opts type*]
+  [opts type]
   (reify
     AST
     (-type [_] :oksa.parse/TypeName)
-    (-form [_] type*)
+    (-form [_] type)
     (-opts [_] opts)
     Serializable
     (-unparse [this opts]
@@ -598,8 +598,8 @@
         (clojure.core/name
           (-parse-or-throw :oksa.parse/TypeName
                            (clojure.core/name (if name-fn
-                                                (name-fn type*)
-                                                type*))
+                                                (name-fn type)
+                                                type))
                            oksa.parse/-type-name-parser-strict
                            "invalid type name"))))))
 
