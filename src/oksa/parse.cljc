@@ -685,37 +685,49 @@
       (-update-key [_] :variables)
       (-update-fn [this] #((fnil into oksa.parse/-variables-empty-state) % (protocol/-form this))))))
 
+(defn -directive-opts
+  [arguments]
+  (if (satisfies? protocol/Argumented arguments)
+    {:arguments (protocol/-arguments arguments)}
+    (cond-> {} (not-empty arguments) (assoc :arguments arguments))))
+
+(defn -directive-form
+  [name opts]
+  [name opts])
+
+(defn -create-directive
+  [opts form directive-name]
+  (reify
+    AST
+    (-form [_] form)
+    (-type [_] :oksa.parse/Directive)
+    (-opts [_] (cond-> opts (:arguments opts) (update :arguments -arguments)))
+    UpdateableOption
+    (-update-key [_] :directives)
+    (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this)))
+    Serializable
+    (-unparse [this opts]
+      (let [name-fn (:oksa/name-fn opts)]
+        (oksa.unparse/format-directive
+          (oksa.parse/-parse-or-throw :oksa.parse/Name
+                                      (clojure.core/name (if name-fn
+                                                           (name-fn directive-name)
+                                                           directive-name))
+                                      oksa.parse/-name-parser-strict
+                                      "invalid name")
+          (merge
+            (-get-oksa-opts opts)
+            (protocol/-opts this)))))))
+
 (defn -directive
   [name arguments]
-  (let [opts (if (satisfies? protocol/Argumented arguments)
-               {:arguments (protocol/-arguments arguments)}
-               (cond-> {} (not-empty arguments) (assoc :arguments arguments)))
-        form [name opts]
+  (let [opts (-directive-opts arguments)
+        form (-directive-form name opts)
         [directive-name _] (oksa.parse/-parse-or-throw :oksa.parse/Directive
                                                        form
                                                        oksa.parse/-directive-parser
                                                        "invalid directive")]
-    (reify
-      AST
-      (-form [_] form)
-      (-type [_] :oksa.parse/Directive)
-      (-opts [_] (cond-> opts (:arguments opts) (update :arguments -arguments)))
-      UpdateableOption
-      (-update-key [_] :directives)
-      (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this)))
-      Serializable
-      (-unparse [this opts]
-        (let [name-fn (:oksa/name-fn opts)]
-          (oksa.unparse/format-directive
-           (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                       (clojure.core/name (if name-fn
-                                                            (name-fn directive-name)
-                                                            directive-name))
-                                       oksa.parse/-name-parser-strict
-                                       "invalid name")
-           (merge
-            (-get-oksa-opts opts)
-            (protocol/-opts this))))))))
+    (-create-directive opts form directive-name)))
 
 (defn -on
   [name]
@@ -934,10 +946,10 @@
                          (-create-field name (-field-form name opts xs) opts xs))
      :oksa.parse/Directives (fn [directives]
                               (-create-directives (-directives-form directives) directives))
-     :oksa.parse/Directive (fn [[name opts]]
-                             (-directive name (:arguments opts)))
+     :oksa.parse/Directive (fn [[directive-name opts]]
+                             (-create-directive opts (-directive-form directive-name opts) directive-name))
      :oksa.parse/DirectiveName (fn [directive-name]
-                                 (-directive directive-name nil))
+                                 (-create-directive nil (-directive-form name nil) directive-name))
      :oksa.parse/VariableDefinitions (fn [xs]
                                        (mapv (fn [[variable-name options type :as _variable-definition]]
                                                (-create-variable variable-name
