@@ -800,12 +800,48 @@
   (oksa.parse/-default value))
 
 (defn name-fn
-  "Sets name transformer function `f` to `:oksa/name-fn`. Function `f` is invoked against all instances of
+  "Sets name transformer function `f` to `:oksa/name-fn`. Function `f` is invoked against all representations of
    `:oksa.parse/Name`."
   [f]
   (reify
     UpdateableOption
     (-update-key [_] :oksa/name-fn)
+    (-update-fn [_] (constantly f))))
+
+(defn field-fn
+  "Sets field transformer function `f` to `:oksa/field-fn`. Function `f` is invoked against all representations of
+   `:oksa.parse/Name` under `:oksa.parse/Selection`."
+  [f]
+  (reify
+    UpdateableOption
+    (-update-key [_] :oksa/field-fn)
+    (-update-fn [_] (constantly f))))
+
+(defn enum-fn
+  "Sets field transformer function `f` to `:oksa/enum-fn`. Function `f` is invoked against all representations of enums
+  under `:oksa.parse/Value`."
+  [f]
+  (reify
+    UpdateableOption
+    (-update-key [_] :oksa/enum-fn)
+    (-update-fn [_] (constantly f))))
+
+(defn directive-fn
+  "Sets field transformer function `f` to `:oksa/directive-fn`. Function `f` is invoked against all representations of
+  `:oksa.parse/DirectiveName`."
+  [f]
+  (reify
+    UpdateableOption
+    (-update-key [_] :oksa/directive-fn)
+    (-update-fn [_] (constantly f))))
+
+(defn type-fn
+  "Sets field transformer function `f` to `:oksa/type-fn`. Function `f` is invoked against all representations of
+  `:oksa.parse/TypeName`."
+  [f]
+  (reify
+    UpdateableOption
+    (-update-key [_] :oksa/type-fn)
     (-update-fn [_] (constantly f))))
 
 (defn gql
@@ -823,10 +859,21 @@
 
   `opts` is an (optional) map and uses the following fields here:
 
-  | field           | description                                                                      |
-  |-----------------|----------------------------------------------------------------------------------|
-  | `:oksa/name-fn` | A function that accepts a single arg `name` and expects a stringifiable output.  |
-  |                 | Applied recursively to all contained fields & selections.                        |"
+  | field                 | description                                                                      |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/name-fn`       | Single-arg fn that applies fn to all names.                                      |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/field-fn`      | Single-arg fn that applies fn to all fields.                                     |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/enum-fn`       | Single-arg fn that applies fn to all enums.                                      |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/directive-fn`  | Single-arg fn that applies fn to all directives.                                 |
+  |                       | Overrides :oksa/name-fn.                                                         |
+  |-----------------------|----------------------------------------------------------------------------------|
+  | `:oksa/type-fn`       | Single-arg fn that applies fn to all types.                                      |
+  |                       | Overrides :oksa/name-fn.                                                         |"
   ([obj]
    (gql nil obj))
   ([opts obj]

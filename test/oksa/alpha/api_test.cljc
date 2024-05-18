@@ -502,13 +502,25 @@
                                           (api/on :foo-bar-fragment)
                                           (api/directives :foo-bar))
                       (api/select :foo-bar)))]
-        (t/is (= "{BAR_FOO:FOO_BAR(FOO_ARG:BAR_VALUE)@FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
+        (t/is (= "{BAR_FOO:Foo_Bar(FOO_ARG:BAR_VALUE)@foo_bar{Foo_Bar} Naked_Foo_Bar ...{Foo_Bar} ...on fooBarFragment@foo_bar{Foo_Bar}}"
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       query)
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       (api/document query))))))
     (t/testing "query"
       (let [query (api/query
                    (api/opts (api/name :foo-bar-query)
-                             (api/variable :foo-var (api/opts (api/default :foo-val)
+                             (api/variable :foo-var (api/opts (api/default :foo-value)
                                                               (api/directive :foo-directive)) :foo-type)
                              (api/directives :foo-bar))
                    (api/select
@@ -524,13 +536,25 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "query fooBarQuery ($fooVar:fooType=fooVal @fooDirective)@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
+        (t/is (= "query fooBarQuery ($fooVar:FooType=FOO_VALUE @foo_directive)@foo_bar{barFoo:Foo_Bar(fooArg:BAR_VALUE) Foo_Bar{Foo_Bar} Naked_Foo_Bar ...{Foo_Bar} ...on fooBarFragment@foo_bar{Foo_Bar}}"
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       query)
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       (api/document query))))))
     (t/testing "mutation"
       (let [query (api/mutation
                    (api/opts (api/name :foo-bar-query)
-                             (api/variable :foo-var (api/opts (api/default :foo-val)
+                             (api/variable :foo-var (api/opts (api/default :foo-value)
                                                               (api/directive :foo-directive)) :foo-type)
                              (api/directives :foo-bar))
                    (api/select
@@ -546,13 +570,25 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "mutation fooBarQuery ($fooVar:fooType=fooVal @fooDirective)@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
+        (t/is (= "mutation fooBarQuery ($fooVar:FooType=FOO_VALUE @foo_directive)@foo_bar{barFoo:Foo_Bar(fooArg:BAR_VALUE) Foo_Bar{Foo_Bar} Naked_Foo_Bar ...{Foo_Bar} ...on fooBarFragment@foo_bar{Foo_Bar}}"
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       query)
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       (api/document query))))))
     (t/testing "subscription"
       (let [query (api/subscription
                    (api/opts (api/name :foo-bar-query)
-                             (api/variable :foo-var (api/opts (api/default :foo-val)
+                             (api/variable :foo-var (api/opts (api/default :foo-value)
                                                               (api/directive :foo-directive)) :foo-type)
                              (api/directives :foo-bar))
                    (api/select
@@ -568,9 +604,21 @@
                                            (api/on :foo-bar-fragment)
                                            (api/directives :foo-bar))
                        (api/select :foo-bar))))]
-        (t/is (= "subscription fooBarQuery ($fooVar:fooType=fooVal @fooDirective)@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))
+        (t/is (= "subscription fooBarQuery ($fooVar:FooType=FOO_VALUE @foo_directive)@foo_bar{barFoo:Foo_Bar(fooArg:BAR_VALUE) Foo_Bar{Foo_Bar} Naked_Foo_Bar ...{Foo_Bar} ...on fooBarFragment@foo_bar{Foo_Bar}}"
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       query)
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       (api/document query))))))
     (t/testing "fragment"
       (let [query (api/fragment (api/opts
                                  (api/name :foo-bar-fragment)
@@ -589,6 +637,18 @@
                                                         (api/on :foo-bar-fragment)
                                                         (api/directives :foo-bar))
                                     (api/select :foo-bar))))]
-        (t/is (= "fragment fooBarFragment on fooBarType@fooBar{barFoo:fooBar(fooArg:barValue) FOO_BAR{FOO_BAR} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} query)
-                 (unparse-and-validate {:oksa/name-fn csk/->camelCase} (api/document query))))))))
+        (t/is (= "fragment fooBarFragment on fooBarType@foo_bar{barFoo:Foo_Bar(fooArg:BAR_VALUE) Foo_Bar{Foo_Bar} Naked_Foo_Bar ...{Foo_Bar} ...on fooBarFragment@foo_bar{Foo_Bar}}"
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       query)
+                 (unparse-and-validate (api/opts
+                                         (api/name-fn csk/->camelCase)
+                                         (api/directive-fn csk/->snake_case)
+                                         (api/enum-fn csk/->SCREAMING_SNAKE_CASE)
+                                         (api/field-fn csk/->Camel_Snake_Case)
+                                         (api/type-fn csk/->PascalCase))
+                                       (api/document query))))))))

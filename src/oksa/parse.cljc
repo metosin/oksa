@@ -387,10 +387,11 @@
     (-unparse [this opts]
       (let [opts* (merge (-get-oksa-opts opts)
                          (protocol/-opts this))
-            name-fn (:oksa/name-fn opts*)]
+            f (or (:oksa/field-fn opts*)
+                  (:oksa/name-fn opts*))]
         (oksa.unparse/unparse-field (-parse-or-throw :oksa.parse/Name
-                                                     (if name-fn
-                                                       (name-fn name)
+                                                     (if f
+                                                       (f name)
                                                        name)
                                                      oksa.parse/-name-parser-strict
                                                      "invalid naked field")
@@ -420,10 +421,11 @@
       (-form [_] naked-field*)
       Serializable
       (-unparse [_ opts]
-        (let [name-fn (:oksa/name-fn opts)]
+        (let [f (or (:oksa/field-fn opts)
+                    (:oksa/name-fn opts))]
           (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                      (clojure.core/name (if name-fn
-                                                           (name-fn naked-field*)
+                                      (clojure.core/name (if f
+                                                           (f naked-field*)
                                                            naked-field*))
                                       oksa.parse/-name-parser-strict
                                       "invalid naked field"))))))
@@ -448,12 +450,13 @@
       (let [opts* (merge
                     (-get-oksa-opts opts)
                     (protocol/-opts this))
-            name-fn (:oksa/name-fn opts*)]
+            f (or (:oksa/field-fn opts*)
+                  (:oksa/name-fn opts*))]
         (oksa.unparse/unparse-fragment-spread
           opts*
           (-parse-or-throw :oksa.parse/Name
-                           (if name-fn
-                             (name-fn (:name opts*))
+                           (if f
+                             (f (:name opts*))
                              (:name opts*))
                            oksa.parse/-name-parser-strict
                            "invalid naked field"))))))
@@ -596,12 +599,14 @@
     (-opts [_] opts)
     Serializable
     (-unparse [this opts]
-      (let [name-fn (:oksa/name-fn (merge (-get-oksa-opts opts)
-                                          (protocol/-opts this)))]
+      (let [opts (merge (-get-oksa-opts opts)
+                        (protocol/-opts this))
+            f (or (:oksa/type-fn opts)
+                  (:oksa/name-fn opts))]
         (clojure.core/name
           (-parse-or-throw :oksa.parse/TypeName
-                           (clojure.core/name (if name-fn
-                                                (name-fn type)
+                           (clojure.core/name (if f
+                                                (f type)
                                                 type))
                            oksa.parse/-type-name-parser-strict
                            "invalid type name"))))))
@@ -726,11 +731,12 @@
     (-update-fn [this] #((fnil conj -directives-empty-state) % (protocol/-form this)))
     Serializable
     (-unparse [this opts]
-      (let [name-fn (:oksa/name-fn opts)]
+      (let [f (or (:oksa/directive-fn opts)
+                  (:oksa/name-fn opts))]
         (oksa.unparse/format-directive
           (oksa.parse/-parse-or-throw :oksa.parse/Name
-                                      (clojure.core/name (if name-fn
-                                                           (name-fn directive-name)
+                                      (clojure.core/name (if f
+                                                           (f directive-name)
                                                            directive-name))
                                       oksa.parse/-name-parser-strict
                                       "invalid name")
@@ -843,7 +849,9 @@
       (-arguments [this] (protocol/-form this))
       Serializable
       (-unparse [_ opts]
-        (let [name-fn (:oksa/name-fn opts)]
+        (let [name-fn (:oksa/name-fn opts)
+              value-fn (or (:oksa/enum-fn opts)
+                           (:oksa/name-fn opts))]
           (oksa.unparse/-format-argument
             (oksa.parse/-parse-or-throw :oksa.parse/Name
                                         (if name-fn
@@ -853,7 +861,7 @@
                                         "invalid name")
             (oksa.parse/-parse-or-throw :oksa.parse/Value
                                         (if (and (keyword? value) (some? name-fn))
-                                          (name-fn value)
+                                          (value-fn value)
                                           value)
                                         oksa.parse/-value-parser-strict
                                         "invalid value")))))))
@@ -897,11 +905,12 @@
       (-update-fn [_] (constantly value*))
       Serializable
       (-unparse [_ opts]
-        (let [name-fn (:oksa/name-fn opts)]
+        (let [f (or (:oksa/enum-fn opts)
+                    (:oksa/name-fn opts))]
           (oksa.unparse/format-default
             (oksa.parse/-parse-or-throw :oksa.parse/Value
-                                        (if (and (keyword? value) (some? name-fn))
-                                          (name-fn value)
+                                        (if (and (keyword? value) (some? f))
+                                          (f value)
                                           value)
                                         oksa.parse/-value-parser-strict
                                         "invalid value")))))))
