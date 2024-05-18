@@ -519,26 +519,33 @@
       Serializable
       (-unparse [_ _opts] (clojure.core/name directive-name*)))))
 
+(defn -directives-form
+  [directives]
+  (mapv protocol/-form directives))
+
+(defn -create-directives
+  [form directives]
+  (reify
+    AST
+    (-type [_] :oksa.parse/Directives)
+    (-form [_] form)
+    (-opts [_] {})
+    UpdateableOption
+    (-update-key [_] :directives)
+    (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this)))
+    Serializable
+    (-unparse [this opts]
+      (oksa.unparse/format-directives (merge (-get-oksa-opts opts)
+                                             (protocol/-opts this)) directives))))
+
 (defn -directives
   [directives]
-  (let [form (mapv protocol/-form directives)
-        [type _directives
-         :as directives*] (oksa.parse/-parse-or-throw :oksa.parse/Directives
-                                                      form
-                                                      oksa.parse/-directives-parser
-                                                      "invalid directives")]
-    (reify
-      AST
-      (-type [_] type)
-      (-form [_] form)
-      (-opts [_] {})
-      UpdateableOption
-      (-update-key [_] :directives)
-      (-update-fn [this] #((fnil into -directives-empty-state) % (protocol/-form this)))
-      Serializable
-      (-unparse [this opts]
-        (oksa.unparse/format-directives (merge (-get-oksa-opts opts)
-                                               (protocol/-opts this)) directives)))))
+  (let [form (-directives-form directives)]
+    (oksa.parse/-parse-or-throw :oksa.parse/Directives
+                                form
+                                oksa.parse/-directives-parser
+                                "invalid directives")
+    (-create-directives form directives)))
 
 (declare -type)
 
@@ -925,8 +932,8 @@
      :oksa.parse/SelectionSet selection-set
      :oksa.parse/Field (fn [[name opts xs]]
                          (-create-field name (-field-form name opts xs) opts xs))
-     :oksa.parse/Directives (fn [x]
-                              (-directives x))
+     :oksa.parse/Directives (fn [directives]
+                              (-create-directives (-directives-form directives) directives))
      :oksa.parse/Directive (fn [[name opts]]
                              (-directive name (:arguments opts)))
      :oksa.parse/DirectiveName (fn [directive-name]
