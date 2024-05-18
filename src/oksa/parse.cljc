@@ -557,24 +557,32 @@
      (-type opts variable-type)
      variable-type)))
 
+(defn -list-form
+  [opts type-or-list]
+  [:oksa/list opts (protocol/-form type-or-list)])
+
+(defn -create-list
+  [opts form type-or-list*]
+  (reify
+    AST
+    (-type [_] :oksa.parse/ListTypeOrNonNullListType)
+    (-form [_] form)
+    (-opts [_] opts)
+    Serializable
+    (-unparse [this _opts]
+      (oksa.unparse/-format-list type-or-list*
+                                 (merge (-get-oksa-opts opts)
+                                        (protocol/-opts this))))))
+
 (defn -list
   [opts type-or-list]
   (let [type-or-list* (-coerce-variable-type type-or-list)
-        form [:oksa/list opts (protocol/-form type-or-list*)]
-        list* (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
-                                          form
-                                          oksa.parse/-list-type-or-non-null-list-type-parser
-                                          "invalid list")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/ListTypeOrNonNullListType)
-      (-form [_] form)
-      (-opts [_] opts)
-      Serializable
-      (-unparse [this _opts]
-        (oksa.unparse/-format-list type-or-list*
-                                   (merge (-get-oksa-opts opts)
-                                          (protocol/-opts this)))))))
+        form (-list-form opts type-or-list*)]
+    (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
+                                form
+                                oksa.parse/-list-type-or-non-null-list-type-parser
+                                "invalid list")
+    (-create-list opts form type-or-list*)))
 
 (defn -create-type
   [opts type*]
@@ -972,13 +980,16 @@
      :oksa.parse/NamedTypeOrNonNullNamedType (fn [[type-name _]]
                                                (-create-type! type-name))
      :oksa.parse/ListTypeOrNonNullListType (fn [[_ {:keys [non-null]} type]]
-                                             (if non-null
-                                               (-list {:non-null true} type)
-                                               (-list {:non-null false} type)))
+                                             (let [opts (if non-null
+                                                          {:non-null true}
+                                                          {:non-null false})]
+                                               (-create-list opts (-list-form opts type) type)))
      :oksa.parse/AbbreviatedListType (fn [[type]]
-                                       (-list {:non-null false} type))
-     :oksa.parse/AbbreviatedNonNullListType (fn [[_ type-or-list :as x]]
-                                              (-list {:non-null true} type-or-list))}))
+                                       (let [opts {:non-null false}]
+                                         (-create-list opts (-list-form opts type) type)))
+     :oksa.parse/AbbreviatedNonNullListType (fn [[_ type-or-list]]
+                                              (let [opts {:non-null true}]
+                                                (-create-list opts (-list-form opts type-or-list) type-or-list)))}))
 
 (defn- xf
   [ast]
