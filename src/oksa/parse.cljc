@@ -222,6 +222,8 @@
                         (= mode "default") {}
                         :else (throw (ex-info "incorrect `oksa.api/mode` (system property), expected one of `default` or `debug`" {:mode mode}))))))))
 
+(def -validate -parse-or-throw)
+
 (defn -get-oksa-opts
   [opts]
   (into {} (filter #(= (namespace (first %)) "oksa") opts)))
@@ -355,10 +357,10 @@
 (defn -selection-set
   [selections]
   (let [form (-selection-set-form selections)]
-    (oksa.parse/-parse-or-throw :oksa.parse/SelectionSet
-                                form
-                                oksa.parse/-selection-set-parser
-                                "invalid selection-set")
+    (oksa.parse/-validate :oksa.parse/SelectionSet
+                          form
+                          oksa.parse/-selection-set-parser
+                          "invalid selection-set")
     (-create-selection-set selections)))
 
 (declare -arguments)
@@ -541,10 +543,10 @@
 (defn -directives
   [directives]
   (let [form (-directives-form directives)]
-    (oksa.parse/-parse-or-throw :oksa.parse/Directives
-                                form
-                                oksa.parse/-directives-parser
-                                "invalid directives")
+    (oksa.parse/-validate :oksa.parse/Directives
+                          form
+                          oksa.parse/-directives-parser
+                          "invalid directives")
     (-create-directives form directives)))
 
 (declare -type)
@@ -578,10 +580,10 @@
   [opts type-or-list]
   (let [type-or-list* (-coerce-variable-type type-or-list)
         form (-list-form opts type-or-list*)]
-    (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
-                                form
-                                oksa.parse/-list-type-or-non-null-list-type-parser
-                                "invalid list")
+    (oksa.parse/-validate :oksa.parse/ListTypeOrNonNullListType
+                          form
+                          oksa.parse/-list-type-or-non-null-list-type-parser
+                          "invalid list")
     (-create-list opts form type-or-list*)))
 
 (defn -create-type
@@ -688,10 +690,10 @@
                             (let [variable-type* (-coerce-variable-type variable-type)]
                               (into acc [variable-name (protocol/-form variable-type*)])))
                           []))]
-    (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
-                                form
-                                oksa.parse/-variable-definitions-parser
-                                "invalid variable definitions")
+    (oksa.parse/-validate :oksa.parse/VariableDefinitions
+                          form
+                          oksa.parse/-variable-definitions-parser
+                          "invalid variable definitions")
     (reify
       AST
       (-type [_] :oksa.parse/VariableDefinitions)
@@ -824,10 +826,10 @@
 (defn -argument
   [name value]
   (let [form {name value}]
-    (oksa.parse/-parse-or-throw :oksa.parse/Arguments
-                                form
-                                oksa.parse/-arguments-parser
-                                "invalid argument")
+    (oksa.parse/-validate :oksa.parse/Arguments
+                          form
+                          oksa.parse/-arguments-parser
+                          "invalid argument")
     (reify
       AST
       (-form [_] form)
@@ -858,10 +860,10 @@
 (defn -arguments
   [arguments]
   (let [form arguments]
-    (oksa.parse/-parse-or-throw :oksa.parse/Arguments
-                                form
-                                oksa.parse/-arguments-parser
-                                "invalid arguments")
+    (oksa.parse/-validate :oksa.parse/Arguments
+                          form
+                          oksa.parse/-arguments-parser
+                          "invalid arguments")
     (let [arguments* (map (fn [[argument-name argument-value]] (-argument argument-name argument-value)) form)]
       (reify
         AST
