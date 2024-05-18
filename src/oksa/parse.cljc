@@ -549,11 +549,17 @@
 
 (declare -type)
 
+(defn -coerce-variable-type
+  ([variable-type]
+   (-coerce-variable-type nil variable-type))
+  ([opts variable-type]
+   (if (or (keyword? variable-type) (string? variable-type))
+     (-type opts variable-type)
+     variable-type)))
+
 (defn -list
   [opts type-or-list]
-  (let [type-or-list* (if (or (keyword? type-or-list) (string? type-or-list))
-                        (-type opts type-or-list)
-                        type-or-list)
+  (let [type-or-list* (-coerce-variable-type type-or-list)
         form [:oksa/list opts (protocol/-form type-or-list*)]
         list* (oksa.parse/-parse-or-throw :oksa.parse/ListTypeOrNonNullListType
                                           form
@@ -570,46 +576,57 @@
                                    (merge (-get-oksa-opts opts)
                                           (protocol/-opts this)))))))
 
+(defn -create-type
+  [opts type*]
+  (reify
+    AST
+    (-type [_] :oksa.parse/TypeName)
+    (-form [_] type*)
+    (-opts [_] opts)
+    Serializable
+    (-unparse [this opts]
+      (let [name-fn (:oksa/name-fn (merge (-get-oksa-opts opts)
+                                          (protocol/-opts this)))]
+        (clojure.core/name
+          (-parse-or-throw :oksa.parse/TypeName
+                           (clojure.core/name (if name-fn
+                                                (name-fn type*)
+                                                type*))
+                           oksa.parse/-type-name-parser-strict
+                           "invalid type name"))))))
+
 (defn -type
   ([type-name]
    (-type nil type-name))
   ([opts type-name]
-   (let [form type-name
-         type* (oksa.parse/-parse-or-throw :oksa.parse/TypeName
-                                           form
+   (let [type* (oksa.parse/-parse-or-throw :oksa.parse/TypeName
+                                           type-name
                                            oksa.parse/-type-name-parser
                                            "invalid type name")]
-     (reify
-       AST
-       (-type [_] :oksa.parse/TypeName)
-       (-form [_] form)
-       (-opts [_] opts)
-       Serializable
-       (-unparse [this opts]
-         (let [name-fn (:oksa/name-fn (merge (-get-oksa-opts opts)
-                                             (protocol/-opts this)))]
-           (clojure.core/name
-             (-parse-or-throw :oksa.parse/TypeName
-                              (clojure.core/name (if name-fn
-                                                   (name-fn type*)
-                                                   type*))
-                              oksa.parse/-type-name-parser-strict
-                              "invalid type name"))))))))
+     (-create-type opts type*))))
+
+(defn -type!-form
+  [type-name]
+  [type-name {:non-null true}])
+
+(defn -create-type!
+  [type-name]
+  (reify
+    AST
+    (-type [_] :oksa.parse/NamedTypeOrNonNullNamedType)
+    (-form [_] (-type!-form type-name))
+    (-opts [_] {})
+    Serializable
+    (-unparse [_ _opts] (str (clojure.core/name type-name) "!"))))
 
 (defn -type!
   [type-name]
-  (let [form [type-name {:non-null true}]
-        [type-name* _opts :as non-null-type*] (oksa.parse/-parse-or-throw :oksa.parse/NamedTypeOrNonNullNamedType
-                                                                          form
-                                                                          oksa.parse/-named-type-or-non-null-named-type-parser
-                                                                          "invalid non-null type")]
-    (reify
-      AST
-      (-type [_] :oksa.parse/NamedTypeOrNonNullNamedType)
-      (-form [_] form)
-      (-opts [_] {})
-      Serializable
-      (-unparse [_ _opts] (str (clojure.core/name type-name*) "!")))))
+  (let [form (-type!-form type-name)
+        [type-name* _] (oksa.parse/-parse-or-throw :oksa.parse/NamedTypeOrNonNullNamedType
+                                                   form
+                                                   oksa.parse/-named-type-or-non-null-named-type-parser
+                                                   "invalid non-null type")]
+    (-create-type! type-name*)))
 
 (declare -default)
 
@@ -646,12 +663,6 @@
     (some? opts) (conj opts)
     true (conj (protocol/-form variable-type))))
 
-(defn -coerce-variable-type
-  [opts variable-type]
-  (if (or (keyword? variable-type) (string? variable-type))
-    (-type opts variable-type)
-    variable-type))
-
 (defn -variable
   [variable-name opts variable-type]
   (let [variable-type* (-coerce-variable-type opts variable-type)
@@ -666,10 +677,7 @@
   [variable-definitions]
   (let [form (->> variable-definitions
                   (reduce (fn [acc [variable-name variable-type]]
-                            ;; TODO: maybe use `-coerce-variable-type` here?
-                            (let [variable-type* (if (or (keyword? variable-type) (string? variable-type))
-                                                   (-type variable-type)
-                                                   variable-type)]
+                            (let [variable-type* (-coerce-variable-type variable-type)]
                               (into acc [variable-name (protocol/-form variable-type*)])))
                           []))
         variables* (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
@@ -960,9 +968,9 @@
                                                                  type))
                                              xs))
      :oksa.parse/TypeName (fn [type-name]
-                            (-type type-name))
-     :oksa.parse/NamedTypeOrNonNullNamedType (fn [[type-name _opts]]
-                                               (-type! type-name))
+                            (-create-type nil type-name))
+     :oksa.parse/NamedTypeOrNonNullNamedType (fn [[type-name _]]
+                                               (-create-type! type-name))
      :oksa.parse/ListTypeOrNonNullListType (fn [[_ {:keys [non-null]} type]]
                                              (if non-null
                                                (-list {:non-null true} type)
