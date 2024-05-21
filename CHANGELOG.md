@@ -14,7 +14,7 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
-## 0.1.1-SNAPSHOT
+## 1.0.0
 
 ## 0.1.0
 
