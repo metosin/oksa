@@ -104,8 +104,12 @@
                                          [::node [:schema [:ref ::Selection]]]
                                          [::children [:? [:schema [:ref ::SelectionSet]]]]]
                                         [:catn
-                                         [::node [:schema [:ref ::FieldSelection]]]]]]]]
-   ::FieldSelection [:orn [::WrappedField [:schema [:ref ::Field]]]]
+                                         [::node [:schema [:ref ::WrappedField]]]]
+                                        ;; Special case where subsequent selection set is allowed
+                                        [:catn
+                                         [::node [:schema [:ref ::BareField]]]
+                                         [::children [:? [:schema [:ref ::SelectionSet]]]]]]]]]
+   ::WrappedField [:orn [::WrappedField [:schema [:ref ::Field]]]]
    ::Selection [:orn
                 [::FragmentSpread [:schema [:ref ::FragmentSpread]]]
                 [::InlineFragment [:schema [:ref ::InlineFragment]]]
@@ -119,6 +123,14 @@
                             [:directives {:optional true}
                              [:ref ::Directives]]]
                            [:? [:schema [:ref ::SelectionSet]]]]]]
+   ::BareField [:orn [::Field [:cat
+                           [:schema [:ref ::FieldName]]
+                           [:map
+                            [:alias {:optional true} [:ref ::Alias]]
+                            [:arguments {:optional true}
+                             [:ref ::Arguments]]
+                            [:directives {:optional true}
+                             [:ref ::Directives]]]]]]
    ::NakedField [:schema [:ref ::FieldName]]
    ::FieldName [:and
                 [:schema [:ref ::Name]]
