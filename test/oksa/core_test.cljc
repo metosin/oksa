@@ -2,7 +2,7 @@
   (:require [camel-snake-kebab.core :as csk]
             [#?(:clj  clojure.test
                 :cljs cljs.test) :as t]
-            [oksa.core :as oksa]
+            [oksa.core]
             [oksa.test-util :refer [unparse-and-validate]]
             [oksa.alpha.api :as api])
   #?(:clj (:import [graphql.parser Parser])))
@@ -305,7 +305,7 @@
                                     [:fooField]]))))
   (t/testing "sequential selection sets should throw an exception"
     (t/is (thrown? #?(:clj Exception :cljs js/Error)
-                   (oksa/gql [[:foo {} [:qux :baz]] [:basho]]))))
+                   (unparse-and-validate [[:foo {} [:qux :baz]] [:basho]]))))
   (t/testing "sequentiality"
     (t/is (= "{foo{bar}}"
              (unparse-and-validate [[:foo {}] [:bar]])) "field w/o selection-set + sequential selection-set parses correctly")
