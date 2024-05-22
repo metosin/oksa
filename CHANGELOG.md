@@ -16,6 +16,11 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 
 ## 1.0.0
 
+- Adds support for name transformers [#10](https://github.com/metosin/oksa/pull/10)
+  - With this change, both data DSL and API now uses the same unparse
+    implementation under the hood.
+- Fix parser bug with sequential selection sets [#9](https://github.com/metosin/oksa/pull/10)
+
 ## 0.1.0
 
 - Adds `oksa.core/explain` as a convenience function for `malli.core/explain`
