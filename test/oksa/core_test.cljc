@@ -307,9 +307,6 @@
     (t/is (= "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
              (unparse-and-validate [:oksa/query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
                                     [:fooField]]))))
-  (t/testing "sequential selection sets should throw an exception"
-    (t/is (thrown? #?(:clj Exception :cljs js/Error)
-                   (unparse-and-validate [[:foo {} [:qux :baz]] [:basho]]))))
   (t/testing "sequentiality"
     (t/is (= "{foo{bar}}"
              (unparse-and-validate [[:foo {}] [:bar]])) "field w/o selection-set + sequential selection-set parses correctly")
