@@ -99,14 +99,21 @@
                                 [:? [:schema [:ref ::TypeOpts]]]
                                 [:schema [:ref ::Type]]]
    ::SelectionSet [:orn
-                   [::SelectionSet [:+ [:catn
-                                        [::node [:schema [:ref ::Selection]]]
-                                        [::children [:? [:schema [:ref ::SelectionSet]]]]]]]]
+                   [::SelectionSet [:+ [:alt
+                                        [:catn
+                                         [::node [:schema [:ref ::Selection]]]
+                                         [::children [:? [:schema [:ref ::SelectionSet]]]]]
+                                        [:catn
+                                         [::node [:schema [:ref ::WrappedField]]]]
+                                        ;; Special case where subsequent selection set is allowed
+                                        [:catn
+                                         [::node [:schema [:ref ::BareField]]]
+                                         [::children [:? [:schema [:ref ::SelectionSet]]]]]]]]]
+   ::WrappedField [:orn [::WrappedField [:schema [:ref ::Field]]]]
    ::Selection [:orn
                 [::FragmentSpread [:schema [:ref ::FragmentSpread]]]
                 [::InlineFragment [:schema [:ref ::InlineFragment]]]
-                [::NakedField [:schema [:ref ::NakedField]]]
-                [::WrappedField [:schema [:ref ::Field]]]]
+                [::NakedField [:schema [:ref ::NakedField]]]]
    ::Field [:orn [::Field [:cat
                            [:schema [:ref ::FieldName]]
                            [:map
@@ -116,6 +123,14 @@
                             [:directives {:optional true}
                              [:ref ::Directives]]]
                            [:? [:schema [:ref ::SelectionSet]]]]]]
+   ::BareField [:orn [::Field [:cat
+                           [:schema [:ref ::FieldName]]
+                           [:map
+                            [:alias {:optional true} [:ref ::Alias]]
+                            [:arguments {:optional true}
+                             [:ref ::Arguments]]
+                            [:directives {:optional true}
+                             [:ref ::Directives]]]]]]
    ::NakedField [:schema [:ref ::FieldName]]
    ::FieldName [:and
                 [:schema [:ref ::Name]]
@@ -947,6 +962,7 @@
                                              (let [[selection-type value] node]
                                                (cond-> (into []
                                                              [(case selection-type
+                                                                :oksa.parse/Field (oksa.util/transform-malli-ast -transform-map node)
                                                                 :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
                                                                 :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
                                                                 :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)

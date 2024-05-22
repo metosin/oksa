@@ -40,17 +40,27 @@
       (t/is (= "{subscription{subscription{baz}}}" (unparse-and-validate [:subscription [:subscription [:baz]]])))))
   (t/testing "selection set"
     (t/is (= "{foo}"
-             (unparse-and-validate [:foo])))
+             (unparse-and-validate [:foo])
+             (unparse-and-validate [[:foo {}]])))
     (t/is (= "{foo bar}"
-             (unparse-and-validate [:foo :bar])))
+             (unparse-and-validate [:foo :bar])
+             (unparse-and-validate [[:foo {}] [:bar {}]])))
     (t/is (= "{bar{qux{baz}}}"
-             (unparse-and-validate [:bar [:qux [:baz]]])))
+             (unparse-and-validate [:bar [:qux [:baz]]])
+             (unparse-and-validate [[:bar {}] [[:qux {}] [[:baz {}]]]])
+             (unparse-and-validate [[:bar {} [[:qux {} [[:baz {}]]]]]])))
     (t/is (= "{foo bar{qux{baz}}}"
-             (unparse-and-validate [:foo :bar [:qux [:baz]]])))
+             (unparse-and-validate [:foo :bar [:qux [:baz]]])
+             (unparse-and-validate [[:foo {}] [:bar {}] [[:qux {} [[:baz {}]]]]])
+             (unparse-and-validate [[:foo {}] [:bar {} [[:qux {} [[:baz {}]]]]]])))
     (t/is (= "{foo bar{qux baz}}"
-             (unparse-and-validate [:foo :bar [:qux :baz]])))
+             (unparse-and-validate [:foo :bar [:qux :baz]])
+             (unparse-and-validate [[:foo {}] [:bar {}] [[:qux {}] [:baz {}]]])
+             (unparse-and-validate [[:foo {}] [:bar {} [[:qux {}] [:baz {}]]]])))
     (t/is (= "{foo{bar{baz qux} frob}}"
-             (unparse-and-validate [:foo [:bar [:baz :qux] :frob]])))
+             (unparse-and-validate [:foo [:bar [:baz :qux] :frob]])
+             (unparse-and-validate [[:foo {}] [:bar [:baz :qux] :frob]])
+             (unparse-and-validate [[:foo {} [:bar [:baz :qux] :frob]]])))
     (t/testing "support strings as field names"
       (t/is (= "{foo}"
                (unparse-and-validate ["foo"])
@@ -296,7 +306,13 @@
                                     [:fooField]])))
     (t/is (= "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
              (unparse-and-validate [:oksa/query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]}
-                                    [:fooField]])))))
+                                    [:fooField]]))))
+  (t/testing "sequentiality"
+    (t/is (= "{foo{bar}}"
+             (unparse-and-validate [[:foo {}] [:bar]])) "field w/o selection-set + sequential selection-set parses correctly")
+    (t/testing "sequential selection sets should throw an exception"
+      (t/is (thrown? #?(:clj Exception :cljs js/Error)
+                     (unparse-and-validate [[:foo {} [:qux :baz]] [:basho]]))))))
 
 (t/deftest transformers-test
   (t/testing "names are transformed when transformer fn is provided"
