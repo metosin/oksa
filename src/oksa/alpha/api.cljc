@@ -286,6 +286,7 @@
   - keyword (representing a naked field)
   - `oksa.alpha.api/fragment-spread`
   - `oksa.alpha.api/inline-fragment`
+  - `oksa.alpha.api/select` (but only directly after a field)
 
   Tolerates nil entries.
 
@@ -321,7 +322,7 @@
                                  (-selection-set? %)
                                  (-fragment-spread? %)
                                  (-inline-fragment? %)) selections*))
-               "invalid selections, expected `oksa.alpha.api/field`, keyword (naked field), `oksa.alpha.api/fragment-spread`, or `oksa.alpha.api/inline-fragment`")
+               "invalid selections, expected `oksa.alpha.api/field`, keyword (naked field), `oksa.alpha.api/select`, `oksa.alpha.api/fragment-spread`, or `oksa.alpha.api/inline-fragment`")
     (oksa.parse/-selection-set selections*)))
 
 (defn field
