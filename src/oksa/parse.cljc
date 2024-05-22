@@ -962,6 +962,7 @@
                                              (let [[selection-type value] node]
                                                (cond-> (into []
                                                              [(case selection-type
+                                                                :oksa.parse/Field (oksa.util/transform-malli-ast -transform-map node)
                                                                 :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
                                                                 :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
                                                                 :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
