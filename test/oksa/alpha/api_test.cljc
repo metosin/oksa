@@ -2,8 +2,7 @@
   (:require [camel-snake-kebab.core :as csk]
             [#?(:clj clojure.test
                 :cljs cljs.test) :as t]
-            [oksa.alpha.api :as api]
-            [oksa.core])
+            [oksa.alpha.api :as api])
   #?(:clj (:import [graphql.parser Parser])))
 
 (defn unparse-and-validate

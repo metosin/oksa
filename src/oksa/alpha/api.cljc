@@ -2,9 +2,7 @@
   (:require [oksa.parse]
             [oksa.unparse]
             [oksa.util]
-            [oksa.alpha.protocol :refer [Argumented
-                                         AST
-                                         Serializable
+            [oksa.alpha.protocol :refer [AST
                                          Representable
                                          UpdateableOption]
              :as protocol])

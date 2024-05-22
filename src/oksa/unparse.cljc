@@ -1,7 +1,6 @@
 (ns oksa.unparse
   (:require [clojure.string :as str]
-            [oksa.alpha.protocol :as protocol]
-            [oksa.util :as util])
+            [oksa.alpha.protocol :as protocol])
   #?(:clj (:import (clojure.lang Keyword PersistentVector PersistentArrayMap))))
 
 (defmulti format-value type)

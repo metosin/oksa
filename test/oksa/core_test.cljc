@@ -1,6 +1,5 @@
 (ns oksa.core-test
   (:require [camel-snake-kebab.core :as csk]
-            [clojure.string :as str]
             [#?(:clj  clojure.test
                 :cljs cljs.test) :as t]
             [oksa.core]
