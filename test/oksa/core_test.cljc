@@ -47,16 +47,20 @@
              (unparse-and-validate [[:foo {}] [:bar {}]])))
     (t/is (= "{bar{qux{baz}}}"
              (unparse-and-validate [:bar [:qux [:baz]]])
-             (unparse-and-validate [[:bar {}] [[:qux {}] [[:baz {}]]]])))
+             (unparse-and-validate [[:bar {}] [[:qux {}] [[:baz {}]]]])
+             (unparse-and-validate [[:bar {} [[:qux {} [[:baz {}]]]]]])))
     (t/is (= "{foo bar{qux{baz}}}"
              (unparse-and-validate [:foo :bar [:qux [:baz]]])
-             (unparse-and-validate [[:foo {}] [:bar {}] [[:qux {} [[:baz {}]]]]])))
+             (unparse-and-validate [[:foo {}] [:bar {}] [[:qux {} [[:baz {}]]]]])
+             (unparse-and-validate [[:foo {}] [:bar {} [[:qux {} [[:baz {}]]]]]])))
     (t/is (= "{foo bar{qux baz}}"
              (unparse-and-validate [:foo :bar [:qux :baz]])
-             (unparse-and-validate [[:foo {}] [:bar {}] [[:qux {}] [:baz {}]]])))
+             (unparse-and-validate [[:foo {}] [:bar {}] [[:qux {}] [:baz {}]]])
+             (unparse-and-validate [[:foo {}] [:bar {} [[:qux {}] [:baz {}]]]])))
     (t/is (= "{foo{bar{baz qux} frob}}"
              (unparse-and-validate [:foo [:bar [:baz :qux] :frob]])
-             (unparse-and-validate [[:foo {}] [:bar [:baz :qux] :frob]])))
+             (unparse-and-validate [[:foo {}] [:bar [:baz :qux] :frob]])
+             (unparse-and-validate [[:foo {} [:bar [:baz :qux] :frob]]])))
     (t/testing "support strings as field names"
       (t/is (= "{foo}"
                (unparse-and-validate ["foo"])
