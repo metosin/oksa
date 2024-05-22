@@ -449,7 +449,7 @@ Oksa supports name transformation:
 ```clojure
 (require '[camel-snake-kebab.core :as csk])
 
-(oksa.core/gql*
+(oksa/gql*
   {:oksa/name-fn csk/->camelCase}
   [[:foo-bar {:alias :bar-foo
               :directives [:foo-bar]
@@ -468,7 +468,7 @@ Oksa supports name transformation:
 Field transformation is supported:
 
 ```clojure
-(oksa.core/gql*
+(oksa/gql*
   {:oksa/field-fn csk/->camelCase}
   [:foo-bar
    [:foo-bar]
@@ -484,7 +484,7 @@ Field transformation is supported:
 Directives can also be transformed:
 
 ```clojure
-(oksa.core/gql*
+(oksa/gql*
   {:oksa/directive-fn csk/->snake_case}
   [[:foo {:directives [:some-thing]}]])
 
@@ -494,7 +494,7 @@ Directives can also be transformed:
 You can also override using enums or types:
 
 ```clojure
-(oksa.core/gql*
+(oksa/gql*
   {:oksa/name-fn csk/->camelCase
    :oksa/enum-fn csk/->SCREAMING_SNAKE_CASE
    :oksa/type-fn csk/->PascalCase}
@@ -507,12 +507,25 @@ You can also override using enums or types:
 Local overriding also supported on fields:
 
 ```clojure
-(unparse-and-validate
+(oksa/gql*
   {:oksa/name-fn csk/->camelCase}
   [[:screaming-field {:oksa/field-fn csk/->SCREAMING_SNAKE_CASE}]
    :talking-field])
 
 ; => "{SCREAMING_FIELD talkingField}"
+```
+
+An example using a custom transformer to preserve the namespace as part of a field:
+
+```clojure
+(defn custom-name [key]
+  (str (when (namespace key)
+         (str (namespace key) "_"))
+       (name key)))
+
+(oksa/gql* {:oksa/field-fn custom-name} [:employee [:user/name :user/address]])
+
+; => "{employee{user_name user_address}}"
 ```
 
 ## Rationale
