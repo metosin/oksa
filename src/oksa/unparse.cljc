@@ -1,65 +1,46 @@
 (ns oksa.unparse
   (:require [clojure.string :as str]
-            [oksa.alpha.protocol :as protocol]
-            [oksa.util :as util])
+            [oksa.alpha.protocol :as protocol])
   #?(:clj (:import (clojure.lang Keyword PersistentVector PersistentArrayMap))))
 
 (defmulti format-value type)
 
-(defn serialize
-  [x]
-  (if (satisfies? protocol/Serializable x)
-    (protocol/-unparse x)
-    x))
-
-(declare format-type)
-
 (defn -format-list
   [child opts]
-  (str "[" (format-type (serialize child)) "]" (when (:non-null opts) "!")))
-
-(defn- format-type
-  [[type opts child]]
-  (if (= :oksa/list type)
-    (-format-list child opts)
-    (str (name type) (when (:non-null opts) "!"))))
+  (str "[" (protocol/-unparse child opts) "]" (when (:non-null opts) "!")))
 
 (defn -variable-name
   [variable]
   (str "$" (str/replace (name variable) #"^\$" "")))
 
-(declare format-directives)
-
-(defn- format-variable-definition
+(defn -format-variable-definition
   [variable opts type]
   (str (-variable-name variable)
        ":"
-       (format-type type)
+       (protocol/-unparse type opts)
        (when (contains? opts :default)
-         (str "=" (format-value (:default opts))))
+         (protocol/-unparse (:default opts) opts))
        (when (:directives opts)
-         (str " " (format-directives (:directives opts))))))
+         (str " " (protocol/-unparse (:directives opts) opts)))))
 
 (defn- format-variable-definitions
-  [variable-definitions]
+  [opts]
   (str "("
        (str/join ","
-                 (map (fn [[variable opts type]]
-                        (format-variable-definition variable opts type))
-                      variable-definitions))
+                 (map (fn [variable-definition]
+                        (protocol/-unparse variable-definition opts))
+                      (:variables opts)))
        ")"))
 
-(declare format-arguments)
-
-(defn- format-directive
-  [[directive-name opts :as _directive]]
+(defn format-directive
+  [directive-name opts]
   (str "@"
        (name directive-name)
-       (when (:arguments opts) (format-arguments (:arguments opts)))))
+       (when (:arguments opts) (protocol/-unparse (:arguments opts) opts))))
 
 (defn format-directives
-  [directives]
-  (str/join " " (map format-directive directives)))
+  [opts directives]
+  (str/join " " (map #(protocol/-unparse % opts) directives)))
 
 (defn- escape-string
   [s]
@@ -98,38 +79,36 @@
                              (str (name object-field-name) ":" (format-value object-field-value))) x))
        "}"))
 
-(defn- format-argument
-  [[argument-name value]]
-  (str (name argument-name) ":" (format-value value)))
+(defn -format-argument
+  [name value]
+  (str (clojure.core/name name) ":" (oksa.unparse/format-value value)))
 
-(defn format-arguments
-  [arguments]
-  (str "(" (str/join ", " (map format-argument arguments)) ")"))
+(defn -format-arguments
+  [opts arguments]
+  (str "(" (str/join ", " (map #(protocol/-unparse % opts) arguments)) ")"))
 
 (defn unparse-document
-  [xs]
+  [opts xs]
   (str/join #?(:clj  (System/lineSeparator)
                :cljs (with-out-str (newline)))
-            (map serialize xs)))
+            (map #(protocol/-unparse % opts) xs)))
 
 (defn unparse-field
-  ([name opts]
-   (unparse-field name opts nil))
-  ([name {:keys [alias arguments directives] :as _opts} xs]
-   (str (when alias (str (clojure.core/name alias) ":"))
-        (clojure.core/name name)
-        (when (and (some? arguments)
-                   (not-empty arguments))
-          (format-arguments arguments))
-        (when directives (format-directives directives))
-        (apply str (serialize xs)))))
+  [name {:keys [alias arguments directives] :as opts} xs]
+  (str (when (some? alias) (protocol/-unparse alias opts))
+       (clojure.core/name name)
+       (when (and (some? arguments)
+                  (not-empty (protocol/-form arguments)))
+         (protocol/-unparse arguments opts))
+       (when directives (protocol/-unparse directives opts))
+       (when (some? xs) (apply str (protocol/-unparse xs opts)))))
 
 (defn none?
   [f coll]
   (every? (complement f) coll))
 
 (defn unparse-selection-set
-  [selections]
+  [opts selections]
   (assert (or (and (every? #(satisfies? protocol/AST %) selections)
                    (every? #(satisfies? protocol/Serializable %) selections))
               (none? #(satisfies? protocol/AST %) selections)))
@@ -140,7 +119,7 @@
                       (if (seq rst)
                         (let [itm (first rst)
                               lookahead (second rst)]
-                          (recur (cond-> (conj acc (protocol/-unparse itm))
+                          (recur (cond-> (conj acc (protocol/-unparse itm opts))
                                    (and (satisfies? protocol/AST lookahead)
                                         (not= (protocol/-type lookahead)
                                               :oksa.parse/SelectionSet)) (conj " "))
@@ -159,55 +138,45 @@
            "invalid operation-type")
    (str operation-type
         " "
-        (when (:name opts) (str (name (:name opts)) " "))
-        (when (:variables opts) (format-variable-definitions (:variables opts)))
-        (when (:directives opts) (format-directives (:directives opts)))
-        (apply str (map serialize xs)))))
+        (when (:name opts) (str (protocol/-unparse (:name opts) opts) " "))
+        (when (:variables opts) (format-variable-definitions opts))
+        (when (:directives opts) (protocol/-unparse (:directives opts) opts))
+        (apply str (map #(protocol/-unparse % opts) xs)))))
 
 (defn unparse-fragment-definition
   ([opts]
    (unparse-fragment-definition opts nil))
   ([opts & xs]
    (str "fragment "
-        (name (:name opts))
+        (protocol/-unparse (:name opts) opts)
         " "
-        (when (:on opts) (str "on " (name (:on opts))))
-        (when (:directives opts) (format-directives (:directives opts)))
-        (apply str (map serialize xs)))))
+        (when (:on opts) (protocol/-unparse (:on opts) opts))
+        (when (:directives opts) (protocol/-unparse (:directives opts) opts))
+        (apply str (map #(protocol/-unparse % opts) xs)))))
 
 (defn unparse-fragment-spread
-  [opts]
+  [opts fragment-spread-name]
   (str "..."
-       (name (:name opts))
-       (when (:directives opts) (format-directives (:directives opts)))))
+       (clojure.core/name fragment-spread-name)
+       (when (:directives opts) (protocol/-unparse (:directives opts) opts))))
 
 (defn unparse-inline-fragment
   ([opts]
    (unparse-inline-fragment opts nil))
   ([opts xs]
    (str "..."
-        (when (:on opts) (str "on " (name (:on opts))))
-        (when (:directives opts) (format-directives (:directives opts)))
-        (apply str (serialize xs)))))
+        (when (:on opts) (protocol/-unparse (:on opts) opts))
+        (when (:directives opts) (protocol/-unparse (:directives opts) opts))
+        (apply str (protocol/-unparse xs opts)))))
 
-(def -unparse-xf
-  {:document (fn [_opts & xs]
-               (unparse-document xs))
-   :fragment unparse-fragment-definition
-   :query (partial unparse-operation-definition "query")
-   :mutation (partial unparse-operation-definition "mutation")
-   :subscription (partial unparse-operation-definition "subscription")
-   :field (fn [opts & xs]
-            (unparse-field (:name opts) opts xs))
-   :selection (fn [_opts & xs]
-                (apply str xs))
-   :selectionset (fn [_opts & xs]
-                   (unparse-selection-set xs))
-   :fragment-spread (fn [opts & _xs]
-                      (unparse-fragment-spread opts))
-   :inline-fragment (fn [opts & xs]
-                      (unparse-inline-fragment opts xs))})
+(defn format-on
+  [name]
+  (str "on " name))
 
-(defn unparse
-  [ast]
-  (util/transform-malli-ast -unparse-xf ast))
+(defn format-alias
+  [alias]
+  (str alias ":"))
+
+(defn format-default
+  [value]
+  (str "=" (format-value value)))

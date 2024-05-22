@@ -9,6 +9,7 @@
   - [Variable definitions](#variable-definitions)
   - [Fragments](#fragments)
   - [Document](#document)
+  - [Name transformation](#name-transformation)
 - [Rationale](#rationale)
 
 Generate GraphQL queries using Clojure data structures.
@@ -439,6 +440,79 @@ More complete example using `oksa.alpha.api`:
 ;  query KikkaQuery {specialKikka}
 ;  mutation saveKikka ($myKikka:KikkaType=123){getKikka}
 ;  subscription subscribeToKikka {realtimeKikka}"
+```
+
+### Name transformation
+
+Oksa supports name transformation:
+
+```clojure
+(require '[camel-snake-kebab.core :as csk])
+
+(oksa.core/gql*
+  {:oksa/name-fn csk/->camelCase}
+  [[:foo-bar {:alias :bar-foo
+              :directives [:foo-bar]
+              :arguments {:foo-arg :bar-value}}
+    [:foo-bar]]
+   :naked-foo-bar
+   [:...
+    [:foo-bar]]
+   [:... {:on :foo-bar-fragment
+          :directives [:foo-bar]}
+    [:foo-bar]]])
+
+; => "{barFoo:fooBar(fooArg:barValue)@fooBar{fooBar} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+```
+
+Field transformation is supported:
+
+```clojure
+(oksa.core/gql*
+  {:oksa/field-fn csk/->camelCase}
+  [:foo-bar
+   [:foo-bar]
+   :naked-foo-bar
+   [:...
+    [:foo-bar]]
+   [:... {:on :SomeType}
+    [:foo-bar]]])
+
+; => "{fooBar{fooBar} nakedFooBar ...{fooBar} ...on SomeType{fooBar}}"
+```
+
+Directives can also be transformed:
+
+```clojure
+(oksa.core/gql*
+  {:oksa/directive-fn csk/->snake_case}
+  [[:foo {:directives [:some-thing]}]])
+
+; => "{foo@some_thing}"
+```
+
+You can also override using enums or types:
+
+```clojure
+(oksa.core/gql*
+  {:oksa/name-fn csk/->camelCase
+   :oksa/enum-fn csk/->SCREAMING_SNAKE_CASE
+   :oksa/type-fn csk/->PascalCase}
+  [:oksa/query {:variables [:foo-var {:default :foo-value} :foo-type]}
+   [:foobar]])
+
+; => "query ($fooVar:FooType=FOO_VALUE){foobar}"
+```
+
+Local overriding also supported on fields:
+
+```clojure
+(unparse-and-validate
+  {:oksa/name-fn csk/->camelCase}
+  [[:screaming-field {:oksa/field-fn csk/->SCREAMING_SNAKE_CASE}]
+   :talking-field])
+
+; => "{SCREAMING_FIELD talkingField}"
 ```
 
 ## Rationale
