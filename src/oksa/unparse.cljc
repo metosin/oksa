@@ -6,8 +6,6 @@
 
 (defmulti format-value type)
 
-(declare format-type)
-
 (defn -format-list
   [child opts]
   (str "[" (protocol/-unparse child opts) "]" (when (:non-null opts) "!")))
@@ -15,8 +13,6 @@
 (defn -variable-name
   [variable]
   (str "$" (str/replace (name variable) #"^\$" "")))
-
-(declare format-directives)
 
 (defn -format-variable-definition
   [variable opts type]
@@ -36,8 +32,6 @@
                         (protocol/-unparse variable-definition opts))
                       (:variables opts)))
        ")"))
-
-(declare -format-arguments)
 
 (defn format-directive
   [directive-name opts]

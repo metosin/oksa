@@ -280,8 +280,6 @@
   (-validate (:on opts) "expected `oksa.alpha.api/on` on `opts`")
   (oksa.parse/-fragment opts selection-set))
 
-(declare -naked-field)
-
 (defn select
   "Produces a selection set using `selections`.
 
@@ -395,8 +393,6 @@
    (when (some? selection-set)
      (-validate (-selection-set? selection-set) "expected `oksa.alpha.api/select`"))
    (oksa.parse/-field name opts selection-set)))
-
-(declare -transform-map)
 
 (defn fragment-spread
   "Produces a fragment spread using `:name` under `opts`. Can be used directly within `oksa.alpha.api/select`.
