@@ -1,0 +1,13 @@
+{:paths ["src"]
+ :tasks
+ {test:bb {:extra-paths ["test"]
+           :extra-deps {io.github.cognitect-labs/test-runner
+                        {:git/tag "v0.5.1" :git/sha "dfb30dd"}
+                        camel-snake-kebab/camel-snake-kebab
+                        {:git/url "https://github.com/clj-commons/camel-snake-kebab" :git/tag "version-0.4.3" :git/sha "526dd86"}
+                        metosin/malli
+                        {:git/url "https://github.com/metosin/malli" :git/tag "0.10.4" :git/sha "44518a9"}}
+           :task (exec 'cognitect.test-runner.api/test)
+           :exec-args {:dirs ["test"]}
+           :org.babashka/cli {:coerce {:nses [:symbol]
+                                       :vars [:symbol]}}}}}
