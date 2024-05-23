@@ -1,0 +1,1 @@
+{:deps {fi.metosin/oksa {:mvn/version "0.1.0"}}}

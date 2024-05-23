@@ -1,12 +1,7 @@
 (require '[babashka.classpath :refer [add-classpath]]
          '[clojure.java.shell :refer [sh]]
-         '[clojure.string :as str])
-
-(def deps '{:deps {oksa {:git/url "https://github.com/metosin/oksa.git"
-                         :sha "4b83ae43896022b26636bd29f831a24cb6691c58"}}})
-(def cp (-> (sh "clojure" "-Spath" "-Sdeps" (str deps)) :out str/trim))
-(add-classpath cp)
-(require '[babashka.http-client :as http]
+         '[clojure.string :as str]
+         '[babashka.http-client :as http]
          '[cheshire.core :as json]
          '[oksa.core :as oksa])
 
