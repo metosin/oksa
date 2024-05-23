@@ -16,7 +16,7 @@ Generate GraphQL queries using Clojure data structures.
 
 - Support latest stable [GraphQL spec](https://spec.graphql.org/October2021)
 - [Malli](https://github.com/metosin/malli)-like syntax or programmatic API
-- clojure + clojurescript
+- Clojure, ClojureScript, and babashka
 
 ## Project status
 
