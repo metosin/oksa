@@ -14,7 +14,7 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
-## 1.0.0
+## 1.0.0-SNAPSHOT
 
 - Adds support for name transformers [#10](https://github.com/metosin/oksa/pull/10)
   - You can provide a custom function to transform names, fields, enums,
