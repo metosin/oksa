@@ -8,7 +8,7 @@ on:
     branches: [main]
 
 jobs:
-  build-clj:
+  clj:
     strategy:
       matrix:
         # Supported Java versions: LTS releases and latest
@@ -34,7 +34,7 @@ jobs:
       - name: Run tests
         run: CLOJURE=clojure-${{ matrix.clojure }} bin/kaocha
 
-  build-cljs:
+  cljs:
     name: ClojureScript
 
     runs-on: ubuntu-latest
@@ -57,3 +57,16 @@ jobs:
         run: npm ci
       - name: Run tests
         run: bin/node
+
+  bb:
+    name: Babashka
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@main
+        with:
+          cli: latest
+      - name: Run tests
+        run: bin/bb

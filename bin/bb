@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+set -eo pipefail
+
+ROOT_DIR="$(dirname $0)/.."
+
+(cd "$ROOT_DIR" && bb test:bb)
