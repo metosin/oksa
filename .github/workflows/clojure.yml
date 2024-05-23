@@ -67,6 +67,6 @@ jobs:
       - name: Setup Clojure
         uses: DeLaGuardo/setup-clojure@12.5
         with:
-          bb: 0.7.8
+          bb: 1.3.190
       - name: Run tests
         run: bin/bb
