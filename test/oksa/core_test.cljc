@@ -4,8 +4,10 @@
                 :cljs cljs.test) :as t]
             [oksa.core]
             [oksa.test-util :refer [unparse-and-validate]]
-            [oksa.alpha.api :as api])
-  #?(:clj (:import [graphql.parser Parser])))
+            [oksa.alpha.api :as api]))
+
+#?(:bb nil
+   :clj (import graphql.parser.Parser))
 
 (t/deftest unparse-test
   (t/testing "query"

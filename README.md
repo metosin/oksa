@@ -16,13 +16,14 @@ Generate GraphQL queries using Clojure data structures.
 
 - Support latest stable [GraphQL spec](https://spec.graphql.org/October2021)
 - [Malli](https://github.com/metosin/malli)-like syntax or programmatic API
-- clojure + clojurescript
+- Clojure, ClojureScript, and babashka
 
 ## Project status
 
 [![Clojars Project](https://img.shields.io/clojars/v/fi.metosin/oksa.svg)](https://clojars.org/fi.metosin/oksa)
 [![Slack](https://img.shields.io/badge/slack-oksa-orange.svg?logo=slack)](https://clojurians.slack.com/app_redirect?channel=oksa)
 [![cljdoc badge](https://cljdoc.org/badge/fi.metosin/oksa)](https://cljdoc.org/d/fi.metosin/oksa)
+<a href="https://babashka.org" rel="nofollow"><img src="https://github.com/babashka/babashka/raw/master/logo/badge.svg" alt="bb compatible" style="max-width: 100%;"></a>
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 

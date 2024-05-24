@@ -2,16 +2,18 @@
   (:require [camel-snake-kebab.core :as csk]
             [#?(:clj clojure.test
                 :cljs cljs.test) :as t]
-            [oksa.core :as oksa]
-            [oksa.alpha.api :as api])
-  #?(:clj (:import [graphql.parser Parser])))
+            [oksa.alpha.api :as api]))
+
+#?(:bb nil
+   :clj (import graphql.parser.Parser))
 
 (defn unparse-and-validate
   ([x]
    (unparse-and-validate nil x))
   ([opts x]
    (let [graphql-query (api/gql opts x)]
-     #?(:clj (Parser/parse graphql-query))
+     #?(:bb nil
+        :clj (Parser/parse graphql-query))
      graphql-query)))
 
 (t/deftest unparse-test
