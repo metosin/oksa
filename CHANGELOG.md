@@ -14,7 +14,7 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
-## 1.0.0-SNAPSHOT
+## 1.0.0
 
 - Adds support for name transformers [#10](https://github.com/metosin/oksa/pull/10)
   - You can provide a custom function to transform names, fields, enums,
@@ -23,6 +23,7 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
   - With this change, both the data DSL and API now uses the same unparser
     implementation under the hood.
 - Fixes parser bug with sequential selection sets [#9](https://github.com/metosin/oksa/pull/10)
+- Adds babashka support [#11](https://github.com/metosin/oksa/pull/11)
 
 ### Name transformation
 
