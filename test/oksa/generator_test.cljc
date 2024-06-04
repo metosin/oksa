@@ -1,13 +1,14 @@
 (ns ^:generative oksa.generator-test
   (:require [#?(:clj  clojure.test
                 :cljs cljs.test) :as t]
-            [kaocha.config]
-            [kaocha.testable]
             [malli.generator :as mg]
             [malli.core :as m]
             [oksa.parse]
             [oksa.test-util :refer [unparse-and-validate]]))
 
+#?(:bb nil
+   :clj (require '[kaocha.config]
+                 '[kaocha.testable]))
 
 (def document-schema (oksa.parse/-graphql-dsl-lang {:oksa/strict true} :oksa.parse/Document))
 (def document-parser (m/parser document-schema))
