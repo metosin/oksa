@@ -29,6 +29,8 @@
                                         (dec tries))))]
             (prn ::seed seed)
             (doseq [sample samples]
-              (prn ::x sample)
               (t/is (true? (or (= :malli.core/invalid (document-parser sample))
-                               (string? (unparse-and-validate sample)))))))))
+                               (string? (try (unparse-and-validate sample)
+                                             (catch Throwable e
+                                               (prn (ex-info "invalid sample" {:sample sample} e))
+                                               nil))))))))))
