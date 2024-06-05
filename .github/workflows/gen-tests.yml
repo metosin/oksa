@@ -1,13 +1,11 @@
 ---
 name: Run generative tests
 
-on: push
-
-#on:
-#  #  push:
-#  #    branches: [main]
-#  schedule:
-#    - cron: "0 0 1 * *"
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 0 1 * *" # every month
 
 jobs:
   gen-tests:
