@@ -1,0 +1,28 @@
+---
+name: Run generative tests
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "0 0 1 * *" # every month
+
+jobs:
+  gen-tests:
+    name: Run generative tests
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup latest Java
+        uses: actions/setup-java@v3.11.0
+        with:
+          distribution: zulu
+          java-version: 21
+      - name: Setup Clojure
+        uses: DeLaGuardo/setup-clojure@bc7570e912b028bbcc22f457adec7fdf98e2f4ed # 12.5
+        with:
+          cli: 1.10.1.693
+      - name: Run tests
+        run: CLOJURE=clojure-11 bin/run-gen-tests
