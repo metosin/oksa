@@ -180,8 +180,8 @@
                     (or (re-matches re-variable-reference s)
                         (re-matches re-enum-value s))))]]
               :keyword)
-            coll?
-            :map]
+            [:sequential [:ref ::Value]]
+            [:map-of [:ref ::Name] [:ref ::Value]]]
    ::Arguments [:map-of [:ref ::Name] [:ref ::Value]]
    ::Directives [:orn [::Directives [:+ [:orn
                                          [::DirectiveName [:schema [:ref ::DirectiveName]]]
