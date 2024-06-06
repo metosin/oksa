@@ -133,7 +133,8 @@
   (t/testing "fragment spread"
     (t/is (= "{foo ...bar}"
              (unparse-and-validate [:foo [:... {:name :bar}]])
-             (unparse-and-validate [:foo [:oksa/fragment-spread {:name :bar}]]))))
+             (unparse-and-validate [:foo [:oksa/fragment-spread {:name :bar}]])))
+    (t/is (thrown? #?(:clj Exception :cljs js/Error) (unparse-and-validate [[:oksa/fragment-spread]]))))
   (t/testing "inline fragment"
     (t/is (= "{foo ...{bar}}"
              (unparse-and-validate [:foo [:... [:bar]]])

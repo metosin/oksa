@@ -137,11 +137,11 @@
                 [:fn #(not (@reserved-keywords %))]]
    ::FragmentSpread [:cat
                      [:enum :oksa/fragment-spread :...]
-                     [:? [:map
-                          [:name {:optional false}
-                           [:ref ::FragmentName]]
-                          [:directives {:optional true}
-                           [:ref ::Directives]]]]]
+                     [:map
+                      [:name {:optional false}
+                       [:ref ::FragmentName]]
+                      [:directives {:optional true}
+                       [:ref ::Directives]]]]
    ::InlineFragment [:cat
                      [:enum :oksa/inline-fragment :...]
                      [:? [:map
