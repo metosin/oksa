@@ -51,7 +51,7 @@
                           [:on [:ref ::Name]]
                           [:directives {:optional true}
                            [:schema [:ref ::Directives]]]]
-                         [:repeat {:max 1} [:schema [:ref ::SelectionSet]]]]
+                         [:repeat {:min 1 :max 1} [:schema [:ref ::SelectionSet]]]]
    ::OperationDefinition [:or
                           [:cat
                            [:enum :oksa/query :oksa/mutation :oksa/subscription]
@@ -61,7 +61,7 @@
                                  [:schema [:ref ::VariableDefinitions]]]
                                 [:directives {:optional true}
                                  [:schema [:ref ::Directives]]]]]
-                           [:repeat {:max 1} [:schema [:ref ::SelectionSet]]]]
+                           [:repeat {:min 1 :max 1} [:schema [:ref ::SelectionSet]]]]
                           [:schema [:ref ::SelectionSet]]]
    ::VariableDefinitions [:orn [::VariableDefinitions
                                 [:+ [:cat
@@ -149,7 +149,7 @@
                            [:ref ::Directives]]
                           [:on {:optional true}
                            [:ref ::Name]]]]
-                     [:repeat {:max 1} [:schema [:ref ::SelectionSet]]]]
+                     [:repeat {:min 1 :max 1} [:schema [:ref ::SelectionSet]]]]
    ::Alias [:schema [:ref ::Name]]
    ::Name (if (:oksa/strict opts)
             [:and [:or :keyword :string]
