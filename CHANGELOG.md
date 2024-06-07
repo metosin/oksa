@@ -17,9 +17,11 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 ## 1.1.0-SNAPSHOT
 
 - Add generative tests [#12](https://github.com/metosin/oksa/pull/12)
-- BREAKING CHANGE: Restrict fragment-spread map to be required [#13](https://github.com/metosin/oksa/pull/13)
+- Restrict fragment-spread map to be required [#13](https://github.com/metosin/oksa/pull/13)
 - BREAKING CHANGE: Restrict values inside ListValue and ObjectValue [#14](https://github.com/metosin/oksa/pull/14)
 - fix: Run generative tests only on schedule [a7d0214](https://github.com/metosin/oksa/commit/a7d0214d832f93401974cc1d5e0dd988914fddbc)
+- Add missing :min to selection set refs [#15](https://github.com/metosin/oksa/pull/15)
+- Add support for persistent hash map formatting [#16](https://github.com/metosin/oksa/pull/16)
 
 ## 1.0.0
 
