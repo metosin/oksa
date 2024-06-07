@@ -88,7 +88,10 @@
         (t/is (= "{fooField(foo:\"\\\\\")}"
                  (unparse-and-validate [[:fooField {:arguments {:foo "\\"}}]])))
         (t/is (= "{fooField(foo:\"foo\\b\\f\\r\\n\\tbar\")}"
-                 (unparse-and-validate [[:fooField {:arguments {:foo (str "foo\b\f\r\n\tbar")}}]]))))))
+                 (unparse-and-validate [[:fooField {:arguments {:foo (str "foo\b\f\r\n\tbar")}}]]))))
+      (t/is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"invalid form"
+                              (unparse-and-validate [[:foo {:arguments {:foo #uuid"5bc915e9-1a9a-4780-8cf9-16aae80ec3fc"}}
+                                                      [:bar]]])))))
   (t/testing "document"
     (t/is (= "{foo}"
              (unparse-and-validate [:<> [:foo]])

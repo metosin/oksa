@@ -186,7 +186,9 @@
                  (unparse-and-validate (api/select (api/field :fooField (api/opts (api/arguments :foo "\\")))))))
         (t/is (= "{fooField(foo:\"foo\\b\\f\\r\\n\\tbar\")}"
                  (unparse-and-validate (api/select (api/field :fooField (api/opts (api/argument :foo "foo\b\f\r\n\tbar")))))
-                 (unparse-and-validate (api/select (api/field :fooField (api/opts (api/arguments :foo "foo\b\f\r\n\tbar"))))))))))
+                 (unparse-and-validate (api/select (api/field :fooField (api/opts (api/arguments :foo "foo\b\f\r\n\tbar"))))))))
+      (t/is (thrown-with-msg? #?(:clj Exception :cljs js/Error) #"invalid arguments"
+                              (api/arguments :foo #uuid"5bc915e9-1a9a-4780-8cf9-16aae80ec3fc")))))
   (t/testing "document"
     (t/is (= "{foo}"
              (unparse-and-validate (api/document (api/select :foo)))))
