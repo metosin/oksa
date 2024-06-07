@@ -21,6 +21,7 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 - BREAKING CHANGE: Restrict values inside ListValue and ObjectValue [#14](https://github.com/metosin/oksa/pull/14)
 - Add missing :min to selection set refs [#15](https://github.com/metosin/oksa/pull/15)
 - Add support for persistent hash map formatting [#16](https://github.com/metosin/oksa/pull/16)
+- Fixes parser to restrict fragment spread & subsequent selection set [#18](https://github.com/metosin/oksa/pull/18)
 
 ## 1.0.0
 
