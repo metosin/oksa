@@ -80,6 +80,17 @@
                                                          :g {:frob {:foo 1
                                                                     :bar 2}}
                                                          :h :$fooVar}}]])))
+      (t/is (= "{foo(args:{e:5, g:7, c:3, h:8, b:2, d:4, f:6, i:9, a:1})}"
+               (unparse-and-validate [[:foo {:arguments {:args {:a 1
+                                                                :b 2
+                                                                :c 3
+                                                                :d 4
+                                                                :e 5
+                                                                :f 6
+                                                                :g 7
+                                                                :h 8
+                                                                :i 9}}}]]))
+            "hash maps")
       #?(:clj (t/is (= "{foo(a:0.3333333333333333)}"
                        (unparse-and-validate [[:foo {:arguments {:a 1/3}}]]))))
       (t/testing "escaping special characters"

@@ -1,7 +1,7 @@
 (ns oksa.unparse
   (:require [clojure.string :as str]
             [oksa.alpha.protocol :as protocol])
-  #?(:clj (:import (clojure.lang Keyword PersistentVector PersistentArrayMap))))
+  #?(:clj (:import (clojure.lang Keyword PersistentHashMap PersistentVector PersistentArrayMap))))
 
 (defmulti format-value type)
 
@@ -71,13 +71,20 @@
                            :cljs cljs.core/PersistentVector)
   [x]
   (str "[" (clojure.string/join " " (mapv format-value x)) "]"))
-(defmethod format-value #?(:clj PersistentArrayMap
-                           :cljs cljs.core/PersistentArrayMap)
+(defn format-map
   [x]
   (str "{"
        (str/join ", " (map (fn [[object-field-name object-field-value]]
                              (str (name object-field-name) ":" (format-value object-field-value))) x))
        "}"))
+(defmethod format-value #?(:clj PersistentArrayMap
+                           :cljs cljs.core/PersistentArrayMap)
+  [x]
+  (format-map x))
+(defmethod format-value #?(:clj PersistentHashMap
+                           :cljs cljs.core/PersistentHashMap)
+  [x]
+  (format-map x))
 
 (defn -format-argument
   [name value]
