@@ -16,9 +16,9 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 
 ## 1.1.0-SNAPSHOT
 
-- Add generative tests (#12)
-- BREAKING CHANGE: Restrict fragment-spread map to be required (#13)
-- BREAKING CHANGE: Restrict values inside ListValue and ObjectValue (#14)
+- Add generative tests [#12](https://github.com/metosin/oksa/pull/12)
+- BREAKING CHANGE: Restrict fragment-spread map to be required [#13](https://github.com/metosin/oksa/pull/13)
+- BREAKING CHANGE: Restrict values inside ListValue and ObjectValue [#14](https://github.com/metosin/oksa/pull/14)
 - fix: Run generative tests only on schedule
 
 ## 1.0.0
