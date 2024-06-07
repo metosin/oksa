@@ -515,7 +515,13 @@
                        (api/select
                          (api/field :foo
                            (api/select :qux :baz))
-                         (api/select :basho))))))))
+                         (api/select :basho))))))
+    (t/testing "fragment spread + selection set should throw an exception"
+      (t/is (thrown? #?(:clj Exception :cljs js/Error)
+                     (api/gql
+                       (api/select
+                         (api/fragment-spread {:name :foo})
+                         (api/select :bar))))))))
 
 (t/deftest transformers-test
   (t/testing "names are transformed when transformer fn is provided"

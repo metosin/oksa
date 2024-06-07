@@ -105,13 +105,15 @@
                                          [::children [:? [:schema [:ref ::SelectionSet]]]]]
                                         [:catn
                                          [::node [:schema [:ref ::WrappedField]]]]
+                                        [:catn
+                                         [::node [:schema [:ref ::FragmentSpreadSelection]]]]
                                         ;; Special case where subsequent selection set is allowed
                                         [:catn
                                          [::node [:schema [:ref ::BareField]]]
                                          [::children [:? [:schema [:ref ::SelectionSet]]]]]]]]]
    ::WrappedField [:orn [::WrappedField [:schema [:ref ::Field]]]]
+   ::FragmentSpreadSelection [:orn [::FragmentSpread [:schema [:ref ::FragmentSpread]]]]
    ::Selection [:orn
-                [::FragmentSpread [:schema [:ref ::FragmentSpread]]]
                 [::InlineFragment [:schema [:ref ::InlineFragment]]]
                 [::NakedField [:schema [:ref ::NakedField]]]]
    ::Field [:orn [::Field [:cat
