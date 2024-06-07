@@ -14,7 +14,12 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
-## 1.0.1-SNAPSHOT
+## 1.1.0-SNAPSHOT
+
+- Add generative tests (#12)
+- BREAKING CHANGE: Restrict fragment-spread map to be required (#13)
+- BREAKING CHANGE: Restrict values inside ListValue and ObjectValue (#14)
+- fix: Run generative tests only on schedule
 
 ## 1.0.0
 
