@@ -329,7 +329,11 @@
              (unparse-and-validate [[:foo {}] [:bar]])) "field w/o selection-set + sequential selection-set parses correctly")
     (t/testing "sequential selection sets should throw an exception"
       (t/is (thrown? #?(:clj Exception :cljs js/Error)
-                     (unparse-and-validate [[:foo {} [:qux :baz]] [:basho]]))))))
+                     (unparse-and-validate [[:foo {} [:qux :baz]] [:basho]]))))
+    (t/testing "fragment spread + selection set should throw an exception"
+      (t/is (thrown? #?(:clj Exception :cljs js/Error)
+                     (oksa.core/gql [[:... {:name :foo}]
+                                     [:bar]]))))))
 
 (t/deftest transformers-test
   (t/testing "names are transformed when transformer fn is provided"
