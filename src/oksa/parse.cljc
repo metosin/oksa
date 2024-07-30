@@ -8,7 +8,7 @@
                                          UpdateableOption]
              :as protocol]
             [oksa.unparse])
-  (:refer-clojure :exclude [name type]))
+  (:refer-clojure :exclude [name type -name]))
 
 #?(:cljs (goog-define mode "default")
    :clj  (def ^{:doc "Modes `default` and `debug` supported."}
