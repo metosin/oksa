@@ -14,7 +14,7 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
-## 1.1.0-SNAPSHOT
+## 1.1.0
 
 - Add generative tests [#12](https://github.com/metosin/oksa/pull/12) [a7d0214](https://github.com/metosin/oksa/commit/a7d0214d832f93401974cc1d5e0dd988914fddbc)
 - Restrict fragment-spread map to be required [#13](https://github.com/metosin/oksa/pull/13)
@@ -22,6 +22,7 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 - Add missing :min to selection set refs [#15](https://github.com/metosin/oksa/pull/15)
 - Add support for persistent hash map formatting [#16](https://github.com/metosin/oksa/pull/16)
 - Fixes parser to restrict fragment spread & subsequent selection set [#18](https://github.com/metosin/oksa/pull/18)
+- Fixes ClojureScript -name redef warning [#20](https://github.com/metosin/oksa/pull/20)
 
 ## 1.0.0
 
