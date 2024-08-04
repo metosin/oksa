@@ -14,6 +14,8 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
+## 1.1.1-SNAPSHOT
+
 ## 1.1.0
 
 - Add generative tests [#12](https://github.com/metosin/oksa/pull/12) [a7d0214](https://github.com/metosin/oksa/commit/a7d0214d832f93401974cc1d5e0dd988914fddbc)
