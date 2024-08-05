@@ -31,8 +31,12 @@ jobs:
         uses: DeLaGuardo/setup-clojure@12.5
         with:
           cli: 1.10.1.693
-      - name: Run tests
-        run: CLOJURE=clojure-${{ matrix.clojure }} bin/kaocha
+      - name: Run unit tests
+        run: CLOJURE=clojure-${{ matrix.clojure }} bin/kaocha unit
+      - name: Generate docs tests
+        run: clojure -X:gen-doc-tests
+      - name: Run docs tests
+        run: CLOJURE=clojure-${{ matrix.clojure }} bin/kaocha generated
 
   cljs:
     name: ClojureScript
