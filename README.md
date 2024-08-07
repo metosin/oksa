@@ -38,6 +38,7 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 
 ;; programmatic
 (o/gql (oa/select :hello (oa/select :world)))
+;; => "{hello{world}}"
 ```
 
 ### Operation definitions
@@ -48,31 +49,53 @@ Fields can be selected:
 
 ```clojure
 (o/gql [:foo])
-(o/gql (oa/select :foo))
 ;; => "{foo}"
 
+(o/gql (oa/select :foo))
+;; => "{foo}"
+```
+
+```clojure
 (o/gql [:foo :bar])
-(o/gql (oa/select :foo :bar))
 ;; => "{foo bar}"
 
+(o/gql (oa/select :foo :bar))
+;; => "{foo bar}"
+```
+
+```clojure
 (o/gql [:bar [:qux [:baz]]])
+;; => "{bar{qux{baz}}}"
+
 (o/gql (oa/select :bar
          (oa/select :qux
            (oa/select :baz))))
 ;; => "{bar{qux{baz}}}"
+```
 
+```clojure
 (o/gql [:foo :bar [:qux [:baz]]])
+;; => "{foo bar{qux{baz}}}"
+
 (o/gql (oa/select :foo :bar
          (oa/select :qux
            (oa/select :baz))))
 ;; => "{foo bar{qux{baz}}}"
+```
 
+```clojure
 (o/gql [:foo :bar [:qux :baz]])
+;; => "{foo bar{qux baz}}"
+
 (o/gql (oa/select :foo :bar
          (oa/select :qux :baz)))
 ;; => "{foo bar{qux baz}}"
+```
 
+```clojure
 (o/gql [:foo [:bar [:baz :qux] :frob]])
+;; => "{foo{bar{baz qux} frob}}"
+
 (o/gql (oa/select :foo
          (oa/select :bar
            (oa/select :baz :qux)
@@ -84,6 +107,8 @@ Strings are supported for field names:
 
 ```clojure
 (o/gql ["query" "foo"])
+;; => "{query foo}"
+
 (o/gql (oa/select "query" "foo"))
 ;; => "{query foo}"
 ```
@@ -92,6 +117,8 @@ Aliases:
 
 ```clojure
 (o/gql [[:foo {:alias :bar}]])
+;; => "{bar:foo}"
+
 (o/gql (oa/select (oa/field :foo (oa/opts (oa/alias :bar)))))
 ;; => "{bar:foo}"
 ```
@@ -123,55 +150,79 @@ Arguments:
                              :g {:frob {:foo 1
                                         :bar 2}}
                              :h :$fooVar)))))
+;; => "{foo(a:1, b:\"hello world\", c:true, d:null, e:foo, f:[1 2 3], g:{frob:{foo:1, bar:2}}, h:$fooVar)}"
 ```
 
 Directives:
 
 ```clojure
 (o/gql [[:foo {:directives [:bar]}]])
-(o/gql (oa/select (oa/field :foo (oa/opts (oa/directive :bar)))))
 ;; => "{foo@bar}"
 
-;; with arguments
+(o/gql (oa/select (oa/field :foo (oa/opts (oa/directive :bar)))))
+;; => "{foo@bar}"
+```
+
+Directive arguments:
+
+```clojure
 (o/gql [[:foo {:directives [[:bar {:arguments {:qux 123}}]]}]])
+;; => "{foo@bar(qux:123)}"
+
 (o/gql (oa/select (oa/field :foo (oa/opts (oa/directive :bar (oa/arguments :qux 123))))))
 ;; => "{foo@bar(qux:123)}"
 ```
 
 #### Queries
 
-Queries can be created:
-
 ```clojure
 (o/gql [:oksa/query [:foo :bar [:qux [:baz]]]])
+;; => "query {foo bar{qux{baz}}}"
+
 (o/gql (oa/query
          (oa/select :foo :bar
            (oa/select :qux
              (oa/select :baz)))))
 ;; => "query {foo bar{qux{baz}}}"
+```
 
+Query names:
+
+```clojure
 (o/gql [:oksa/query {:name :Foo} [:foo]])
+;; => "query Foo {foo}"
+
 (o/gql (oa/query (oa/opts (oa/name :Foo))
          (oa/select :foo)))
 ;; => "query Foo {foo}"
 ```
 
-Queries can have directives:
+Query directives:
 
 ```clojure
 (o/gql [:oksa/query {:directives [:foo]} [:foo]])
+;; => "query @foo{foo}"
+
 (o/gql (oa/query (oa/opts (oa/directive :foo))
          (oa/select :foo)))
 ;; => "query @foo{foo}"
+```
 
+```clojure
 (o/gql [:oksa/query {:directives [:foo :bar]} [:foo]])
+;; => "query @foo @bar{foo}"
+
 (o/gql (oa/query (oa/opts (oa/directives :foo :bar))
          (oa/select :foo)))
 ;; => "query @foo @bar{foo}"
+```
 
-;; with arguments
+Query directive arguments:
 
+```clojure
 (o/gql [:oksa/query {:directives [[:foo {:arguments {:bar 123}}]]} [:foo]])
+;; => "query @foo(bar:123){foo}"
+
 (o/gql (oa/query (oa/opts (oa/directive :foo (oa/arguments :bar 123)))
          (oa/select :foo)))
 ;; => "query @foo(bar:123){foo}"
@@ -179,16 +230,20 @@ Queries can have directives:
 
 #### Mutations
 
-Mutations can be created:
-
 ```clojure
 (o/gql [:oksa/mutation [:foo :bar [:qux [:baz]]]])
+;; => "mutation {foo bar{qux{baz}}}"
+
 (o/gql (oa/mutation (oa/select :foo :bar
                       (oa/select :qux
                         (oa/select :baz)))))
 ;; => "mutation {foo bar{qux{baz}}}"
+```
 
+```clojure
 (o/gql [:oksa/mutation {:name :Foo} [:foo]])
+;; => "mutation Foo {foo}"
+
 (o/gql (oa/mutation (oa/opts (oa/name :Foo))
          (oa/select :foo)))
 ;; => "mutation Foo {foo}"
@@ -196,16 +251,20 @@ Mutations can be created:
 
 #### Subscriptions
 
-Subscriptions can be created:
-
 ```clojure
 (o/gql [:oksa/subscription [:foo :bar [:qux [:baz]]]])
+;; => "subscription {foo bar{qux{baz}}}"
+
 (o/gql (oa/subscription (oa/select :foo :bar
                           (oa/select :qux
                             (oa/select :baz)))))
 ;; => "subscription {foo bar{qux{baz}}}"
+```
 
+```clojure
 (o/gql [:oksa/subscription {:name :Foo} [:foo]])
+;; => "subscription Foo {foo}"
+
 (o/gql (oa/subscription (oa/opts (oa/name :Foo))
          (oa/select :foo)))
 ;; => "subscription Foo {foo}"
@@ -217,11 +276,17 @@ Named types are supported:
 
 ```clojure
 (o/gql [:oksa/query {:variables [:fooVar :FooType]} [:fooField]])
+;; => "query ($fooVar:FooType){fooField}"
+
 (o/gql (oa/query (oa/opts (oa/variables :fooVar :FooType))
          (oa/select :fooField)))
 ;; => "query ($fooVar:FooType){fooField}"
+```
 
+```clojure
 (o/gql [:oksa/query {:variables [:fooVar :FooType :barVar :BarType]} [:fooField]])
+;; => "query ($fooVar:FooType,$barVar:BarType){fooField}"
+
 (o/gql (oa/query (oa/opts (oa/variables :fooVar :FooType :barVar :BarType))
          (oa/select :fooField)))
 ;; => "query ($fooVar:FooType,$barVar:BarType){fooField}"
@@ -231,13 +296,27 @@ Lists can be created:
 
 ```clojure
 (o/gql [:oksa/query {:variables [:fooVar [:oksa/list :FooType]]} [:fooField]])
+;; => "query ($fooVar:[FooType]){fooField}"
+
+;; alt
 (o/gql [:oksa/query {:variables [:fooVar [:FooType]]} [:fooField]])
+;; => "query ($fooVar:[FooType]){fooField}"
+
+;; programmatic
 (o/gql (oa/query (oa/opts (oa/variable :fooVar (oa/list :FooType)))
          (oa/select :fooField)))
 ;; => "query ($fooVar:[FooType]){fooField}"
+```
 
+```clojure
 (o/gql [:oksa/query {:variables [:fooVar [:oksa/list [:oksa/list :BarType]]]} [:fooField]])
+;; => "query ($fooVar:[[BarType]]){fooField}"
+
+;; alt
 (o/gql [:oksa/query {:variables [:fooVar [[:BarType]]]} [:fooField]])
+;; => "query ($fooVar:[[BarType]]){fooField}"
+
+;; programmatic
 (o/gql (oa/query (oa/opts (oa/variable :fooVar (oa/list (oa/list :BarType))))
          (oa/select :fooField)))
 ;; => "query ($fooVar:[[BarType]]){fooField}"
@@ -247,13 +326,27 @@ Non-null types can be created:
 
 ```clojure
 (o/gql [:oksa/query {:variables [:fooVar [:FooType {:non-null true}]]} [:fooField]])
+;; => "query ($fooVar:FooType!){fooField}"
+
+;; alt
 (o/gql [:oksa/query {:variables [:fooVar :FooType!]} [:fooField]])
+;; => "query ($fooVar:FooType!){fooField}"
+
+;; programmatic
 (o/gql (oa/query (oa/opts (oa/variable :fooVar (oa/type! :FooType)))
          (oa/select :fooField)))
 ;; => "query ($fooVar:FooType!){fooField}"
+```
 
+```clojure
 (o/gql [:oksa/query {:variables [:fooVar [:oksa/list {:non-null true} :BarType]]} [:fooField]])
+;; => "query ($fooVar:[BarType]!){fooField}"
+
+;; alt
 (o/gql [:oksa/query {:variables [:fooVar [:! :BarType]]} [:fooField]])
+;; => "query ($fooVar:[BarType]!){fooField}"
+
+;; programmatic
 (o/gql (oa/query (oa/opts (oa/variable :fooVar (oa/list! :BarType)))
          (oa/select :fooField)))
 ;; => "query ($fooVar:[BarType]!){fooField}"
@@ -263,6 +356,8 @@ Getting crazy with it:
 
 ```clojure
 (o/gql [:oksa/query {:variables [:fooVar [:! [:! :BarType!]]]} [:fooField]])
+;; => "query ($fooVar:[[BarType!]!]!){fooField}"
+
 (o/gql (oa/query (oa/opts (oa/variable :fooVar (oa/list! (oa/list! (oa/type! :BarType)))))
          (oa/select :fooField)))
 ;; => "query ($fooVar:[[BarType!]!]!){fooField}"
@@ -272,11 +367,17 @@ Variable definitions can have directives:
 
 ```clojure
 (o/gql [:oksa/query {:variables [:foo {:directives [:fooDirective]} :Bar]} [:fooField]])
+;; => "query ($foo:Bar @fooDirective){fooField}"
+
 (o/gql (oa/query (oa/opts (oa/variable :foo (oa/opts (oa/directive :fooDirective)) :Bar))
                  (oa/select :fooField)))
 ;; => "query ($foo:Bar @fooDirective){fooField}"
+```
 
+```clojure
 (o/gql [:oksa/query {:variables [:foo {:directives [[:fooDirective {:arguments {:fooArg 123}}]]} :Bar]} [:fooField]])
+;; => "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
+
 (o/gql (oa/query (oa/opts (oa/variable :foo (oa/opts (oa/directive :fooDirective (oa/argument :fooArg 123))) :Bar))
                  (oa/select :fooField)))
 ;; => "query ($foo:Bar @fooDirective(fooArg:123)){fooField}"
@@ -288,31 +389,47 @@ Fragment definitions can be created:
 
 ```clojure
 (o/gql [:oksa/fragment {:name :Foo :on :Bar} [:foo]])
-(o/gql [:# {:name :Foo :on :Bar} [:foo]]) ; shortcut
+;; => "fragment Foo on Bar{foo}"
+
+;; alt
+(o/gql [:# {:name :Foo :on :Bar} [:foo]])
+;; => "fragment Foo on Bar{foo}"
+
+;; programmatic
 (o/gql (oa/fragment (oa/opts
                       (oa/name :Foo)
                       (oa/on :Bar))
          (oa/select :foo)))
 ;; => "fragment Foo on Bar{foo}"
+```
 
-;; with directives
+Fragment directives:
+
+```clojure
 (o/gql [:oksa/fragment {:name :foo
-                           :on :Foo
-                           :directives [:fooDirective]}
+                        :on :Foo
+                        :directives [:fooDirective]}
            [:bar]])
-; alt
+;; => "fragment foo on Foo@fooDirective{bar}"
+
+;; alt
 (o/gql (oa/fragment (oa/opts
                       (oa/name :foo)
                       (oa/on :Foo)
                       (oa/directive :fooDirective))
          (oa/select :bar)))
 ;; => "fragment foo on Foo@fooDirective{bar}"
+```
 
-;; with arguments
+Fragment directive arguments:
+
+```clojure
 (o/gql [:oksa/fragment {:name :foo
-                           :on :Foo
-                           :directives [[:fooDirective {:arguments {:bar 123}}]]} [:bar]])
-; alt
+                        :on :Foo
+                        :directives [[:fooDirective {:arguments {:bar 123}}]]} [:bar]])
+;; => "fragment foo on Foo@fooDirective(bar:123){bar}"
+
+;; alt
 (o/gql (oa/fragment (oa/opts
                       (oa/name :foo)
                       (oa/on :Foo)
@@ -325,17 +442,31 @@ Fragment spreads:
 
 ```clojure
 (o/gql [:foo [:oksa/fragment-spread {:name :bar}]])
-(o/gql [:foo [:... {:name :bar}]])
-(o/gql (oa/select :foo (oa/fragment-spread (oa/opts (oa/name :bar)))))
 ;; => "{foo ...bar}"
 
-;; with directives
+(o/gql [:foo [:... {:name :bar}]])
+;; => "{foo ...bar}"
+
+(o/gql (oa/select :foo (oa/fragment-spread (oa/opts (oa/name :bar)))))
+;; => "{foo ...bar}"
+```
+
+Fragment spread directives:
+
+```clojure
 (o/gql [[:... {:name :foo :directives [:bar]}]])
-(o/gql (oa/select (oa/fragment-spread (oa/opts (oa/name :foo) (oa/directive :bar)))))
 ;; => "{...foo@bar}"
 
-;; with arguments
+(o/gql (oa/select (oa/fragment-spread (oa/opts (oa/name :foo) (oa/directive :bar)))))
+;; => "{...foo@bar}"
+```
+
+Fragment spread directive arguments:
+
+```clojure
 (o/gql [[:... {:name :foo :directives [[:bar {:arguments {:qux 123}}]]}]])
+;; => "{...foo@bar(qux:123)}"
+
 (o/gql (oa/select (oa/fragment-spread (oa/opts (oa/name :foo) (oa/directive :bar (oa/arguments :qux 123))))))
 ;; => "{...foo@bar(qux:123)}"
 ```
@@ -344,23 +475,45 @@ Inline fragments:
 
 ```clojure
 (o/gql [:foo [:oksa/inline-fragment [:bar]]])
-(o/gql [:foo [:... [:bar]]])
-(o/gql (oa/select :foo (oa/inline-fragment (oa/select :bar))))
 ;; => "{foo ...{bar}}"
 
+;; alt
+(o/gql [:foo [:... [:bar]]])
+;; => "{foo ...{bar}}"
+
+;; programmatic
+(o/gql (oa/select :foo (oa/inline-fragment (oa/select :bar))))
+;; => "{foo ...{bar}}"
+```
+
+Type condition is supported:
+
+```clojure
 (o/gql [:foo [:... {:on :Bar} [:bar]]])
+;; => "{foo ...on Bar{bar}}"
+
 (o/gql (oa/select :foo (oa/inline-fragment (oa/opts (oa/on :Bar))
                          (oa/select :bar))))
 ;; => "{foo ...on Bar{bar}}"
+```
 
-;; with directives
+Inline fragment directives:
+
+```clojure
 (o/gql [[:... {:directives [:foo]} [:bar]]])
+;; => "{...@foo{bar}}"
+
 (o/gql (oa/select (oa/inline-fragment (oa/opts (oa/directive :foo))
                     (oa/select :bar))))
 ;; => "{...@foo{bar}}"
+```
 
-;; with arguments
+Inline fragment directive arguments:
+
+```clojure
 (o/gql [[:... {:directives [[:foo {:arguments {:bar 123}}]]} [:foobar]]])
+;; => "{...@foo(bar:123){foobar}}"
+
 (o/gql (oa/select (oa/inline-fragment (oa/opts (oa/directive :foo (oa/argument :bar 123)))
                     (oa/select :foobar))))
 ;; => "{...@foo(bar:123){foobar}}"
@@ -390,6 +543,7 @@ Putting it all together:
                 (oa/name :foo)
                 (oa/on :Foo))
       (oa/select :bar))))
+;; => "{foo}\nquery {bar}\nmutation {qux}\nsubscription {baz}\nfragment foo on Foo{bar}"
 
 (o/gql [:<> [:foo] [:bar]]) ; :<> also supported
 ;; => "{foo}\n{bar}"
@@ -423,13 +577,7 @@ More complete example using `oksa.alpha.api`:
       (oa/select :getKikka))
     (oa/subscription (oa/opts (oa/name :subscribeToKikka))
       (oa/select :realtimeKikka))))
-
-; =>
-; "fragment Kikka on Kukka{kikka kukka}
-;  {ylakikka{kikka kukka kakku} KIKKA:kikka@kakku @kukka @kikkaized(x:1, y:2, z:3) ...FooFragment ...on Kikka{kikka kukka}}
-;  query KikkaQuery {specialKikka}
-;  mutation saveKikka ($myKikka:KikkaType=123){getKikka}
-;  subscription subscribeToKikka {realtimeKikka}"
+;; => "fragment Kikka on Kukka{kikka kukka}\n{ylakikka{kikka kukka kakku} KIKKA:kikka@kakku @kukka @kikkaized(x:1, y:2, z:3) ...FooFragment ...on Kikka{kikka kukka}}\nquery KikkaQuery {specialKikka}\nmutation saveKikka ($myKikka:KikkaType=123){getKikka}\nsubscription subscribeToKikka {realtimeKikka}"
 ```
 
 ### Name transformation
@@ -451,8 +599,7 @@ Oksa supports name transformation:
    [:... {:on :foo-bar-fragment
           :directives [:foo-bar]}
     [:foo-bar]]])
-
-; => "{barFoo:fooBar(fooArg:barValue)@fooBar{fooBar} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
+;; => "{barFoo:fooBar(fooArg:barValue)@fooBar{fooBar} nakedFooBar ...{fooBar} ...on fooBarFragment@fooBar{fooBar}}"
 ```
 
 Field transformation is supported:
@@ -467,8 +614,7 @@ Field transformation is supported:
     [:foo-bar]]
    [:... {:on :SomeType}
     [:foo-bar]]])
-
-; => "{fooBar{fooBar} nakedFooBar ...{fooBar} ...on SomeType{fooBar}}"
+;; => "{fooBar{fooBar} nakedFooBar ...{fooBar} ...on SomeType{fooBar}}"
 ```
 
 Directives can also be transformed:
@@ -477,8 +623,7 @@ Directives can also be transformed:
 (o/gql*
   {:oksa/directive-fn csk/->snake_case}
   [[:foo {:directives [:some-thing]}]])
-
-; => "{foo@some_thing}"
+;; => "{foo@some_thing}"
 ```
 
 You can also override using enums or types:
@@ -490,8 +635,7 @@ You can also override using enums or types:
    :oksa/type-fn csk/->PascalCase}
   [:oksa/query {:variables [:foo-var {:default :foo-value} :foo-type]}
    [:foobar]])
-
-; => "query ($fooVar:FooType=FOO_VALUE){foobar}"
+;; => "query ($fooVar:FooType=FOO_VALUE){foobar}"
 ```
 
 Local overriding also supported on fields:
@@ -501,8 +645,7 @@ Local overriding also supported on fields:
   {:oksa/name-fn csk/->camelCase}
   [[:screaming-field {:oksa/field-fn csk/->SCREAMING_SNAKE_CASE}]
    :talking-field])
-
-; => "{SCREAMING_FIELD talkingField}"
+;; => "{SCREAMING_FIELD talkingField}"
 ```
 
 An example using a custom transformer to preserve the namespace as part of a field:
@@ -514,8 +657,7 @@ An example using a custom transformer to preserve the namespace as part of a fie
        (name key)))
 
 (o/gql* {:oksa/field-fn custom-name} [:employee [:user/name :user/address]])
-
-; => "{employee{user_name user_address}}"
+;; => "{employee{user_name user_address}}"
 ```
 
 ## Rationale
