@@ -197,7 +197,7 @@ Query names:
 ;; => "query Foo {foo}"
 ```
 
-Queries directives:
+Query directives:
 
 ```clojure
 (o/gql [:oksa/query {:directives [:foo]} [:foo]])
