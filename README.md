@@ -23,7 +23,7 @@ Generate GraphQL queries using Clojure data structures.
 [![Clojars Project](https://img.shields.io/clojars/v/fi.metosin/oksa.svg)](https://clojars.org/fi.metosin/oksa)
 [![Slack](https://img.shields.io/badge/slack-oksa-orange.svg?logo=slack)](https://clojurians.slack.com/app_redirect?channel=oksa)
 [![cljdoc badge](https://cljdoc.org/badge/fi.metosin/oksa)](https://cljdoc.org/d/fi.metosin/oksa)
-<a href="https://babashka.org" rel="nofollow"><img src="https://github.com/babashka/babashka/raw/master/logo/badge.svg" alt="bb compatible" style="max-width: 100%;"></a>
+[![bb compatible](https://raw.githubusercontent.com/babashka/babashka/master/logo/badge.svg)](https://book.babashka.org#badges)
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
