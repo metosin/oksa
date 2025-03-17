@@ -16,7 +16,11 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 
 ## 1.1.1-SNAPSHOT
 
+Thanks to [@lassemaatta](https://github.com/lassemaatta) and
+[@lread](https://github.com/lread) for contributing to this release.
+
 - Add `test-doc-blocks` to run tests continuously against examples in README.md [#21](https://github.com/metosin/oksa/pull/21) [#22](https://github.com/metosin/oksa/pull/22) [#23](https://github.com/metosin/oksa/pull/23)
+- docs: readme: update babashka badge target [#24](https://github.com/metosin/oksa/pull/24)
 
 ## 1.1.0
 
