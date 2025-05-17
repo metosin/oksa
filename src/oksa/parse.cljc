@@ -1023,7 +1023,10 @@
 
 (defn- xf
   [ast]
-  (util/transform-malli-ast -transform-map ast))
+  (prn ::xf ast)
+  (->> ast
+       (util/transform-to-malli-ast)
+       (util/transform-malli-ast -transform-map)))
 
 (defn to-ast
   [x]
