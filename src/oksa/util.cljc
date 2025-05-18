@@ -39,11 +39,18 @@
     (do (prn ::is-tags ast)
         (mapv transform-to-malli-ast [(:values ast)]))
 
+    (and (-oksa-parse? ast)
+         (m/tag? (:oksa.parse/children ast)))
+    (do
+      (prn ::is-oksa-parse-and-children-is-tag ast)
+      {:oksa.parse/node (transform-to-malli-ast (:oksa.parse/node ast))
+       :oksa.parse/children (transform-to-malli-ast (:oksa.parse/children ast))})
+
     (-oksa-parse? ast)
     (do
       (prn ::is-oksa-parse ast)
       {:oksa.parse/node (transform-to-malli-ast (:oksa.parse/node ast))
-      :oksa.parse/children (not-empty (mapv transform-to-malli-ast (:oksa.parse/children ast)))})
+       :oksa.parse/children (not-empty (mapv transform-to-malli-ast (:oksa.parse/children ast)))})
 
     (and (sequential? ast)
          (m/tag? (first (nth ast 2))))
