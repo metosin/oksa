@@ -43,7 +43,14 @@
     (do
       (prn ::is-oksa-parse ast)
       {:oksa.parse/node (transform-to-malli-ast (:oksa.parse/node ast))
-      :oksa.parse/children (not-empty (mapv transform-to-malli-ast (:oksa.parse/children ast)))})))
+      :oksa.parse/children (not-empty (mapv transform-to-malli-ast (:oksa.parse/children ast)))})
+
+    (and (sequential? ast)
+         (m/tag? (first (nth ast 2))))
+    (let [[key opts children] ast]
+      (prn ::is-sequential-and-child-has-tag ast)
+      (into [key opts]
+            [(map transform-to-malli-ast children)]))))
 
 (defn transform-malli-ast
   "Applies transform-map to parse-tree recursively. Adapted from `instaparse.core/hiccup-transform`."
