@@ -6,6 +6,10 @@
   (boolean (and (map? ast)
                 (:oksa.parse/node ast))))
 
+(defn third
+  [coll]
+  (first (rest (rest coll))))
+
 (defn transform-to-malli-ast
   [ast]
   (prn ::ast ast)
@@ -27,7 +31,15 @@
          (m/tags? (first (:value ast))))
     (do (prn ::is-tag-and-value-is-sequential-tags ast)
         (into [(:key ast)]
-              [(mapcat transform-to-malli-ast (:value ast))]))
+              [(doall (mapcat transform-to-malli-ast (:value ast)))]))
+
+    (and (m/tag? ast)
+         (sequential? (:value ast))
+         (m/tag? (third (:value ast))))
+    (let [value (:value ast)]
+      (prn ::is-tag-and-value-is-sequential ast)
+      (into [(:key ast)]
+            [(doall (mapcat transform-to-malli-ast [value]))]))
 
     (m/tag? ast)
     (do
@@ -53,11 +65,18 @@
        :oksa.parse/children (not-empty (mapv transform-to-malli-ast (:oksa.parse/children ast)))})
 
     (and (sequential? ast)
-         (m/tag? (first (nth ast 2))))
-    (let [[key opts children] ast]
+         (m/tag? (third ast)))
+    (let [[key opts child] ast]
       (prn ::is-sequential-and-child-has-tag ast)
       (into [key opts]
-            [(map transform-to-malli-ast children)]))))
+            [(doall (mapcat transform-to-malli-ast [child]))]))
+
+    (and (sequential? ast)
+         (m/tag? (first (third ast))))
+    (let [[key opts children] ast]
+      (prn ::is-sequential-and-first-child-has-tag ast)
+      (into [key opts]
+            [(mapv transform-to-malli-ast children)]))))
 
 (defn transform-malli-ast
   "Applies transform-map to parse-tree recursively. Adapted from `instaparse.core/hiccup-transform`."
