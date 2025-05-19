@@ -49,6 +49,10 @@
         (into [(:key ast)]
               [(doall (mapcat transform-to-malli-ast (:value ast)))]))
 
+    (and (sequential? ast)
+         (m/tag? (first ast)))
+    (map transform-to-malli-ast ast)
+
     (m/tag? ast)
     (do
       (prn ::is-tag ast)

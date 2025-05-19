@@ -17,6 +17,7 @@
 (def -directives-empty-state [])
 (def -variables-empty-state [])
 
+(declare xf)
 (declare -transform-map)
 
 (def -name-pattern "[_A-Za-z][_0-9A-Za-z]*")
@@ -291,8 +292,8 @@
     AST
     (-type [_] type)
     (-opts [_] (cond-> opts
-                 true (update :directives (partial oksa.util/transform-malli-ast -transform-map))
-                 true (update :variables (partial oksa.util/transform-malli-ast -transform-map))
+                 true (update :directives xf)
+                 true (update :variables xf)
                  (:name opts) (update :name -name)))
     (-form [_] form)
     Serializable
@@ -329,7 +330,7 @@
     AST
     (-type [_] :oksa/fragment)
     (-opts [_]
-      (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
+      (cond-> (update opts :directives xf)
         (:name opts) (update :name -name)
         (:on opts) (update :on -on)))
     (-form [_] form)
@@ -396,7 +397,7 @@
     AST
     (-type [_] :oksa.parse/Field)
     (-opts [_]
-      (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
+      (cond-> (update opts :directives xf)
         (:arguments opts) (update :arguments -arguments)
         (:alias opts) (update :alias -alias)))
     (-form [_] form)
@@ -457,10 +458,7 @@
     AST
     (-type [_] :oksa/fragment-spread)
     (-opts [_]
-      (update opts
-              :directives
-              (partial oksa.util/transform-malli-ast
-                       -transform-map)))
+      (update opts :directives xf))
     (-form [_] form)
     Serializable
     (-unparse [this opts]
@@ -496,10 +494,7 @@
   (reify
     AST
     (-type [_] :oksa/inline-fragment)
-    (-opts [_] (cond-> (update opts
-                               :directives
-                               (partial oksa.util/transform-malli-ast
-                                        -transform-map))
+    (-opts [_] (cond-> (update opts :directives xf)
                  (:on opts) (update :on -on)))
     (-form [_] form)
     Serializable
@@ -670,7 +665,7 @@
     (-type [_] :oksa.parse/VariableDefinitions)
     (-form [_] form)
     (-opts [_]
-      (cond-> (update opts :directives (partial oksa.util/transform-malli-ast -transform-map))
+      (cond-> (update opts :directives xf)
         (contains? opts :default) (update :default -default)))
     UpdateableOption
     (-update-key [_] :variables)
@@ -945,19 +940,19 @@
             (let [opts (-opts
                          (-name (:name options))
                          (when (:on options) (-on (:on options)))
-                         (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
+                         (when directives (xf directives)))]
               (-create-fragment options (-fragment-form opts selection-set) selection-set)))
           (fragment-spread [{:keys [directives] :as options}]
             (assert (some? (:name options)) "missing name")
             (let [opts (-opts
                          (-name (:name options))
-                         (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
+                         (when directives (xf directives)))]
               (-create-fragment-spread options (-fragment-spread-form opts))))
           (inline-fragment [{:keys [directives] :as options} [selection-set]]
             (assert (not (some? (:name options))) "inline fragments can't have name")
             (let [opts (-opts
                          (when (:on options) (-on (:on options)))
-                         (when directives (oksa.util/transform-malli-ast -transform-map directives)))]
+                         (when directives (xf directives)))]
               (-create-inline-fragment options (-inline-fragment-form opts selection-set) selection-set)))
           (selection-set [xs]
             (-create-selection-set (mapcat (fn [{:oksa.parse/keys [node children]}]
