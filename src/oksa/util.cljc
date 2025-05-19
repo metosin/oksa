@@ -30,9 +30,17 @@
          (sequential? (:value ast))
          (m/tag? (third (:value ast))))
     (let [value (:value ast)]
-      (prn ::is-tag-and-value-is-sequential ast)
+      (prn ::is-tag-and-value-is-sequential-containing-tag ast)
       (into [(:key ast)]
             [(doall (mapcat transform-to-malli-ast [value]))]))
+
+    (and (m/tag? ast)
+         (sequential? (:value ast))
+         (sequential? (third (:value ast))))
+    (let [value (:value ast)]
+      (prn ::is-tag-and-value-is-sequential-containing-sequence)
+      (into [(:key ast)]
+            [(transform-to-malli-ast value)]))
 
     (and (m/tag? ast)
          (sequential? (:value ast))
