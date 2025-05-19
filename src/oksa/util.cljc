@@ -28,18 +28,18 @@
 
     (and (m/tag? ast)
          (sequential? (:value ast))
-         (m/tags? (first (:value ast))))
-    (do (prn ::is-tag-and-value-is-sequential-tags ast)
-        (into [(:key ast)]
-              [(doall (mapcat transform-to-malli-ast (:value ast)))]))
-
-    (and (m/tag? ast)
-         (sequential? (:value ast))
          (m/tag? (third (:value ast))))
     (let [value (:value ast)]
       (prn ::is-tag-and-value-is-sequential ast)
       (into [(:key ast)]
             [(doall (mapcat transform-to-malli-ast [value]))]))
+
+    (and (m/tag? ast)
+         (sequential? (:value ast))
+         (m/tags? (first (:value ast))))
+    (do (prn ::is-tag-and-value-is-sequential-tags ast)
+        (into [(:key ast)]
+              [(doall (mapcat transform-to-malli-ast (:value ast)))]))
 
     (m/tag? ast)
     (do
