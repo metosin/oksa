@@ -10,6 +10,10 @@
   [coll]
   (first (rest (rest coll))))
 
+(defn non-null-list-type?
+  [coll]
+  (= (first coll) :!))
+
 (defn transform-to-malli-ast
   [ast]
   (prn ::ast ast)
@@ -59,6 +63,13 @@
     (and (sequential? ast)
          (m/tag? (first ast)))
     (map transform-to-malli-ast ast)
+
+    (and (m/tag? ast)
+         (sequential? (:value ast))
+         (non-null-list-type? (:value ast)))
+    (do (prn ::is-tag-and-value-is-sequential-containing-non-null-list-type ast)
+        (into [(:key ast)]
+              [(map transform-to-malli-ast (:value ast))]))
 
     (m/tag? ast)
     (do
