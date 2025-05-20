@@ -106,7 +106,17 @@
     (let [[key opts children] ast]
       (prn ::is-sequential-and-first-child-has-tag ast)
       (into [key opts]
-            [(mapv transform-to-malli-ast children)]))))
+            [(mapv transform-to-malli-ast children)]))
+
+    (and (sequential? ast)
+         (sequential? (first ast)))
+    (mapv transform-to-malli-ast ast)
+
+    (and (sequential? ast) (seq ast))
+    (into [(first ast)]
+          (mapv transform-to-malli-ast (next ast)))
+
+    :else ast))
 
 (defn transform-malli-ast
   "Applies transform-map to parse-tree recursively. Adapted from `instaparse.core/hiccup-transform`."
