@@ -58,18 +58,18 @@
          (sequential? (first (:value ast))))
     (do (prn ::is-tag-and-value-is-sequential-twice ast)
         (into [(:key ast)]
-              [(map transform-to-malli-ast (:value ast))]))
+              [(mapv transform-to-malli-ast (:value ast))]))
 
     (and (sequential? ast)
          (m/tag? (first ast)))
-    (map transform-to-malli-ast ast)
+    (mapv transform-to-malli-ast ast)
 
     (and (m/tag? ast)
          (sequential? (:value ast))
          (non-null-list-type? (:value ast)))
     (do (prn ::is-tag-and-value-is-sequential-containing-non-null-list-type ast)
         (into [(:key ast)]
-              [(map transform-to-malli-ast (:value ast))]))
+              [(mapv transform-to-malli-ast (:value ast))]))
 
     (m/tag? ast)
     (do
