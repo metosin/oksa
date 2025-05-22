@@ -1024,9 +1024,8 @@
 
 (defn- xf
   [ast]
-  (prn ::xf ast)
   (->> ast
-       (util/transform-to-malli-ast)
+       (util/enlive->hiccup)
        (util/transform-malli-ast -transform-map)))
 
 (defn to-ast
