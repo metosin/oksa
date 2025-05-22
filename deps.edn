@@ -5,7 +5,7 @@
                   :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
                                lambdaisland/kaocha-cljs {:mvn/version "1.5.154"}
                                lambdaisland/kaocha-junit-xml {:mvn/version "1.17.101"}
-                               com.graphql-java/graphql-java {:mvn/version "24.0"}
+                               com.graphql-java/graphql-java {:mvn/version "20.7"}
                                camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}}}
            :malli-pre-0.18.0 {:override-deps {metosin/malli {:mvn/version "0.17.0"}}}
            :test-cljs {:extra-paths ["test"]
