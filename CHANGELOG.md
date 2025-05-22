@@ -16,9 +16,18 @@ Oksa is currently [experimental](https://github.com/topics/metosin-experimental)
 
 ## 1.2.0-SNAPSHOT
 
-Thanks to [@lassemaatta](https://github.com/lassemaatta) and
-[@lread](https://github.com/lread) for contributing to this release.
+Thanks to [@lassemaatta](https://github.com/lassemaatta),
+[@lread](https://github.com/lread), and [@terjesb](https://github.com/terjesb)
+for contributing to this release.
 
+- Fix to malli 0.18.0 breaking change (#26) [#26](https://github.com/metosin/oksa/pull/26)
+  - This fixes a bug where you may have a newer version of malli (>=0.18.0)
+    running locally/in your project and run into a `No implementation of
+    method: :-form of protocol: #'oksa.alpha.protocol/AST found for class:
+    malli.core.Tag` exception due to changes in the malli parser.
+  - Fix doesn't aim to be breaking, but the underlying changes to the parser
+    were big enough to warrant a minor version bump.
+  - Fix also retains backwards compatibility for malli <0.18.0.
 - Add `test-doc-blocks` to run tests continuously against examples in README.md [#21](https://github.com/metosin/oksa/pull/21) [#22](https://github.com/metosin/oksa/pull/22) [#23](https://github.com/metosin/oksa/pull/23)
 - docs: readme: update babashka badge target [#24](https://github.com/metosin/oksa/pull/24)
 
