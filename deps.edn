@@ -2,24 +2,24 @@
  :deps {org.clojure/clojure {:mvn/version "1.11.1"}
         metosin/malli {:mvn/version "0.18.0"}}
  :aliases {:test {:extra-paths ["test"]
-                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.82.1306"}
-                               lambdaisland/kaocha-cljs {:mvn/version "1.4.130"}
+                  :extra-deps {lambdaisland/kaocha {:mvn/version "1.91.1392"}
+                               lambdaisland/kaocha-cljs {:mvn/version "1.5.154"}
                                lambdaisland/kaocha-junit-xml {:mvn/version "1.17.101"}
-                               com.graphql-java/graphql-java {:mvn/version "20.7"}
+                               com.graphql-java/graphql-java {:mvn/version "24.0"}
                                camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}}}
            :malli-pre-0.18.0 {:override-deps {metosin/malli {:mvn/version "0.17.0"}}}
            :test-cljs {:extra-paths ["test"]
-                       :extra-deps {olical/cljs-test-runner {:mvn/version "3.8.0"}
+                       :extra-deps {olical/cljs-test-runner {:mvn/version "3.8.1"}
                                     org.clojure/clojurescript {:mvn/version "1.11.57"}
                                     camel-snake-kebab/camel-snake-kebab {:mvn/version "0.4.3"}}
                        :main-opts ["-m" "cljs-test-runner.main"]}
            :gen-doc-tests {:replace-deps {org.clojure/clojure {:mvn/version "1.10.3"}
-                                          com.github.lread/test-doc-blocks {:mvn/version "1.1.20"}}
+                                          com.github.lread/test-doc-blocks {:mvn/version "1.2.21"}}
                            :exec-fn lread.test-doc-blocks/gen-tests
                            :main-opts ["-m" "lread.test-doc-blocks" "gen-tests"]}
            :clojure-10 {:extra-deps {org.clojure/clojure {:mvn/version "1.10.3"}}}
            :clojure-11 {}
-           :build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.0" :git/sha "3a2c484"}}
+           :build {:deps {io.github.clojure/tools.build {:git/tag "v0.10.9" :git/sha "e405aac"}}
                    :ns-default build}
            :deploy {:extra-deps {slipset/deps-deploy {:mvn/version "RELEASE"}}
                     :exec-fn deps-deploy.deps-deploy/deploy
