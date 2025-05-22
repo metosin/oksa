@@ -425,8 +425,7 @@
                                                         oksa.parse/-field-parser
                                                         "invalid field")
                       (util/malli-tag-supported?) (:value)
-                      ;; TODO
-                      #_#_(not (util/malli-tag-supported?)) (-> second))]
+                      (not (util/malli-tag-supported?)) (-> second))]
     (-create-field name (-field-form name opts selection-set) opts* selection-set)))
 
 (defn -naked-field
@@ -703,8 +702,7 @@
                                                         oksa.parse/-variable-definitions-parser
                                                         "invalid field")
                       (util/malli-tag-supported?) (:value)
-                      ;; TODO
-                      #_#_(not (util/malli-tag-supported?)) (-> second))]
+                      (not (util/malli-tag-supported?)) (-> second))]
     (-create-variable variable-name opts* form variable-type*)))
 
 (defn -variables
@@ -1024,9 +1022,9 @@
 
 (defn- xf
   [ast]
-  (->> ast
-       (util/enlive->hiccup)
-       (util/transform-malli-ast -transform-map)))
+  (cond->> ast
+    (util/malli-tag-supported?) (util/enlive->hiccup)
+    true (util/transform-malli-ast -transform-map)))
 
 (defn to-ast
   [x]

@@ -18,82 +18,85 @@
   [coll]
   (= (first coll) :!))
 
-(defn enlive->hiccup
-  "Walks & transforms malli 0.18.0 parse (\"enlive\") result to pre-0.18.0 AST (\"hiccup\") format."
-  [ast]
-  (cond
-    (and (m/tag? ast)
-         (m/tag? (:value ast)))
-    (into [(:key ast)] [(enlive->hiccup (:value ast))])
+(if (malli-tag-supported?)
+  (defn enlive->hiccup
+    "Walks & transforms malli 0.18.0 parse (\"enlive\") result to pre-0.18.0 AST (\"hiccup\") format."
+    [ast]
+    (let [tag? (resolve 'malli.core/tag?)
+          tags? (resolve 'malli.core/tags?)]
+      (cond
+        (and (tag? ast)
+             (tag? (:value ast)))
+        (into [(:key ast)] [(enlive->hiccup (:value ast))])
 
-    (and (m/tag? ast)
-         (sequential? (:value ast))
-         (m/tag? (first (:value ast))))
-    (into [(:key ast)] [(enlive->hiccup (:value ast))])
+        (and (tag? ast)
+             (sequential? (:value ast))
+             (tag? (first (:value ast))))
+        (into [(:key ast)] [(enlive->hiccup (:value ast))])
 
-    (and (m/tag? ast)
-         (sequential? (:value ast))
-         (m/tag? (third (:value ast))))
-    (into [(:key ast)] [(doall (mapcat enlive->hiccup [(:value ast)]))])
+        (and (tag? ast)
+             (sequential? (:value ast))
+             (tag? (third (:value ast))))
+        (into [(:key ast)] [(doall (mapcat enlive->hiccup [(:value ast)]))])
 
-    (and (m/tag? ast)
-         (sequential? (:value ast))
-         (sequential? (first (:value ast))))
-    (into [(:key ast)] [(mapv enlive->hiccup (:value ast))])
+        (and (tag? ast)
+             (sequential? (:value ast))
+             (sequential? (first (:value ast))))
+        (into [(:key ast)] [(mapv enlive->hiccup (:value ast))])
 
-    (and (m/tag? ast)
-         (sequential? (:value ast))
-         (sequential? (third (:value ast))))
-    (into [(:key ast)] [(enlive->hiccup (:value ast))])
+        (and (tag? ast)
+             (sequential? (:value ast))
+             (sequential? (third (:value ast))))
+        (into [(:key ast)] [(enlive->hiccup (:value ast))])
 
-    (and (m/tag? ast)
-         (sequential? (:value ast))
-         (m/tags? (first (:value ast))))
-    (into [(:key ast)] [(doall (mapcat enlive->hiccup (:value ast)))])
+        (and (tag? ast)
+             (sequential? (:value ast))
+             (tags? (first (:value ast))))
+        (into [(:key ast)] [(doall (mapcat enlive->hiccup (:value ast)))])
 
-    (and (m/tag? ast)
-         (sequential? (:value ast))
-         (-non-null-list-type? (:value ast)))
-    (into [(:key ast)] [(mapv enlive->hiccup (:value ast))])
+        (and (tag? ast)
+             (sequential? (:value ast))
+             (-non-null-list-type? (:value ast)))
+        (into [(:key ast)] [(mapv enlive->hiccup (:value ast))])
 
-    (m/tag? ast)
-    (into [(:key ast)] [(:value ast)])
+        (tag? ast)
+        (into [(:key ast)] [(:value ast)])
 
-    (m/tags? ast)
-    (mapv enlive->hiccup [(:values ast)])
+        (tags? ast)
+        (mapv enlive->hiccup [(:values ast)])
 
-    (and (-oksa-parse? ast)
-         (m/tag? (:oksa.parse/children ast)))
-    {:oksa.parse/node (enlive->hiccup (:oksa.parse/node ast))
-     :oksa.parse/children (enlive->hiccup (:oksa.parse/children ast))}
+        (and (-oksa-parse? ast)
+             (tag? (:oksa.parse/children ast)))
+        {:oksa.parse/node (enlive->hiccup (:oksa.parse/node ast))
+         :oksa.parse/children (enlive->hiccup (:oksa.parse/children ast))}
 
-    (-oksa-parse? ast)
-    {:oksa.parse/node (enlive->hiccup (:oksa.parse/node ast))
-     :oksa.parse/children (not-empty (mapv enlive->hiccup (:oksa.parse/children ast)))}
+        (-oksa-parse? ast)
+        {:oksa.parse/node (enlive->hiccup (:oksa.parse/node ast))
+         :oksa.parse/children (not-empty (mapv enlive->hiccup (:oksa.parse/children ast)))}
 
-    (and (sequential? ast)
-         (m/tag? (first ast)))
-    (mapv enlive->hiccup ast)
+        (and (sequential? ast)
+             (tag? (first ast)))
+        (mapv enlive->hiccup ast)
 
-    (and (sequential? ast)
-         (m/tag? (third ast)))
-    (let [[key opts child] ast]
-      (into [key opts] [(doall (mapcat enlive->hiccup [child]))]))
+        (and (sequential? ast)
+             (tag? (third ast)))
+        (let [[key opts child] ast]
+          (into [key opts] [(doall (mapcat enlive->hiccup [child]))]))
 
-    (and (sequential? ast)
-         (m/tag? (first (third ast))))
-    (let [[key opts children] ast]
-      (into [key opts] [(mapv enlive->hiccup children)]))
+        (and (sequential? ast)
+             (tag? (first (third ast))))
+        (let [[key opts children] ast]
+          (into [key opts] [(mapv enlive->hiccup children)]))
 
-    (and (sequential? ast)
-         (sequential? (first ast)))
-    (mapv enlive->hiccup ast)
+        (and (sequential? ast)
+             (sequential? (first ast)))
+        (mapv enlive->hiccup ast)
 
-    (and (sequential? ast)
-         (seq ast))
-    (into [(first ast)] (mapv enlive->hiccup (next ast)))
+        (and (sequential? ast)
+             (seq ast))
+        (into [(first ast)] (mapv enlive->hiccup (next ast)))
 
-    :else ast))
+        :else ast))))
 
 (defn transform-malli-ast
   "Applies transform-map to parse-tree recursively. Adapted from `instaparse.core/hiccup-transform`."
