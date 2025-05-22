@@ -963,12 +963,12 @@
                                              (let [[selection-type value] node]
                                                (cond-> (into []
                                                              [(case selection-type
-                                                                :oksa.parse/Field (oksa.util/transform-malli-ast -transform-map node)
-                                                                :oksa.parse/NakedField (oksa.util/transform-malli-ast -transform-map [:oksa.parse/Field [value {}]])
-                                                                :oksa.parse/WrappedField (oksa.util/transform-malli-ast -transform-map value)
-                                                                :oksa.parse/FragmentSpread (oksa.util/transform-malli-ast -transform-map value)
-                                                                :oksa.parse/InlineFragment (oksa.util/transform-malli-ast -transform-map value))])
-                                                 (some? children) (into [(oksa.util/transform-malli-ast -transform-map children)]))))
+                                                                :oksa.parse/Field (xf node)
+                                                                :oksa.parse/NakedField (xf [:oksa.parse/Field [value {}]])
+                                                                :oksa.parse/WrappedField (xf value)
+                                                                :oksa.parse/FragmentSpread (xf value)
+                                                                :oksa.parse/InlineFragment (xf value))])
+                                                 (some? children) (into [(xf children)]))))
                                            xs)))]
     {:oksa/document document
      :<> document
