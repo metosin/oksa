@@ -33,6 +33,8 @@ jobs:
           cli: 1.10.1.693
       - name: Run unit tests
         run: CLOJURE=clojure-${{ matrix.clojure }} bin/kaocha unit
+      - name: Run unit tests (using malli <0.18.0)
+        run: CLOJURE=clojure-${{ matrix.clojure }} EXTRA_ALIAS="malli-pre-0.18.0" ./bin/kaocha unit
       - name: Generate docs tests
         run: clojure -X:gen-doc-tests
       - name: Run docs tests
