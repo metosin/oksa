@@ -16,7 +16,7 @@ jobs:
         java-version: 11
         distribution: 'zulu'
     - name: Setup Clojure
-      uses: DeLaGuardo/setup-clojure@master
+      uses: DeLaGuardo/setup-clojure@13.2
       with:
         cli: latest
     - name: Build jar
