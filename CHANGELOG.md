@@ -32,7 +32,7 @@ for contributing to this release.
   - Fix also retains backwards compatibility for malli <0.18.0.
 - Add `test-doc-blocks` to run tests continuously against examples in README.md [#21](https://github.com/metosin/oksa/pull/21) [#22](https://github.com/metosin/oksa/pull/22) [#23](https://github.com/metosin/oksa/pull/23)
 - docs: readme: update babashka badge target [#24](https://github.com/metosin/oksa/pull/24)
-- ci: bump build deps [733a8a8](https://github.com/metosin/oksa/commit/733a8a86c05a76059f65840355522e96229c0954) [cb3c6a0](https://github.com/metosin/oksa/commit/cb3c6a03806e0c6e51651fa913aed415dcf4cf7e) [3c93908](https://github.com/metosin/oksa/commit/3c939081a0b440ab8031161416c492893d90190f)
+- ci: bump build deps [733a8a8](https://github.com/metosin/oksa/commit/733a8a86c05a76059f65840355522e96229c0954) [cb3c6a0](https://github.com/metosin/oksa/commit/cb3c6a03806e0c6e51651fa913aed415dcf4cf7e) [3c93908](https://github.com/metosin/oksa/commit/3c939081a0b440ab8031161416c492893d90190f) [03b95ee](https://github.com/metosin/oksa/commit/03b95ee2482b150a35a648b11aaebafb20c3315c)
 
 ## 1.1.0
 
