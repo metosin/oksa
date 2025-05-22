@@ -420,10 +420,13 @@
   [name opts selection-set]
   (let [opts (or opts {})
         form (-field-form name opts selection-set)
-        [_ [_ opts* _]] (oksa.parse/-parse-or-throw :oksa.parse/Field
-                                                    form
-                                                    oksa.parse/-field-parser
-                                                    "invalid field")]
+        [_ opts* _] (cond-> (oksa.parse/-parse-or-throw :oksa.parse/Field
+                                                        form
+                                                        oksa.parse/-field-parser
+                                                        "invalid field")
+                      (util/malli-tag-supported?) (:value)
+                      ;; TODO
+                      #_#_(not (util/malli-tag-supported?)) (-> second))]
     (-create-field name (-field-form name opts selection-set) opts* selection-set)))
 
 (defn -naked-field
@@ -695,10 +698,13 @@
   [variable-name opts variable-type]
   (let [variable-type* (-coerce-variable-type opts variable-type)
         form (-variable-form variable-name opts variable-type*)
-        [_ [[_ opts* _]]] (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
-                                                      form
-                                                      oksa.parse/-variable-definitions-parser
-                                                      "invalid variable definitions")]
+        [_ opts* _] (cond-> (oksa.parse/-parse-or-throw :oksa.parse/VariableDefinitions
+                                                        form
+                                                        oksa.parse/-variable-definitions-parser
+                                                        "invalid field")
+                      (util/malli-tag-supported?) (:value)
+                      ;; TODO
+                      #_#_(not (util/malli-tag-supported?)) (-> second))]
     (-create-variable variable-name opts* form variable-type*)))
 
 (defn -variables

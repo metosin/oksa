@@ -1,6 +1,10 @@
 (ns oksa.util
   (:require [malli.core :as m]))
 
+(defn malli-tag-supported?
+  []
+  (boolean (resolve 'malli.core/tag?)))
+
 (defn -oksa-parse?
   [ast]
   (boolean (and (map? ast)
