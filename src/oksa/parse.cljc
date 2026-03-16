@@ -278,7 +278,19 @@
   (let [parsed (-graphql-dsl-parser x)]
     (if (not= :malli.core/invalid parsed)
       parsed
-      (throw (ex-info "invalid form" {})))))
+      (let [explained (m/explain (-graphql-dsl-lang ::Document) x)
+            errors    (:errors explained)]
+        (throw (ex-info (str "oksa: invalid GQL form\n"
+                             "  form: " (pr-str x) "\n"
+                             "  errors:\n"
+                             (apply str (map (fn [e]
+                                              (str "    - path: " (:path e)
+                                                   " in: " (:in e)
+                                                   " value: " (pr-str (:value e))
+                                                   " schema: " (:schema e) "\n"))
+                                             (take 5 errors))))
+                        {:form   x
+                         :errors errors}))))))
 
 (defn -operation-definition-form
   [operation-type opts selection-set]
