@@ -14,7 +14,13 @@ We use [Break Versioning][breakver]. The version numbers follow a `<major>.<mino
 
 Oksa is currently [experimental](https://github.com/topics/metosin-experimental).
 
-## 1.2.1-SNAPSHOT
+## 1.2.1
+
+Thanks to [@dazld](https://github.com/dazld) for contributing to this release.
+
+- improve error messages for invalid GQL forms [#28](https://github.com/metosin/oksa/pull/28)
+- Add mode check to oksa.parse/parse [#29](https://github.com/metosin/oksa/pull/29)
+- chore: upgrade apollo-cljs dependency versions [9bb99ea](https://github.com/metosin/oksa/commit/9bb99ea8e213ed6e52fcba8347b19dd563b387bb)
 
 ## 1.2.0
 
